@@ -15,4 +15,4 @@ add_executable(
 	src/util.h
 	src/util.cpp
 	src/test.cpp
-)
+		src/genome/phenome.h src/genome/phenome.cpp src/genome/action.h src/genome/action.cpp src/genome/body.cpp src/genome/body.h src/genome/direction.h src/genome/direction.cpp)
