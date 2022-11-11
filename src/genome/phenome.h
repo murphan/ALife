@@ -12,20 +12,17 @@
 #include "types.h"
 #include "genome.h"
 #include "action.h"
+#include "body.h"
 
 class Phenome {
 public:
-	std::vector<i32> body;
-	i32 width;
-	i32 height;
+	Body body;
 
 	f32 mutationRate;
 
 	std::vector<Action> actions;
 
 	explicit Phenome(Genome &);
-
-	auto createGenome() -> Genome;
 };
 
 #endif //ALIFE_PHENOME_H

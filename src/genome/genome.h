@@ -20,12 +20,23 @@ private:
 public:
 	static char baseName[4];
 
-	Genome(std::string &);
+	enum {
+		A,
+		B,
+		C,
+		D
+	};
 
-	auto size() -> i32;
-	auto get(i32) -> i32;
+	Genome();
+	Genome(std::vector<u8> &&, i32);
+	explicit Genome(std::string &);
 
-	auto toString() -> std::string;
+	auto size() const -> i32;
+	auto get(i32) const -> i32;
+
+	auto toString() const -> std::string;
+
+	auto write(i32) -> void;
 };
 
 #endif //ALIFE_GENOME_H

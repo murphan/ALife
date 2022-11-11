@@ -44,3 +44,7 @@ auto Direction::rotate(Direction relative) const -> Direction {
 	auto amount = normalizedTable[relative.direction];
 	return Direction(Util::positiveMod(direction + amount, 8));
 }
+
+auto Direction::value() const -> i32 {
+	return direction;
+}

@@ -15,9 +15,7 @@ namespace Util {
 		i32 y;
 	};
 
-	auto positiveMod(i32 i, i32 n) -> i32 {
-		return (i % n + n) % n;
-	}
+	auto positiveMod(i32 i, i32 n) -> i32;
 }
 
 #endif //ALIFE_UTIL_H

@@ -10,6 +10,8 @@ auto Body::getCell(i32 x, i32 y) -> i32 {
 	return body[y * width + x];
 }
 
+Body::Body(): width(0), height(0), body() {}
+
 auto canvasIndex(i32 width, i32 x, i32 y) -> i32 {
 	return y * width + x;
 }

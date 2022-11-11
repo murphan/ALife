@@ -13,6 +13,7 @@
 
 class Body {
 public:
+	Body();
 	Body(i32, i32, std::vector<i32>&&);
 
 	i32 width;
