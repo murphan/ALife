@@ -8,6 +8,17 @@
 #include "types.h"
 #include "util.h"
 
+/**
+ * represents a discrete direction with 8 possibilities
+ * Direction of value 0 points right,
+ * each next tick up in value is an additional 45 degrees
+ * modulo 8: the direction after 7 is 0 and so on
+ *
+ * think of the point (cos( pi/4 a), sin( pi/4 a)) for a in [0..7]
+ * except the resulting vector from the direction is rounded to the next integer (1) in the case of diagonals
+ *
+ * consult the values of [table] for the possible vectors
+ */
 class Direction {
 private:
 	static Util::Coord table[8];

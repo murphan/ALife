@@ -135,7 +135,6 @@ auto BodyBuilder::setCurrentToAnchor(i32 anchor) {
 
 auto BodyBuilder::toBody() const -> Body {
 	/* shrinkwrap the canvas into the minimum box to fit the body */
-
 	auto mostLeft = 0;
 	auto mostRight = width - 1;
 	auto mostDown = 0;

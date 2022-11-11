@@ -9,6 +9,18 @@
 #include "direction.h"
 #include "genome.h"
 
+/**
+ * user friendly representation of a body instruction gene
+ * used only to manually create organisms
+ *
+ * body instructions have 4 modes:
+ * nothing,
+ * duplicate,
+ * use anchor,
+ * set anchor
+ *
+ * each can be created with a static factory function
+ */
 class BodyInstruction {
 public:
 	Direction direction;
@@ -27,6 +39,10 @@ public:
 	static auto createSetAnchor(Direction, i32, i32) -> BodyInstruction;
 };
 
+/**
+ * allows the the manual creation of a genome in code
+ * to build an initial organism
+ */
 class GenomeCreator {
 private:
 	std::vector<BodyInstruction> bodyInstructions;

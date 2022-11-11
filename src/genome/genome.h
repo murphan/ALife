@@ -12,8 +12,24 @@
 
 #include "types.h"
 
+/**
+ * wrapper for the genetic code of organism
+ * genome represented by a sequence of 4 "base pairs" labeled A, B, C, and D
+ */
 class Genome {
 private:
+	/**
+	 * bases are stored as 2 bits, 4 bases fit in each 8 bit integer
+	 * accessing and inserting are taken care of by this class as if each base was stored individually
+	 *
+	 * there may be more data past the end specified by length if it is not a multiple of 4
+	 * only ever access the code at indicies < length
+	 *
+	 * 00 -> A
+	 * 01 -> B
+	 * 10 -> C
+	 * 11 -> D
+	 */
 	std::vector<u8> code;
 	i32 length;
 
