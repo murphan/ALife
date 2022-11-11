@@ -11,8 +11,8 @@ namespace std {
 
     class SimulationController {
         public:
-            SimulationController();
-            //Environment environment;
+            SimulationController(void);
+            Environment environment;
     };
 
 } // std

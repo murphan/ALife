@@ -6,7 +6,7 @@
 #include <iostream>
 
 namespace std {
-    SimulationController::SimulationController() {
+    SimulationController::SimulationController() : environment(5) {
         std::cout << "Sim Controller" << endl;
     }
 } // std
