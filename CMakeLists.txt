@@ -11,6 +11,8 @@ add_executable(
 	ALife
 		src/genome/genome.h
 		src/genome/genome.cpp
+		src/Environment/SimulationController.cpp
+		src/Environment/SimulationController.h
 	src/types.h
 	src/util.h
 	src/util.cpp
