@@ -8,12 +8,16 @@
 namespace std {
 
     class Food {
+    private:
+        int energy;    //Amount of energy in the food
+        float decay;   // rate at which food decays (looses energy). Range (0,1)
+        int type;      // indicates type of food. **currently placeholder**
     public:
-        static int energy;
-        static float sDecay;
-        static int type;
+        Food(int, float, int);
+        void foodStep();
+        int getEnergy();
+        int getType();
 
-        Food();
 
     };
 
