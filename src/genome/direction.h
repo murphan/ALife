@@ -38,6 +38,7 @@ public:
 		RIGHT_DOWN,
 	};
 
+    Direction();
 	explicit Direction(i32);
 
 	auto x() const -> i32;

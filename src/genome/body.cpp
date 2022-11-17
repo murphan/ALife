@@ -37,7 +37,7 @@ auto Body::expand(i32 expandX, i32 expandY) -> void {
 		newHeight += expandY;
 	}
 
-	auto newCanvas = std::vector<i32>(newWidth + newHeight);
+	auto newCanvas = std::vector<i32>(newWidth * newHeight);
 
 	for (auto y = 0; y < height; ++y) {
 		for (auto x = 0; x < width; ++x) {
@@ -101,10 +101,11 @@ auto Body::addPart(BodyBuilder & builder, Direction direction, i32 part, i32 anc
 
     /* keep moving in direction until finding an empty space */
 	auto newDirection = builder.currentDirection.rotate(direction);
-    i32 newX, newY;
+    auto newX = baseX;
+    auto newY = baseY;
     do {
-        newX = baseX + newDirection.x();
-        newY = baseY + newDirection.y();
+        newX += newDirection.x();
+        newY += newDirection.y();
     } while (accessExpand(newX, newY, 5) != 0);
 ;
 	canvas[indexOf(newX, newY)] = part;
@@ -136,7 +137,7 @@ auto Body::accessExpand(i32 x, i32 y, i32 expandBy) -> i32 {
     } else if (y > canvasUp()) {
         expandY = expandBy;
     }
-    if (expandX != 0 && expandY != 0) expand(expandX, expandY);
+    if (expandX != 0 || expandY != 0) expand(expandX, expandY);
 
     return canvas[indexOf(x, y)];
 }
@@ -147,11 +148,11 @@ auto Body::access(i32 x, i32 y) const -> i32 {
 
 auto Body::debugToString() const -> std::string {
     auto string = std::string();
-    string.reserve((right - left + 2) * (up - down + 1) - 1);
+    string.reserve((width + 1) * height - 1);
 
-    for (auto y = up; y >= down; --y) {
-        for (auto x = left; x <= right; ++x) {
-            string.push_back(access(x, y) + '0');
+    for (auto y = height - 1; y >= 0; --y) {
+        for (auto x = 0; x < width; ++x) {
+            string.push_back(canvas[canvasIndex(width, x, y)] + '0');
         }
         if (y > down) string.push_back('\n');
     }

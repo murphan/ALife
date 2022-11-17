@@ -33,7 +33,9 @@ i32 Direction::normalizedTable[8] = {
 	-1
 };
 
-Direction::Direction(i32 direction): direction(direction) {}
+Direction::Direction(i32 direction): direction(Util::positiveMod(direction, 8)) {}
+
+Direction::Direction() : direction(0) {}
 
 /**
  * x component of a vector in this direction

@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <genome/phenome.h>
 
 #include "genome/genomeCreator.h"
 #include "genome/genome.h"
@@ -12,13 +13,16 @@
 auto main () -> int {
 	auto creator = GenomeCreator();
 
+	creator.addBodyInstruction(BodyInstruction::create(Direction(Direction::RIGHT), 2));
+	creator.addBodyInstruction(BodyInstruction::create(Direction(Direction::RIGHT), 3));
 	creator.addBodyInstruction(BodyInstruction::create(Direction(Direction::RIGHT), 4));
-	creator.addBodyInstruction(BodyInstruction::create(Direction(Direction::RIGHT_DOWN), 8));
-	creator.addBodyInstruction(BodyInstruction::create(Direction(Direction::UP), 9));
-	creator.addBodyInstruction(BodyInstruction::create(Direction(Direction::RIGHT_UP), 12));
+	creator.addBodyInstruction(BodyInstruction::create(Direction(Direction::RIGHT), 5));
 
 	auto genome0 = creator.create();
-	std::cout << genome0.toString() << std::endl; // AAADAAADCAADBAAACAAAAAAACCCAABBAABAD
+	std::cout << genome0.toString() << std::endl; // [AA AD AA ADC] AADBAAACAAAAAAACCCAABBAABAD
+
+    auto phenome = Phenome(genome0);
+    std::cout << phenome.body.debugToString() << std::endl;
 
 	auto inputString = std::string("ABDACDABBDCABBBCBABCBADBCBDABBBCBDABBABDBADBCBABBDABDDACBCBCDBABC");
 
