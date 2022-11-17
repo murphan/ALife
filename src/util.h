@@ -11,8 +11,8 @@ namespace Util {
 	auto ceilDiv(u32 x, u32 y) -> u32;
 
 	struct Coord {
-		i32 x;
-		i32 y;
+		i32 x = 0;
+		i32 y = 0;
 	};
 
 	auto positiveMod(i32 i, i32 n) -> i32;

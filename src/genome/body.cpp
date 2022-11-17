@@ -4,19 +4,14 @@
 
 #include "body.h"
 
-Body::Body(i32 width, i32 height, std::vector<i32> && body): width(width), height(height), body(std::move(body)) {}
-
-auto Body::getCell(i32 x, i32 y) -> i32 {
-	return body[y * width + x];
-}
-
-Body::Body(): width(0), height(0), body() {}
+BodyBuilder::BodyBuilder() :
+    currentX(0), currentY(0), currentDirection(Direction::RIGHT), anchors() {}
 
 auto canvasIndex(i32 width, i32 x, i32 y) -> i32 {
 	return y * width + x;
 }
 
-auto BodyBuilder::expand(i32 expandX, i32 expandY) -> void {
+auto Body::expand(i32 expandX, i32 expandY) -> void {
 	auto newWidth = width;
 	auto newHeight = height;
 	auto newOriginX = originX;
@@ -57,140 +52,109 @@ auto BodyBuilder::expand(i32 expandX, i32 expandY) -> void {
 	canvas = std::move(newCanvas);
 }
 
-auto BodyBuilder::indexOf(i32 x, i32 y) const -> i32 {
+auto Body::indexOf(i32 x, i32 y) const -> i32 {
 	return (y + originY) * width + (x + originX);
 }
 
-auto BodyBuilder::left() const -> i32 {
-	return -originX;
+auto Body::canvasLeft() const -> i32 {
+    return -originX;
 }
 
-auto BodyBuilder::right() const -> i32 {
-	return (width - 1) - originX;
+auto Body::canvasRight() const -> i32 {
+    return (width - 1) - originX;
 }
 
-auto BodyBuilder::down() const -> i32 {
-	return -originY;
+auto Body::canvasDown() const -> i32 {
+    return -originY;
 }
 
-auto BodyBuilder::up() const -> i32 {
-	return (height - 1) - originY;
+auto Body::canvasUp() const -> i32 {
+    return (height - 1) - originY;
 }
 
-BodyBuilder::BodyBuilder(i32 edge, i32 center):
-	currentX(0), currentY(0),
-	currentDirection(Direction::RIGHT),
+Body::Body(i32 edge, i32 center):
+    width(edge * 2 + 1), height(edge * 2 + 1),
 	originX(edge), originY(edge),
-	width(edge * 2 + 1), height(edge * 2 + 1),
 	canvas(width * height),
-	anchors()
+    left(0), right(0), down(0), up(0)
 {
-	anchors[0] = { 0, 0 };
-	anchors[1] = { 0, 0 };
-	anchors[1] = { 0, 0 };
-	anchors[1] = { 0, 0 };
-
 	canvas[indexOf(0, 0)] = center;
 }
 
-auto BodyBuilder::addPart(Direction direction, i32 part, i32 anchor) {
-	auto baseX = currentX;
-	auto baseY = currentY;
+/**
+ * @param builder the builder for the body creation process
+ * @param direction relative direction from current direction to place body part
+ * @param part the body segment to add
+ * @param anchor use -1 for no anchor, otherwise 0,1,2,3 for anchors A,B,C,D
+ *
+ * modifies the builder's current direction and current position
+ */
+auto Body::addPart(BodyBuilder & builder, Direction direction, i32 part, i32 anchor) -> void {
+    /* move from current position unless anchored, then jump */
+	auto baseX = builder.currentX;
+	auto baseY = builder.currentY;
 
 	if (anchor > 0) {
-		baseX = anchors[anchor].x;
-		baseY = anchors[anchor].x;
+		baseX = builder.anchors[anchor].x;
+		baseY = builder.anchors[anchor].x;
 	}
 
-	auto newDirection = currentDirection.rotate(direction);
-	auto newX = baseX + newDirection.x();
-	auto newY = baseY + newDirection.y();
-
-	/* resize canvas if necessary */
-	auto expandX = 0;
-	auto expandY = 0;
-
-	if (newX < left()) {
-		expandX = -5;
-	} else if (newX > right()) {
-		expandX = 5;
-	}
-	if (newY < down()) {
-		expandY = -5;
-	} else if (newY > up()) {
-		expandY = 5;
-	}
-	if (expandX != 0 && expandY != 0) expand(expandX, expandY);
-
+    /* keep moving in direction until finding an empty space */
+	auto newDirection = builder.currentDirection.rotate(direction);
+    i32 newX, newY;
+    do {
+        newX = baseX + newDirection.x();
+        newY = baseY + newDirection.y();
+    } while (accessExpand(newX, newY, 5) != 0);
+;
 	canvas[indexOf(newX, newY)] = part;
 
-	currentDirection = newDirection;
-	currentX = newX;
-	currentY = newY;
+    /* update bounds */
+    if (newX < left) left = newX;
+    else if (newX > right) right = newX;
+
+    if (newY < down) down = newY;
+    else if (newY > up) up = newY;
+
+    builder.currentDirection = newDirection;
+	builder.currentX = newX;
+	builder.currentY = newY;
 }
 
-auto BodyBuilder::setCurrentToAnchor(i32 anchor) {
-	anchors[anchor] = { currentX, currentY };
+/** may resize the canvas if out of bounds */
+auto Body::accessExpand(i32 x, i32 y, i32 expandBy) -> i32 {
+    auto expandX = 0;
+    auto expandY = 0;
+
+    if (x < canvasLeft()) {
+        expandX = -expandBy;
+    } else if (x > canvasRight()) {
+        expandX = expandBy;
+    }
+    if (y < canvasDown()) {
+        expandY = -expandBy;
+    } else if (y > canvasUp()) {
+        expandY = expandBy;
+    }
+    if (expandX != 0 && expandY != 0) expand(expandX, expandY);
+
+    return canvas[indexOf(x, y)];
 }
 
-auto BodyBuilder::toBody() const -> Body {
-	/* shrinkwrap the canvas into the minimum box to fit the body */
-	auto mostLeft = 0;
-	auto mostRight = width - 1;
-	auto mostDown = 0;
-	auto mostUp = height - 1;
+auto Body::access(i32 x, i32 y) const -> i32 {
+    return canvas[indexOf(x, y)];
+}
 
-	for (auto x = 0; x < width; ++x) {
-		for (auto y = 0; y < height; ++y) {
-			if (canvas[y * width + x] != 0) {
-				mostLeft = x;
-				goto outer0;
-			}
-		}
-	}
-	outer0:;
+auto Body::debugToString() const -> std::string {
+    auto string = std::string();
+    string.reserve((right - left + 2) * (up - down + 1) - 1);
 
-	for (auto x = width - 1; x >= 0; --x) {
-		for (auto y = 0; y < height; ++y) {
-			if (canvas[y * width + x] != 0) {
-				mostRight = x;
-				goto outer1;
-			}
-		}
-	}
-	outer1:;
+    for (auto y = up; y >= down; --y) {
+        for (auto x = left; x <= right; ++x) {
+            string.push_back(access(x, y) + '0');
+        }
+        if (y > down) string.push_back('\n');
+    }
 
-	for (auto y = 0; y < height; ++y) {
-		for (auto x = 0; x < width; ++x) {
-			if (canvas[y * width + x] != 0) {
-				mostDown = y;
-				goto outer2;
-			}
-		}
-	}
-	outer2:;
-
-	for (auto y = height - 1; y >= 0; --y) {
-		for (auto x = 0; x < width; ++x) {
-			if (canvas[y * width + x] != 0) {
-				mostUp = y;
-				goto outer3;
-			}
-		}
-	}
-	outer3:;
-
-	auto newWidth = mostRight - mostLeft + 1;
-	auto newHeight = mostUp - mostDown + 1;
-
-	auto body = std::vector<i32>(newWidth * newHeight);
-
-	/* copy body over */
-	for (auto y = 0; y < newHeight; ++y) {
-		for (auto x = 0; x < newWidth; ++x) {
-			body[y * newWidth + x] = canvas[(y + mostDown) * width + (x + mostLeft)];
-		}
-	}
-
-	return { newWidth, newHeight, std::move(body) };
+    return string;
 }

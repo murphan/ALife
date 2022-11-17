@@ -11,46 +11,47 @@
 #include "util.h"
 #include "direction.h"
 
-class Body {
+/**
+ * additional context needed to build a body from instructions
+ */
+class BodyBuilder {
 public:
-	Body();
-	Body(i32, i32, std::vector<i32>&&);
+    BodyBuilder();
 
-	i32 width;
-	i32 height;
-	std::vector<i32> body;
-
-	auto getCell(i32, i32) -> i32;
+    i32 currentX, currentY;
+    Direction currentDirection;
+    Util::Coord anchors [4];
 };
 
-class BodyBuilder {
+class Body {
 private:
+    /** width of total canvas, not extent of organism body parts */
+    i32 width, height;
+    /** distance from bottom left to the 0,0 point of the organism */
+    i32 originX, originY;
+    /** organism's body parts */
+    std::vector<i32> canvas;
+
 	auto expand(i32, i32) -> void;
 	auto indexOf(i32, i32) const -> i32;
 
-	/** borders */
-	auto left() const -> i32;
-	auto right() const -> i32;
-	auto down() const -> i32;
-	auto up() const -> i32;
+    auto canvasLeft() const -> i32;
+    auto canvasRight() const -> i32;
+    auto canvasDown() const -> i32;
+    auto canvasUp() const -> i32;
 
 public:
-	i32 currentX, currentY;
-	Direction currentDirection;
+    /** bounds of the organism in the canvas, inclusive on both ends */
+	i32 left, right, down, up;
 
-	i32 originX, originY;
-	i32 width, height;
+	Body(i32, i32);
 
-	std::vector<i32> canvas;
-	Util::Coord anchors [4];
+    auto accessExpand(i32, i32, i32) -> i32;
+    auto access(i32, i32) const -> i32;
 
-	BodyBuilder(i32, i32);
+	auto addPart(BodyBuilder &, Direction, i32, i32) -> void;
 
-	auto addPart(Direction, i32, i32);
-
-	auto setCurrentToAnchor(i32);
-
-	auto toBody() const -> Body;
+    auto debugToString() const -> std::string;
 };
 
 #endif //ALIFE_BODY_H
