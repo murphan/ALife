@@ -8,6 +8,8 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
 
+from Control_DataProcessingGUI import DataDisplayControl
+
 matplotlib.use("TkAgg")
 
 # This is not yet a comprehensive list and is only for temporary fill in purposes at the moment
@@ -128,33 +130,43 @@ class DataDisplayGUI:
         """
         self.top_dd_1_value = tkinter.StringVar(self.window)
         self.top_dd_1_value.set("Attribute/Variable")
-        dropdown1 = tkinter.OptionMenu(frame, self.top_dd_1_value, *ATTRIBUTES)
-        dropdown1.pack(side=TOP)
-        dropdown1.config(fg="red", bg="white", width=20)
+        self.top_dd_1 = tkinter.OptionMenu(frame, self.top_dd_1_value, *ATTRIBUTES,
+                                           command=lambda event:
+                                           DataDisplayControl.set_graph1_array1(self, self.top_dd_1_value.get()))
+        self.top_dd_1.pack(side=TOP)
+        self.top_dd_1.config(fg="red", bg="white", width=20)
 
         self.top_dd_2_value = tkinter.StringVar(self.window)
         self.top_dd_2_value.set("Attribute/Variable")
-        dropdown2 = tkinter.OptionMenu(frame, self.top_dd_2_value, *ATTRIBUTES)
-        dropdown2.pack(side=TOP)
-        dropdown2.config(fg="blue", bg="white", width=20)
+        self.top_dd_2 = tkinter.OptionMenu(frame, self.top_dd_2_value, *ATTRIBUTES,
+                                           command=lambda event:
+                                           DataDisplayControl.set_graph1_array2(self, self.top_dd_2_value.get()))
+        self.top_dd_2.pack(side=TOP)
+        self.top_dd_2.config(fg="blue", bg="white", width=20)
 
         self.top_dd_3_value = tkinter.StringVar(self.window)
         self.top_dd_3_value.set("Attribute/Variable")
-        dropdown3 = tkinter.OptionMenu(frame, self.top_dd_3_value, *ATTRIBUTES)
-        dropdown3.pack(side=TOP)
-        dropdown3.config(fg="orange", bg="white", width=20)
+        self.top_dd_3 = tkinter.OptionMenu(frame, self.top_dd_3_value, *ATTRIBUTES,
+                                           command=lambda event:
+                                           DataDisplayControl.set_graph1_array3(self, self.top_dd_3_value.get()))
+        self.top_dd_3.pack(side=TOP)
+        self.top_dd_3.config(fg="orange", bg="white", width=20)
 
         self.top_dd_4_value = tkinter.StringVar(self.window)
         self.top_dd_4_value.set("Attribute/Variable")
-        dropdown4 = tkinter.OptionMenu(frame, self.top_dd_4_value, *ATTRIBUTES)
-        dropdown4.pack(side=TOP)
-        dropdown4.config(fg="green", bg="white", width=20)
+        self.top_dd_4 = tkinter.OptionMenu(frame, self.top_dd_4_value, *ATTRIBUTES,
+                                           command=lambda event:
+                                           DataDisplayControl.set_graph1_array4(self, self.top_dd_4_value.get()))
+        self.top_dd_4.pack(side=TOP)
+        self.top_dd_4.config(fg="green", bg="white", width=20)
 
         self.top_dd_5_value = tkinter.StringVar(self.window)
         self.top_dd_5_value.set("Attribute/Variable")
-        dropdown5 = tkinter.OptionMenu(frame, self.top_dd_5_value, *ATTRIBUTES)
-        dropdown5.pack(side=TOP)
-        dropdown5.config(fg="purple", bg="white", width=20)
+        self.top_dd_5 = tkinter.OptionMenu(frame, self.top_dd_5_value, *ATTRIBUTES,
+                                           command=lambda event:
+                                           DataDisplayControl.set_graph1_array5(self, self.top_dd_5_value.get()))
+        self.top_dd_5.pack(side=TOP)
+        self.top_dd_5.config(fg="purple", bg="white", width=20)
 
     def setup_bottom_dropdowns(self, frame):
         """
@@ -166,55 +178,66 @@ class DataDisplayGUI:
         # To track each of the five selections individually five different variables have to be made
         self.btm_dd_1_value = tkinter.StringVar(self.window)
         self.btm_dd_1_value.set("Attribute/Variable")
-        dropdown1 = tkinter.OptionMenu(frame, self.btm_dd_1_value, *ATTRIBUTES)
-        dropdown1.pack(side=TOP)
-        dropdown1.config(fg="red", bg="white", width=20)
+        self.btm_dd_1 = tkinter.OptionMenu(frame, self.btm_dd_1_value, *ATTRIBUTES,
+                                           command=lambda event:
+                                           DataDisplayControl.set_graph2_array1(self, self.btm_dd_1_value.get()))
+        self.btm_dd_1.pack(side=TOP)
+        self.btm_dd_1.config(fg="red", bg="white", width=20)
 
         self.btm_dd_2_value = tkinter.StringVar(self.window)
         self.btm_dd_2_value.set("Attribute/Variable")
-        dropdown2 = tkinter.OptionMenu(frame, self.btm_dd_2_value, *ATTRIBUTES)
-        dropdown2.pack(side=TOP)
-        dropdown2.config(fg="blue", bg="white", width=20)
+        self.btm_dd_2 = tkinter.OptionMenu(frame, self.btm_dd_2_value, *ATTRIBUTES,
+                                           command=lambda event:
+                                           DataDisplayControl.set_graph2_array2(self, self.btm_dd_2_value.get()))
+        self.btm_dd_2.pack(side=TOP)
+        self.btm_dd_2.config(fg="blue", bg="white", width=20)
 
         self.btm_dd_3_value = tkinter.StringVar(self.window)
         self.btm_dd_3_value.set("Attribute/Variable")
-        dropdown3 = tkinter.OptionMenu(frame, self.btm_dd_3_value, *ATTRIBUTES)
-        dropdown3.pack(side=TOP)
-        dropdown3.config(fg="orange", bg="white", width=20)
+        self.btm_dd_3 = tkinter.OptionMenu(frame, self.btm_dd_3_value, *ATTRIBUTES,
+                                           command=lambda event:
+                                           DataDisplayControl.set_graph2_array3(self, self.btm_dd_3_value.get()))
+        self.btm_dd_3.pack(side=TOP)
+        self.btm_dd_3.config(fg="orange", bg="white", width=20)
 
         self.btm_dd_4_value = tkinter.StringVar(self.window)
         self.btm_dd_4_value.set("Attribute/Variable")
-        dropdown4 = tkinter.OptionMenu(frame, self.btm_dd_4_value, *ATTRIBUTES)
-        dropdown4.pack(side=TOP)
-        dropdown4.config(fg="green", bg="white", width=20)
+        self.btm_dd_4 = tkinter.OptionMenu(frame, self.btm_dd_4_value, *ATTRIBUTES,
+                                           command=lambda event:
+                                           DataDisplayControl.set_graph2_array4(self, self.btm_dd_4_value.get()))
+        self.btm_dd_4.pack(side=TOP)
+        self.btm_dd_4.config(fg="green", bg="white", width=20)
 
         self.btm_dd_5_value = tkinter.StringVar(self.window)
         self.btm_dd_5_value.set("Attribute/Variable")
-        dropdown5 = tkinter.OptionMenu(frame, self.btm_dd_5_value, *ATTRIBUTES)
-        dropdown5.pack(side=TOP)
-        dropdown5.config(fg="purple", bg="white", width=20)
+        self.btm_dd_5 = tkinter.OptionMenu(frame, self.btm_dd_5_value, *ATTRIBUTES,
+                                           command=lambda event:
+                                           DataDisplayControl.set_graph2_array5(self, self.btm_dd_5_value.get()))
+        self.btm_dd_5.pack(side=TOP)
+        self.btm_dd_5.config(fg="purple", bg="white", width=20)
 
     def setup_frames(self):
         """
         This will make very basic graphs for data to eventually be displayed in
         :return: None
         """
-        figure = Figure(figsize=(7, 4), dpi=100)
-        plot = figure.add_subplot(1, 1, 1)
+        self.top_figure = Figure(figsize=(7, 4), dpi=100)
+        plot = self.top_figure.add_subplot(1, 1, 1)
 
         plot.plot()
 
-        canvas = FigureCanvasTkAgg(figure, self.top_graph)
+        canvas = FigureCanvasTkAgg(self.top_figure, self.top_graph)
         canvas.get_tk_widget().grid(row=0, column=0)
 
-        figure = Figure(figsize=(7, 4), dpi=100)
-        plot = figure.add_subplot(1, 1, 1)
+        self.bottom_figure = Figure(figsize=(7, 4), dpi=100)
+        plot = self.bottom_figure.add_subplot(1, 1, 1)
 
         plot.plot()
 
-        canvas = FigureCanvasTkAgg(figure, self.bottom_graph)
+        canvas = FigureCanvasTkAgg(self.bottom_figure, self.bottom_graph)
         canvas.get_tk_widget().grid(row=0, column=0)
+
 
 # This can be enabled at the moment for temporary purposes of testing whether or not the GUI is working or not
-# if __name__ == "__main__":
-#     DataDisplayGUI()
+if __name__ == "__main__":
+    DataDisplayGUI()
