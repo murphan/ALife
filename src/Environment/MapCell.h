@@ -5,23 +5,22 @@
 #ifndef ALIFE_MAPCELL_H
 #define ALIFE_MAPCELL_H
 
+#include <vector>
 #include "src/Environment/Food.h"
 
 namespace std {
 
     class MapCell {
-    public:
-        int temp;
+    private:
+        int temperature;
         int light;
-        Food food;
-        static int type;
-        static int isWall;
-
+        std::vector<std::Food> food;
+    public:
         MapCell(int inTemp, int inLight);
-
+        void mapCellStep();
+        int getTemperature();
+        int getLight();
 
     };
-
-} // std
-
+}
 #endif //ALIFE_MAPCELL_H
