@@ -4,6 +4,7 @@
 
 #include "genome.h"
 #include "util.h"
+#include "random"
 
 char Genome::baseName[4] = { 'A', 'B', 'C', 'D' };
 
@@ -51,6 +52,8 @@ Genome::Genome(std::string & string) : code(), length((i32)string.length()) {
 	if (baseIndex != 0) code.push_back(constructingByte);
 }
 
+Genome::Genome(std::string && string) : Genome(string) {}
+
 /**
  * accesses a base at an index in the code
  */
@@ -70,7 +73,7 @@ auto Genome::size() const -> i32 {
 }
 
 /**
- * converts internal representation to string representation of ABCD
+ * converts internal bit representation to string "ABCD" representation
  * for displaying
  */
 auto Genome::toString() const -> std::string {
@@ -99,4 +102,53 @@ auto Genome::write(i32 base) -> void {
 		code[Util::ceilDiv(length, 4) - 1] |= base << ((3 - (length % 4)) * 2);
 	}
 	++length;
+}
+
+/**
+ * creates a new genome from this genome, but mutated in some way
+ *
+ * substitutions: changes any single base pair to another random base pair,
+ * insertions: adds a base pair somewhere in the code,
+ * deletions: deletes a base pair,
+ *
+ * @param substitutionChance from 0 (never) to 1 (always)
+ *
+ * mutation rates should probably be nowhere near 1
+ */
+auto Genome::mutateCopy(
+    f32 substitutionChance,
+    f32 insertionChance,
+    f32 deletionChance
+) const -> Genome {
+    auto device = std::random_device();
+    auto random = std::default_random_engine(device());
+    auto chance = std::uniform_real_distribution<f32>(0.0_f32, std::nextafter(1.0_f32, FLT_MAX));
+    auto otherBase = std::uniform_int_distribution<i32>(0, 3);
+    auto anyBase = std::uniform_int_distribution<i32>(0, 4);
+
+    auto newGenome = Genome();
+
+    for (auto i = 0; i < length; ++i) {
+        /* prepend insertion */
+        if (chance(random) < insertionChance)
+            newGenome.write(anyBase(random));
+
+        /* don't copy over this base */
+        if (chance(random) < deletionChance)
+            continue;
+        
+        auto base = get(i);
+
+        /* substitute with a random *other* base, cannot remain the same */
+        if (chance(random) < substitutionChance)
+            base = (base + otherBase(random)) % 4;
+
+        newGenome.write(base);
+    }
+
+    /* chance for final insertion */
+    if (chance(random) < insertionChance)
+        newGenome.write(anyBase(random));
+
+    return newGenome;
 }

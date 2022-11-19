@@ -11,6 +11,14 @@
 
 
 auto main () -> int {
+    /* mutate genome test */
+    auto ogGenome = Genome(std::string("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
+    auto mutatedGenome = ogGenome.mutateCopy(0.01_f32, 0.01_f32, 0.01_f32);
+
+    std::cout << ogGenome.toString() << std::endl;
+    std::cout << mutatedGenome.toString() << '\n' << std::endl;
+
+    /* create body test */
 	auto creator = GenomeCreator();
 
 	creator.addBodyInstruction(BodyInstruction::create(Direction(Direction::RIGHT), 2));
@@ -24,6 +32,7 @@ auto main () -> int {
     auto phenome = Phenome(genome0);
     std::cout << phenome.body.debugToString() << std::endl;
 
+    /* string decode test */
 	auto inputString = std::string("ABDACDABBDCABBBCBABCBADBCBDABBBCBDABBABDBADBCBABBDABDDACBCBCDBABC");
 
 	auto genome1 = Genome(inputString);
