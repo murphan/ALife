@@ -22,37 +22,35 @@ Genome::Genome(std::vector<u8> && code, i32 length): code(std::move(code)), leng
  * constructs a genome based on its string representation of a sequence of 'A', 'B', 'C', and 'D'
  * throws if a bad string is passed
  */
-Genome::Genome(std::string & string) : code(), length((i32)string.length()) {
-	code.reserve(Util::ceilDiv(length, 4_u32));
+Genome::Genome(std::string && string) : code(), length((i32)string.length()) {
+    code.reserve(Util::ceilDiv(length, 4_u32));
 
-	//TODO should probably be replaced by the write() function
+    //TODO should probably be replaced by the write() function
 
-	/* keep a buffer of 4 bases that are written to code all at once */
-	auto constructingByte = 0_u8;
-	auto baseIndex = 0_i32;
+    /* keep a buffer of 4 bases that are written to code all at once */
+    auto constructingByte = 0_u8;
+    auto baseIndex = 0_i32;
 
-	for (auto &base : string) {
-		auto part = base == 'A' ? 0
-			: base == 'B' ? 1
-			: base == 'C' ? 2
-			: base == 'D' ? 3
-			: -1;
-		if (part == -1) throw std::exception("bad character in genome");
+    for (auto &base : string) {
+        auto part = base == 'A' ? 0
+            : base == 'B' ? 1
+            : base == 'C' ? 2
+            : base == 'D' ? 3
+            : -1;
+        if (part == -1) throw std::exception("bad character in genome");
 
-		/* write to the buffer until it is full, then reset */
-		constructingByte |= part << (3_i32 - baseIndex) * 2;
-		if (++baseIndex == 4) {
-			code.push_back(constructingByte);
-			constructingByte = 0_u8;
-			baseIndex = 0;
-		}
-	}
+        /* write to the buffer until it is full, then reset */
+        constructingByte |= part << (3_i32 - baseIndex) * 2;
+        if (++baseIndex == 4) {
+            code.push_back(constructingByte);
+            constructingByte = 0_u8;
+            baseIndex = 0;
+        }
+    }
 
-	/* write to code any remaining bases if the buffer is not clear */
-	if (baseIndex != 0) code.push_back(constructingByte);
+    /* write to code any remaining bases if the buffer is not clear */
+    if (baseIndex != 0) code.push_back(constructingByte);
 }
-
-Genome::Genome(std::string && string) : Genome(string) {}
 
 /**
  * accesses a base at an index in the code
@@ -151,4 +149,42 @@ auto Genome::mutateCopy(
         newGenome.write(anyBase(random));
 
     return newGenome;
+}
+
+/**
+ * dynamic programming solution to the edit distance problem
+ *
+ * @return the intermediate grid produced by the algorithm, of width string0.length() + 1 and height string1.length() + 1,
+ * the bottom right corner at (w, h) is the edit distance
+ */
+auto Genome::editDistance(Genome & other) const -> std::vector<i32> {
+    auto w = length, h = other.length;
+    auto width = w + 1;
+
+    auto grid = std::vector<i32>(width * (h + 1));
+
+    /* fill in the first row and column with their index */
+    for (auto i = 0; i <= w; ++i) grid[i] = i;
+    for (auto i = 1; i <= h; ++i) grid[i * width] = i;
+
+    /*
+     * in row order, first check if the character at string0[x - 1] & string1[y - 1] are equal
+     * if so, copy the value to the top left
+     * if not, copy the smallest value to the left, up, or left up and add 1
+     */
+    for (auto y = 1; y <= h; ++y) {
+        for (auto x = 1; x <= w; ++x) {
+            if (get(x - 1) == other.get(y - 1)) {
+                grid[y * width + x] = grid[(y - 1) * width + (x - 1)];
+            } else {
+                auto a = grid[(y - 1) * width + x];
+                auto b = grid[y * width + (x - 1)];
+                auto c = grid[(y - 1) * width + (x - 1)];
+
+                grid[y * width + x] = std::min(std::min(a, b), c) + 1;
+            }
+        }
+    }
+
+    return grid;
 }

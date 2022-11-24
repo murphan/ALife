@@ -45,7 +45,6 @@ public:
 
 	Genome();
 	Genome(std::vector<u8> &&, i32);
-	explicit Genome(std::string &);
     explicit Genome(std::string &&);
 
 	auto size() const -> i32;
@@ -59,6 +58,8 @@ public:
         f32 insertionChance,
         f32 deletionChance
     ) const -> Genome;
+
+    auto editDistance(Genome & other) const -> std::vector<i32>;
 };
 
 #endif //ALIFE_GENOME_H
