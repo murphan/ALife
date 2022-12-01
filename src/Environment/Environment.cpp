@@ -1,5 +1,4 @@
 #include "Environment.h"
-#include "iostream"
 
 //Constructs a map with the given number of cells
 Environment::Environment(int startCells) {
@@ -7,7 +6,7 @@ Environment::Environment(int startCells) {
 
     for (int i = 0; i < cells; ++i) {
         //creates a starting vector of vectors
-        auto mapRow = std::vector<std::MapCell>();
+        auto mapRow = std::vector<MapCell>();
 
         for (int j = 0; j < cells; ++j) {
             //creates mapCells and adds them to the row
@@ -23,6 +22,7 @@ Environment::Environment(int startCells) {
 void Environment::EnvironmentStep() {
     //Moves through the map and updates each cell
     for (int i = 0; i < cells; ++i) {
+
         for (int j = 0; j < cells; ++j) {
             map[i][j].mapCellStep();
         }

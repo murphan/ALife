@@ -1,12 +1,11 @@
-//
-// Created by Anna on 11/9/2022.
-//
-
 #include "src/Environment/SimulationController.h"
 #include <iostream>
 
-namespace std {
-    SimulationController::SimulationController() : environment(5) {
-        std::cout << "Sim Controller" << endl;
-    }
-} // std
+SimulationController::SimulationController() : environment(environment) {
+    currentStep = 0;
+    environment = Environment(5);
+}
+
+void SimulationController::step() {
+    environment.EnvironmentStep();
+}
