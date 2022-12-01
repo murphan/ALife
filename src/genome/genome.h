@@ -45,6 +45,12 @@ public:
 
 	Genome();
 	Genome(std::vector<u8> &&, i32);
+
+#ifdef DEBUG
+    Genome(const Genome &);
+    auto operator=(const Genome &) -> Genome &;
+#endif
+
     explicit Genome(std::string &&);
 
 	auto size() const -> i32;
@@ -59,7 +65,9 @@ public:
         f32 deletionChance
     ) const -> Genome;
 
-    auto editDistance(Genome & other) const -> std::vector<i32>;
+    static auto editDistance(Genome &, Genome &) -> std::vector<i32>;
+
+    static auto mutateCombine(Genome & first, Genome & second) -> Genome;
 };
 
 #endif //ALIFE_GENOME_H

@@ -10,20 +10,21 @@
 #include "types.h"
 #include "util.h"
 #include <iomanip>
+#include <tuple>
 
 auto main () -> int {
-    auto g0 = Genome("DABDABBBCABDBCBBADBCABDABA");
-    auto g1 = Genome("ABCBADBBCDBCBBDAACABAD");
-    auto grid = g0.editDistance(g1);
+    auto g0 = Genome("AAAAABBBBBBBBBB");
+    auto g1 = Genome("AABBBBBBBBBB");
 
-    for (auto y = 0; y <= g1.size(); ++y) {
-        for (auto x = 0; x <= g0.size(); ++x) {
-            std::cout << std::setfill('0') << std::setw(2) << grid[y * (g0.size() + 1) + x] << ' ';
-        }
-        std::cout << std::endl;
-    }
+    auto [ r0, r1 ] = std::tuple<Genome &, Genome &> { g0, g1 };
 
-    std::cout << std::endl;
+    std::cout << "hello" << std::endl;
+
+    auto grid = Genome::editDistance(g0, g1);
+
+    Util::printGrid(grid, g0.size() + 1);
+
+    auto recombined = Genome::mutateCombine(g0, g1);
 
     /* mutate genome test */
     auto ogGenome = Genome(std::string("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
