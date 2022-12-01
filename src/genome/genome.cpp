@@ -191,18 +191,33 @@ auto Genome::editDistance(Genome & genomeX, Genome & genomeY) -> std::vector<i32
     return grid;
 }
 
-auto Genome::mutateCombine(Genome & first, Genome & second) -> Genome {
+auto Genome::mutateCombine(
+	Genome & first,
+	Genome & second,
+	f32 tolerance,
+	f32 substitutionChance,
+	f32 insertionChance,
+	f32 deletionChance
+) -> std::optional<Genome> {
     auto device = std::random_device();
     auto random = std::default_random_engine(device());
 
-    auto genome = Genome();
     /* does not work on empty genomes */
-    if (first.size() == 0 || second.size() == 0) return genome;
+    if (first.size() == 0 || second.size() == 0) {
+	    return std::nullopt;
+    }
 
     using Pair = std::tuple<Genome &, Genome &>;
     auto [ shorter, longer ] = first.size() < second.size() ? Pair { first, second } : Pair { second, first };
 
     auto grid = longer.editDistance(longer, shorter);
+
+	/* tolerance check for similar genomes */
+	auto difference = grid[grid.size() - 1];
+	if ((f32)difference / (f32)longer.size() > tolerance) {
+		return std::nullopt;
+	}
+
     auto width = longer.size() + 1;
 
     auto includes = std::vector<std::vector<Util::Coord>>();
@@ -245,47 +260,95 @@ auto Genome::mutateCombine(Genome & first, Genome & second) -> Genome {
     while (true) {
         auto direction = findDirection(x, y);
 
+		/* list to collect all positions on this y level */
+		/* start with this position */
+	    auto list = std::vector<Util::Coord>(1, { x, y });
+
+        /* going left, meaning we collect multiple */
+		if (direction == 2) {
+			++totalOptionals;
+
+			while (true) {
+		        /* add subsequent spaces to the left */
+		        advanceXY(direction);
+		        list.emplace_back(x, y);
+		        ++totalOptionals;
+
+		        /* stop if the added one moves up a y level or stops */
+				direction = findDirection(x, y);
+				if (direction != 2) break;
+			}
+		}
+
+        includes.push_back(std::move(list));
         if (direction == -1) {
-            break;
-
-        /* the start of a run, multiple at the same y level */
-        } else if (direction == 2) {
-            /* this one belongs to the run */
-            auto list = std::vector<Util::Coord>(1, { x, y });
-            ++totalOptionals;
-
-            while (true) {
-                /* add subsequent spaces to the left */
-                advanceXY(direction);
-                list.emplace_back(x, y);
-                ++totalOptionals;
-
-                /* stop if the added one moves up a y level or stops */
-                direction = findDirection(x, y);
-                if (direction != 2) break;
-            }
-
-            includes.push_back(std::move(list));
-            if (direction == -1) break;
-
-        } else {
-            includes.emplace_back(1, Util::Coord { x, y });
+			break;
+		} else {
             advanceXY(direction);
-        }
+		}
     }
 
-    auto differenceRange = std::uniform_int_distribution<i32>(0, longer.size() - shorter.size() + 1);
-    auto addExtra = differenceRange(random);
+	/* debug (display edit distance grid and path) */
+    //for (auto & list : includes) {
+    //    for (auto & [px, py] : list) {
+    //        grid[py * width + px] = -(i32)list.size();
+    //    }
+    //}
+    //Util::printGrid(grid, width);
 
-    for (auto & list : includes) {
-        for (auto & [px, py] : list) {
-            grid[py * width + px] = -(i32)list.size();
-        }
-    }
+	auto genomeWrapper = std::make_optional<Genome>();
+	auto & genome = genomeWrapper.value();
 
-    Util::printGrid(grid, width);
+	/* note that coordinates in the include trail are in grid indices, so have to be -1 to get string indices */
+	auto selectBase = [&](Genome & longer, Genome & shorter, std::vector<Util::Coord> & level, i32 i) {
+		/* mutations */
+		auto chance = std::uniform_real_distribution<f32>(0.0_f32, std::nextafter(1.0_f32, FLT_MAX));
 
-    return genome;
+		if (chance(random) < insertionChance) {
+			genome.write(std::uniform_int_distribution<i32>(0, 4)(random));
+		}
+
+		/* only select if it wasn't deleted */
+		if (chance(random) >= deletionChance) {
+			/* select from a parent at random */
+			i32 selectedBase;
+			if (std::uniform_int_distribution<i32>(0, 2)(random) == 0)
+				selectedBase = longer.get(level[i].x - 1);
+			else
+				selectedBase = second.get(level[i].y - 1);
+
+			if (chance(random) < substitutionChance)
+				genome.write((selectedBase + std::uniform_int_distribution<i32>(0, 3)(random)) % 4);
+			else
+				genome.write(selectedBase);
+		}
+	};
+
+	/* go backwards in includes list (forwards in genome since include list is constructed backwards) */
+	for (auto i = (i32)includes.size() - 1; i >= 0; --i) {
+		auto & level = includes.at(i);
+
+		if (level.size() == 1) {
+			selectBase(longer, shorter, level, 0);
+
+		} else {
+			/* each space in this run has an equal chance of being selected */
+			auto chance = std::uniform_int_distribution<i32>(0, level.size());
+			/* keep track of how many of this run got included, so we can always include at least 1 */
+			auto numIncluded = 0;
+
+			for (auto j = (i32)level.size() - 1; j >= 0; --j) if (chance(random) == 0) {
+				selectBase(longer, shorter, level, j);
+				++numIncluded;
+			}
+
+			if (numIncluded == 0) {
+				selectBase(longer, shorter, level, chance(random));
+			}
+		}
+	}
+
+    return genomeWrapper;
 }
 
 #ifdef DEBUG

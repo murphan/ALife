@@ -9,8 +9,11 @@
 
 #include <vector>
 #include <string>
+#include <optional>
 
 #include "types.h"
+
+//#define DEBUG
 
 /**
  * wrapper for the genetic code of organism
@@ -67,7 +70,14 @@ public:
 
     static auto editDistance(Genome &, Genome &) -> std::vector<i32>;
 
-    static auto mutateCombine(Genome & first, Genome & second) -> Genome;
+    static auto mutateCombine(
+		Genome & first,
+		Genome & second,
+		f32 tolerance,
+		f32 substitutionChance,
+		f32 insertionChance,
+		f32 deletionChance
+	) -> std::optional<Genome>;
 };
 
 #endif //ALIFE_GENOME_H

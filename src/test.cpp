@@ -9,22 +9,21 @@
 #include "genome/genome.h"
 #include "types.h"
 #include "util.h"
-#include <iomanip>
 #include <tuple>
 
 auto main () -> int {
-    auto g0 = Genome("AAAAABBBBBBBBBB");
-    auto g1 = Genome("AABBBBBBBBBB");
+    auto g0 = Genome("AAACAAADAAABAAACAAAD");
+    auto g1 = Genome("AAADAAABAAABAAACAAAC");
 
-    auto [ r0, r1 ] = std::tuple<Genome &, Genome &> { g0, g1 };
+	for (auto i = 0; i < 20; ++i) {
+		auto recombined = Genome::mutateCombine(g0, g1, 0.3_f32, 0.01_f32, 0.01_f32, 0.01_f32);
+		std::cout << "Combined: " << (recombined.has_value() ? recombined->toString() : "Not compatible") << std::endl;
+	}
+	return 0;
 
-    std::cout << "hello" << std::endl;
-
-    auto grid = Genome::editDistance(g0, g1);
-
-    Util::printGrid(grid, g0.size() + 1);
-
-    auto recombined = Genome::mutateCombine(g0, g1);
+    //auto [ r0, r1 ] = std::tuple<Genome &, Genome &> { g0, g1 };
+    //auto grid = Genome::editDistance(g0, g1);
+    //Util::printGrid(grid, g0.size() + 1);
 
     /* mutate genome test */
     auto ogGenome = Genome(std::string("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
