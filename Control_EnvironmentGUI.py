@@ -10,4 +10,3 @@ class EnvironmentControl:
 
     # TODO: Create calls for start and stop
     # TODO: Create calls for changing size?
-    

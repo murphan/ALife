@@ -71,7 +71,14 @@ class EnvironmentGui:
 
         # TODO: Create a size option for rows and columns
         # TODO: Create an option for pause and play buttons
+        # TODO: Make sure there are limits and restrictions on sizes of screens and how big
+        #       the environment is
+        x = self.window.winfo_rootx()
+        y = self.window.winfo_rooty()
+
+        
 
 
 if __name__ == "__main__":
     EnvironmentGui()
+    x = winfo_rootx()
