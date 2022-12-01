@@ -6,16 +6,20 @@
 #define ALIFE_ENVIRONMENT_H
 
 #include "src/Environment/MapCell.h"
+#include <vector>
 
 namespace std {
 
 
     class Environment {
+        private:
+            int cells;                                   //Length of side of the square map
+            std::vector<std::vector<std::MapCell>> map;  //2d Vector of each cell in the map
+
         public:
             Environment(int);
+            void EnvironmentStep();
 
-            int cells;
-            MapCell map;
     };
 
 } // std
