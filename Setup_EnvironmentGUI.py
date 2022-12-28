@@ -7,6 +7,8 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 WINDOW_HEIGHT = 770
 WINDOW_WIDTH = 1500
+SCREEN = None
+CLOCK = None
 
 class SetupEnvironment:
     def __init__(self):
@@ -36,6 +38,7 @@ class SetupEnvironment:
             pygame.display.update()
 
     def drawGrid(self):
+        global SCREEN
         blockSize = 10
         for x in range(0, WINDOW_WIDTH, blockSize):
             for y in range(0, WINDOW_HEIGHT, blockSize):
@@ -48,10 +51,11 @@ class SetupEnvironment:
 class Button:
     def __init__(self, screen, position, text, color):
         font = pygame.font.SysFont("Arial", 25)
-        text_options = font.render(text, True, (255, 255, 255))
+        text_options = font.render(text, True, (0, 0, 0))
         x, y, w, h = text_options.get_rect()
         x, y = position
         self.rect = pygame.draw.rect(screen, color, (x, y, w, h))
+        screen.blit(text_options, self.rect)
 
     def clicked(self):
         """ Returns True if you clicked on the specified button """
