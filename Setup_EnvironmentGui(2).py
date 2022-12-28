@@ -44,19 +44,19 @@ class MyGame(arcade.Window):
 
         arcade.set_background_color(arcade.color.GRAY)
 
-        # # Create a vertical BoxGroup to align buttons
-        # self.v_box = arcade.gui.UIBoxLayout()
-        #
-        # # Create the buttons
-        # start_button = arcade.gui.UIFlatButton(text="Start Game", width=200)
-        # self.v_box.add(start_button.with_space_around(bottom=20))
-        #
-        # self.manager.add(
-        #     arcade.gui.UIAnchorWidget(
-        #         anchor_x="center_x",
-        #         anchor_y="center_y",
-        #         child=self.v_box)
-        # )
+        # Create a vertical BoxGroup to align buttons
+        self.v_box = arcade.gui.UIBoxLayout(x=30, y=60)
+
+        # Create the buttons
+        start_button = arcade.gui.UIFlatButton(x=30, y=60, text="Start Game", width=200)
+        self.v_box.add(start_button.with_space_around(bottom=20))
+
+        self.manager.add(
+            arcade.gui.UIAnchorWidget(
+                anchor_x="center_x",
+                anchor_y="center_y",
+                child=self.v_box)
+        )
 
         column = int(684 // (WIDTH + MARGIN))
         row = int(654 // (HEIGHT + MARGIN))
@@ -64,19 +64,21 @@ class MyGame(arcade.Window):
         # self.grid[row][column] = 1
         # self.organism = [row, column]
 
-    def create_organism(self):
-        column = int(684 // (WIDTH + MARGIN))
-        row = int(654 // (HEIGHT + MARGIN))
-
-        self.grid[row][column] = 1
-        self.organism = [row, column]
-
-        # arcade.draw_rectangle_filled(column, row, WIDTH, HEIGHT, color)
+    # def create_organism(self):
+    #     column = int(684 // (WIDTH + MARGIN))
+    #     row = int(654 // (HEIGHT + MARGIN))
+    #
+    #     self.grid[row][column] = 1
+    #     self.organism = [row, column]
+    #
+    #     color = arcade.color.BLUE
+    #     arcade.draw_rectangle_filled(column, row, WIDTH, HEIGHT, color)
 
     def on_draw(self):
         """
         Render the screen.
         """
+        arcade.start_render()
         # This command has to happen before we start drawing
         self.clear()
 
@@ -106,12 +108,12 @@ class MyGame(arcade.Window):
         self.grid[self.organism[0]][self.organism[1]] = 0
         self.organism[0] -= 1
         self.grid[self.organism[0]][self.organism[1]] = 1
-        # # Change the x/y screen coordinates to grid coordinates
+        # Change the x/y screen coordinates to grid coordinates
         # column = int(x // (WIDTH + MARGIN))
         # row = int(y // (HEIGHT + MARGIN))
         #
-        # # Make sure we are on-grid. It is possible to click in the upper right
-        # # corner in the margin and go to a grid location that doesn't exist
+        # Make sure we are on-grid. It is possible to click in the upper right
+        # corner in the margin and go to a grid location that doesn't exist
         # if row < ROW_COUNT and column < COLUMN_COUNT:
         #
         #     # Flip the location between 1 and 0.
@@ -121,13 +123,7 @@ class MyGame(arcade.Window):
         #         self.grid[row][column] = 0
 
 
-
 def main():
-    window = Tk()
-    window.title("A-Life Challenge")
-    window.state('zoomed')
-    # window.mainloop()
-
     MyGame(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
     arcade.run()
 
