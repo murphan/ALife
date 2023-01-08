@@ -9,7 +9,7 @@
 
 #include "types.h"
 #include "util.h"
-#include "direction.h"
+#include "src/genome/direction.h"
 
 /**
  * additional context needed to build a body from instructions
@@ -27,7 +27,7 @@ class Body {
 private:
     /** width of total canvas, not extent of organism body parts */
     i32 width, height;
-    /** distance from bottom left to the 0,0 point of the organism */
+    /** distance from bottom left of the canvas to the 0,0 point of the organism */
     i32 originX, originY;
     /** organism's body parts */
     std::vector<i32> canvas;

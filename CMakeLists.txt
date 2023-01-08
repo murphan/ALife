@@ -15,4 +15,4 @@ add_executable(
 	src/util.h
 	src/util.cpp
 	src/test.cpp
-		src/genome/phenome.h src/genome/phenome.cpp src/genome/action.h src/genome/action.cpp src/genome/body.cpp src/genome/body.h src/genome/direction.h src/genome/direction.cpp src/genome/genomeCreator.h src/genome/genomeCreator.cpp)
+        src/phenome/phenome.h src/phenome/phenome.cpp src/phenome/reaction.h src/phenome/reaction.cpp src/phenome/body.cpp src/phenome/body.h src/genome/direction.h src/genome/direction.cpp src/genome/genomeCreator.h src/genome/genomeCreator.cpp src/phenome/sense.h src/phenome/sense.cpp)

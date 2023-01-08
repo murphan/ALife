@@ -2,7 +2,7 @@
 // Created by Emmet on 11/10/2022.
 //
 
-#include "body.h"
+#include "src/phenome/body.h"
 
 BodyBuilder::BodyBuilder() :
     currentX(0), currentY(0), currentDirection(Direction::RIGHT), anchors() {}
