@@ -6,6 +6,10 @@
 
 #include "src/phenome/phenome.h"
 
+Sense::Sense(int x, int y, int sense) : x(x), y(y), sense(sense) {}
+
+FoodStats::FoodStats() : digestionBonus(0), absorptionBonus(0) {}
+
 constexpr auto BODY_GENE_LENGTH = 7;
 
 i32 directionsWeights[4] {
@@ -248,6 +252,7 @@ Phenome::Phenome(Genome & genome):
 	insertionModifier(0),
 	selectionModifier(0),
 	substitutionModifier(0),
+	foodStats(),
 	senses(),
 	eyeReactions(),
 	environmentReactions()
@@ -310,9 +315,42 @@ Phenome::Phenome(Genome & genome):
 				environmentReactions.emplace_back(factor, above, threshold, priority, action);
 			}
 
+		/* food gene */
 		} else if (geneType == Genome::C) {
+			auto gene = readNBases(genome, i, 6);
+			if (gene.empty()) break;
 
+			auto foodType = decode4(gene, 0);
+			for (auto j = 2; j < 6; j += 2) {
+				if (decode2(gene, j) == 0)
+					++foodStats[foodType].absorptionBonus;
+				else
+					++foodStats[foodType].digestionBonus;
+			}
+
+		/* mutation rate gene */
 		} else if (geneType == Genome::D) {
+			auto gene = readNBases(genome, i, 8);
+
+			/* two duplicate sections */
+			for (auto j = 0; j < 2; ++j) {
+				auto mutationType = decode4(gene, j * 4);
+				/* convert to -2, -1, 1, 2 */
+				auto change = decode4(gene, j * 4 + 2) - 2;
+				if (change >= 0) change += 1;
+
+				if (mutationType == 0) {
+					insertionModifier += change * 2;
+				} else if (mutationType == 1) {
+					selectionModifier += change * 2;
+				} else if (mutationType == 2) {
+					substitutionModifier += change * 2;
+				} else {
+					insertionModifier += change;
+					selectionModifier += change;
+					substitutionModifier += change;
+				}
+			}
 
         } else {
 	        break;

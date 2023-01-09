@@ -9,10 +9,20 @@ include_directories(src)
 
 add_executable(
 	ALife
-		src/genome/genome.h
-		src/genome/genome.cpp
+	src/genome/genome.h
+	src/genome/genome.cpp
 	src/types.h
 	src/util.h
 	src/util.cpp
 	src/test.cpp
-        src/phenome/phenome.h src/phenome/phenome.cpp src/phenome/reaction.h src/phenome/reaction.cpp src/phenome/body.cpp src/phenome/body.h src/genome/direction.h src/genome/direction.cpp src/genome/genomeCreator.h src/genome/genomeCreator.cpp src/phenome/sense.h src/phenome/sense.cpp)
+	src/phenome/phenome.h
+	src/phenome/phenome.cpp
+	src/phenome/reaction.h
+	src/phenome/reaction.cpp
+	src/phenome/body.cpp
+	src/phenome/body.h
+	src/genome/direction.h
+	src/genome/direction.cpp
+	src/genome/genomeCreator.h
+	src/genome/genomeCreator.cpp
+)

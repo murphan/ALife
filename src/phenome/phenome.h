@@ -13,7 +13,24 @@
 #include "src/genome/genome.h"
 #include "reaction.h"
 #include "body.h"
-#include "sense.h"
+
+class Sense {
+public:
+	i32 x;
+	i32 y;
+	/* the body part code at this x, y in the organism */
+	i32 sense;
+
+	Sense(i32 x, i32 y, i32 sense);
+};
+
+class FoodStats {
+public:
+	i32 digestionBonus;
+	i32 absorptionBonus;
+
+	FoodStats();
+};
 
 class Phenome {
 public:
@@ -28,6 +45,8 @@ public:
 	i32 insertionModifier;
 	i32 selectionModifier;
 	i32 substitutionModifier;
+
+	FoodStats foodStats[4];
 
 	/**
 	 * indices of the sense cells within the body for quick lookup

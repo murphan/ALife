@@ -8,20 +8,20 @@
 #include "types.h"
 
 class Reaction {
-	public:
-		enum ActionType {
-			TOWARD,
-			WANDER,
-			STOP,
-			AWAY,
-		};
+public:
+	enum ActionType {
+		TOWARD,
+		WANDER,
+		STOP,
+		AWAY,
+	};
 
-		Reaction(i32, ActionType);
+	Reaction(i32, ActionType);
 
-		static const char * actionNames[3];
+	static const char * actionNames[3];
 
-		i32 priority;
-		ActionType actionType;
+	i32 priority;
+	ActionType actionType;
 };
 
 class EyeReaction : public Reaction {
