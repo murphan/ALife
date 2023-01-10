@@ -23,7 +23,7 @@ ATTRIBUTES = ["Average Age",
               ]
 
 
-class DataDisplayGUI:
+class SetupDataDisplay:
     """
     Setting up of the display window. No data is processed here at all besides any potentially necessary for the
     displaying in the window.
@@ -240,4 +240,4 @@ class DataDisplayGUI:
 
 # This can be enabled at the moment for temporary purposes of testing whether or not the GUI is working or not
 if __name__ == "__main__":
-    DataDisplayGUI()
+    SetupDataDisplay()
