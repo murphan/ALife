@@ -28,6 +28,8 @@ class SetupEnvironment:
         self.pause_button = Button(SCREEN, (1364, 738), "Pause", (255, 0, 0))
         self.play_button = Button(SCREEN, (1320, 738), "Play", (0, 255, 0))
 
+        self.environment_grid = []
+
         while True:
             self.drawGrid()
             for event in pygame.event.get():
@@ -40,13 +42,15 @@ class SetupEnvironment:
                     Control_Environment.EnvironmentControl.start(self)
                 elif self.pause_button.mouse_click(event):
                     Control_Environment.EnvironmentControl.stop(self)
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    Control_Environment.EnvironmentControl.square_clicked(self, event, SCREEN)
                 # TODO: Likely will have to have another call here to update data and position of organisms
 
             pygame.display.update()
 
     def drawGrid(self):
         """
-        This will draw the grid of the environment
+        This will draw the grid of the environment and initialize a two-dimensional array
         """
         global SCREEN
         blockSize = 10
@@ -56,6 +60,7 @@ class SetupEnvironment:
                     continue
                 rect = pygame.Rect(x, y, blockSize, blockSize)
                 pygame.draw.rect(SCREEN, BLACK, rect, 1)
+            self.environment_grid.append([[0]* int(WINDOW_HEIGHT / blockSize)])
 
 
 class Button:
