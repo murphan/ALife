@@ -85,7 +85,7 @@ Body::Body(i32 edge, i32 center):
  * @param builder the builder for the body creation process
  * @param direction relative direction from current direction to place body part
  * @param part the body segment to add
- * @param anchor use -1 for no anchor, otherwise 0,1,2,3 for anchors A,B,C,D
+ * @param anchor use -1 for no usingAnchor, otherwise 0,1,2,3 for anchors A,B,C,D
  *
  * modifies the builder's current direction and current position
  */

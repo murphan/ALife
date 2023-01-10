@@ -11,7 +11,7 @@
 
 #include "types.h"
 #include "src/genome/genome.h"
-#include "reaction.h"
+#include "src/genome/gene/reactionGene.h"
 #include "body.h"
 
 class Sense {
@@ -63,8 +63,8 @@ public:
 	 */
 	std::vector<Sense> senses;
 
-	std::vector<EyeReaction> eyeReactions;
-	std::vector<EnvironmentReaction> environmentReactions;
+	std::vector<EyeGene> eyeReactions;
+	std::vector<EnvironmentGene> environmentReactions;
 
 	/**
 	 * the phenome is entirely derived from the genome

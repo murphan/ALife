@@ -10,7 +10,7 @@
 #include "types.h"
 #include "direction.h"
 #include "genome.h"
-#include "../phenome/reaction.h"
+#include "src/genome/gene/reactionGene.h"
 
 /**
  * user friendly representation of a body instruction gene
@@ -19,8 +19,8 @@
  * body instructions have 4 modes:
  * nothing,
  * duplicate,
- * use anchor,
- * set anchor
+ * use usingAnchor,
+ * set usingAnchor
  *
  * each can be created with a static factory function
  */
@@ -35,11 +35,6 @@ public:
 
 	auto usesAnchor() const -> bool;
 	auto setsAnchor() const -> bool;
-
-	static auto create(Direction, i32) -> BodyInstruction;
-	static auto createDuplicate(Direction, i32) -> BodyInstruction;
-	static auto createUseAnchor(Direction, i32, i32) -> BodyInstruction;
-	static auto createSetAnchor(Direction, i32, i32) -> BodyInstruction;
 };
 
 /**
@@ -57,8 +52,8 @@ public:
 	GenomeCreator(i32 filler);
 
 	auto addBodyGene(BodyInstruction && instruction) -> void;
-	auto addEyeGene(EyeReaction && reaction) -> void;
-	auto addEnvironmentGene(EnvironmentReaction && reaction) -> void;
+	auto addEyeGene(EyeGene && reaction) -> void;
+	auto addEnvironmentGene(EnvironmentGene && reaction) -> void;
 	auto addFoodGene(FoodType type, FoodStats::Type digestion0, FoodStats::Type digestion1) -> void;
 	/**
 	 * @param strength0 only -2, -1, 1, or 2

@@ -95,11 +95,11 @@ Phenome::Phenome(Genome & genome):
 	        if (gene.empty()) break;
 
 			auto priority = decode5(gene, 8);
-	        auto action = (Reaction::ActionType)decode4(gene, 10);
+	        auto action = (ReactionGene::ActionType)decode4(gene, 10);
 
 			auto senseType = decode2(gene, 0);
 			if (senseType == 0) {
-				auto seeingThing = (EyeReaction::SeeingThing)decode3(gene, 2);
+				auto seeingThing = (EyeGene::SeeingThing)decode3(gene, 2);
 				auto specific = decode2(gene, 4) == true;
 				auto modifier = decode4(gene, 6);
 
@@ -149,7 +149,7 @@ Phenome::Phenome(Genome & genome):
 		}
     }
 
-	auto descendingPriority = [](Reaction & left, Reaction & right) {
+	auto descendingPriority = [](ReactionGene & left, ReactionGene & right) {
 		return left.priority > right.priority;
 	};
 

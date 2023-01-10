@@ -6,45 +6,7 @@
 
 
 
-auto BodyInstruction::create(Direction dir, i32 type) -> BodyInstruction {
-	return {
-		.direction = dir,
-		.type = type,
-		.anchor = -1,
-		.setAnchor = -1,
-		.duplicate = false
-	};
-}
 
-auto BodyInstruction::createUseAnchor(Direction dir, i32 type, i32 anchor) -> BodyInstruction {
-	return {
-		.direction = dir,
-		.type = type,
-		.anchor = anchor,
-		.setAnchor = -1,
-		.duplicate = false
-	};
-}
-
-auto BodyInstruction::createSetAnchor(Direction dir, i32 type, i32 anchor) -> BodyInstruction {
-	return {
-		.direction = dir,
-		.type = type,
-		.anchor = -1,
-		.setAnchor = anchor,
-		.duplicate = false
-	};
-}
-
-auto BodyInstruction::createDuplicate(Direction dir, i32 type) -> BodyInstruction {
-	return {
-		.direction = dir,
-		.type = type,
-		.anchor = -1,
-		.setAnchor = -1,
-		.duplicate = true
-	};
-}
 
 /*
  * which pairs to encode numbers as chosen arbitrarily from
@@ -84,26 +46,18 @@ auto GenomeCreator::addBodyGene(BodyInstruction && instruction) -> void {
 	write16(genome, instruction.type - 1);
 }
 
-auto GenomeCreator::addEyeGene(EyeReaction && reaction) -> void {
+auto GenomeCreator::addEyeGene(EyeGene && reaction) -> void {
 	genome.write(Genome::B);
 	genome.write(Genome::B);
 
-	write2(genome, 0);
 
-	write3(genome, reaction.seeingThing);
-	write2(genome, reaction.specific);
-	write4(genome, reaction.getFoodType());
 }
 
-auto GenomeCreator::addEnvironmentGene(EnvironmentReaction && reaction) -> void {
+auto GenomeCreator::addEnvironmentGene(EnvironmentGene && reaction) -> void {
 	genome.write(Genome::B);
 	genome.write(Genome::B);
 
-	write2(genome, 1);
 
-	write3(genome, reaction.factor);
-	write2(genome, reaction.above);
-	write5(genome, (i32)((reaction.threshold + 1.0_f32) * 2.0_f32));
 }
 
 auto GenomeCreator::addFoodGene(FoodType type, FoodStats::Type digestion0, FoodStats::Type digestion1) -> void {
