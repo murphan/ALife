@@ -50,11 +50,9 @@ public:
 };
 
 class EnvironmentReaction : public Reaction {
-private:
+public:
 	bool above;
 	f32 threshold;
-
-public:
 	i32 factor;
 
 	EnvironmentReaction(i32, bool, f32, i32, ActionType);

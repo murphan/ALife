@@ -39,7 +39,7 @@ private:
 public:
 	static char baseName[4];
 
-	enum {
+	enum Base {
 		A,
 		B,
 		C,
@@ -57,11 +57,11 @@ public:
     explicit Genome(std::string &&);
 
 	auto size() const -> i32;
-	auto get(i32) const -> i32;
+	auto get(i32) const -> Base;
 
 	auto toString() const -> std::string;
 
-	auto write(i32) -> void;
+	auto write(Base) -> void;
     auto mutateCopy(
         f32 substitutionChance,
         f32 insertionChance,

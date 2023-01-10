@@ -30,11 +30,23 @@ public:
 	i32 absorptionBonus;
 
 	FoodStats();
+
+	enum Type {
+		DIGESTION = 0,
+		ABSORPTION = 1,
+	};
 };
 
 class Phenome {
 public:
 	Body body;
+
+	enum MutationType {
+		SUBSTITUTION = 0,
+		INSERTION = 1,
+		DELETION = 2,
+		ALL = 3,
+	};
 
 	/**
 	 * these are not the actual mutation rates
@@ -42,9 +54,7 @@ public:
 	 * these are just ints some distance away from 0
 	 * negative for a smaller rate, positive for a larger rate
 	 */
-	i32 insertionModifier;
-	i32 selectionModifier;
-	i32 substitutionModifier;
+	i32 mutationModifiers[3] { 0, 0, 0 };
 
 	FoodStats foodStats[4];
 

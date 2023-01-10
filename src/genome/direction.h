@@ -45,6 +45,7 @@ public:
 	auto y() const -> i32;
 
 	auto value() const -> i32;
+	auto normalized() const -> i32;
 
 	auto rotate(i32) const -> Direction;
 	auto rotate(Direction) const -> Direction;

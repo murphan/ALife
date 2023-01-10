@@ -57,7 +57,7 @@ Genome::Genome(std::string && string) : code(), length((i32)string.length()) {
 /**
  * accesses a base at an index in the code
  */
-auto Genome::get(i32 index) const -> i32 {
+auto Genome::get(i32 index) const -> Base {
 	/*
 	 * bases are packed in big endian order
 	 *
@@ -65,7 +65,7 @@ auto Genome::get(i32 index) const -> i32 {
 	 * index: 0  1  2  3
 	 */
 	auto byte = code[index / 4_i32];
-	return byte >> ((3_i32 - (index % 4_i32)) * 2_i32) & 0x3_u8;
+	return (Base)(byte >> ((3_i32 - (index % 4_i32)) * 2_i32) & 0x3_u8);
 }
 
 auto Genome::size() const -> i32 {
@@ -92,7 +92,7 @@ auto Genome::toString() const -> std::string {
  * appends a base to the end of the genome
  * used when constructing genome
  */
-auto Genome::write(i32 base) -> void {
+auto Genome::write(Base base) -> void {
 	/* insert in first index into a new byte */
 	if (length % 4 == 0) {
 		code.push_back(base << 6);
@@ -123,15 +123,15 @@ auto Genome::mutateCopy(
     auto device = std::random_device();
     auto random = std::default_random_engine(device());
     auto chance = std::uniform_real_distribution<f32>(0.0_f32, std::nextafter(1.0_f32, FLT_MAX));
-    auto otherBase = std::uniform_int_distribution<i32>(0, 3);
-    auto anyBase = std::uniform_int_distribution<i32>(0, 4);
+    auto otherBase = std::uniform_int_distribution<i32>(1, 3);
+    auto anyBase = std::uniform_int_distribution<i32>(0, 3);
 
     auto newGenome = Genome();
 
     for (auto i = 0; i < length; ++i) {
         /* prepend insertion */
         if (chance(random) < insertionChance)
-            newGenome.write(anyBase(random));
+            newGenome.write((Base)anyBase(random));
 
         /* don't copy over this base */
         if (chance(random) < deletionChance)
@@ -141,14 +141,14 @@ auto Genome::mutateCopy(
 
         /* substitute with a random *other* base, cannot remain the same */
         if (chance(random) < substitutionChance)
-            base = (base + otherBase(random)) % 4;
+            base = (Base)((base + otherBase(random)) % 4);
 
         newGenome.write(base);
     }
 
     /* chance for final insertion */
     if (chance(random) < insertionChance)
-        newGenome.write(anyBase(random));
+        newGenome.write((Base)anyBase(random));
 
     return newGenome;
 }
@@ -305,7 +305,7 @@ auto Genome::mutateCombine(
 		auto chance = std::uniform_real_distribution<f32>(0.0_f32, std::nextafter(1.0_f32, FLT_MAX));
 
 		if (chance(random) < insertionChance) {
-			genome.write(std::uniform_int_distribution<i32>(0, 4)(random));
+			genome.write((Base)std::uniform_int_distribution<i32>(0, 3)(random));
 		}
 
 		/* only select if it wasn't deleted */
@@ -318,9 +318,9 @@ auto Genome::mutateCombine(
 				selectedBase = second.get(level[i].y - 1);
 
 			if (chance(random) < substitutionChance)
-				genome.write((selectedBase + std::uniform_int_distribution<i32>(0, 3)(random)) % 4);
+				genome.write((Base)((selectedBase + std::uniform_int_distribution<i32>(1, 3)(random)) % 4));
 			else
-				genome.write(selectedBase);
+				genome.write((Base)selectedBase);
 		}
 	};
 
@@ -333,7 +333,7 @@ auto Genome::mutateCombine(
 
 		} else {
 			/* each space in this run has an equal chance of being selected */
-			auto chance = std::uniform_int_distribution<i32>(0, level.size());
+			auto chance = std::uniform_int_distribution<i32>(0, (i32)level.size());
 			/* keep track of how many of this run got included, so we can always include at least 1 */
 			auto numIncluded = 0;
 

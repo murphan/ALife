@@ -25,4 +25,4 @@ add_executable(
 	src/genome/direction.cpp
 	src/genome/genomeCreator.h
 	src/genome/genomeCreator.cpp
-)
+        src/food.h src/genome/genomeView.h src/genome/genomeView.cpp src/genome/gene.h src/genome/gene.cpp src/genome/gene/bodyGene.h src/genome/gene/bodyGene.cpp)

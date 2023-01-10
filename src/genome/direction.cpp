@@ -72,3 +72,7 @@ auto Direction::rotate(Direction relative) const -> Direction {
 auto Direction::value() const -> i32 {
 	return direction;
 }
+
+auto Direction::normalized() const -> i32 {
+	return normalizedTable[direction];
+}
