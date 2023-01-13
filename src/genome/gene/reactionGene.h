@@ -9,6 +9,9 @@
 #include "../gene.h"
 
 class ReactionGene : public Gene {
+protected:
+	auto writeBody(Genome & genome) -> void override;
+
 public:
 	enum ActionType {
 		TOWARD,
@@ -22,12 +25,10 @@ public:
 	i32 priority;
 	ActionType actionType;
 
-	auto headerBase() -> Genome::Base override;
-
 	explicit ReactionGene(GenomeView & view);
 	ReactionGene(i32, ActionType);
 
-	auto writeBody(Genome & genome) -> void override;
+	auto headerBase() -> Genome::Base override;
 };
 
 class EyeGene : public ReactionGene {

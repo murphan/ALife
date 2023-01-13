@@ -5,11 +5,11 @@
 #include <iostream>
 #include <src/phenome/phenome.h>
 
-#include "genome/genomeCreator.h"
 #include "genome/genome.h"
 #include "types.h"
 #include "util.h"
 #include <tuple>
+#include <genome/gene/bodyGene.h>
 
 auto main () -> int {
     auto g0 = Genome("AAACAAADAAABAAACAAAD");
@@ -19,7 +19,6 @@ auto main () -> int {
 		auto recombined = Genome::mutateCombine(g0, g1, 0.3_f32, 0.01_f32, 0.01_f32, 0.01_f32);
 		std::cout << "Combined: " << (recombined.has_value() ? recombined->toString() : "Not compatible") << std::endl;
 	}
-	return 0;
 
     //auto [ r0, r1 ] = std::tuple<Genome &, Genome &> { g0, g1 };
     //auto grid = Genome::editDistance(g0, g1);
@@ -33,17 +32,20 @@ auto main () -> int {
     std::cout << mutatedGenome.toString() << '\n' << std::endl;
 
     /* create body test */
-	auto creator = GenomeCreator();
+	auto creator = Genome();
 
-	creator.addBodyInstruction(BodyInstruction::create(Direction(Direction::RIGHT), 2));
-	creator.addBodyInstruction(BodyInstruction::create(Direction(Direction::RIGHT), 3));
-	creator.addBodyInstruction(BodyInstruction::create(Direction(Direction::RIGHT), 4));
-	creator.addBodyInstruction(BodyInstruction::create(Direction(Direction::RIGHT), 5));
+	BodyGene::create(Direction::RIGHT, 2).write(creator);
+	creator.writeGarbage(4, Genome::A);
+	BodyGene::create(Direction::RIGHT, 3).write(creator);
+	creator.writeGarbage(4, Genome::A);
+	BodyGene::create(Direction::RIGHT, 4).write(creator);
+	creator.writeGarbage(4, Genome::A);
+	BodyGene::create(Direction::RIGHT, 5).write(creator);
+	creator.writeGarbage(4, Genome::A);
 
-	auto genome0 = creator.create();
-	std::cout << genome0.toString() << std::endl; // [AA AD AA ADC] AADBAAACAAAAAAACCCAABBAABAD
+	std::cout << "created: " << creator.toString() << std::endl;
 
-    auto phenome = Phenome(genome0);
+    auto phenome = Phenome(creator);
     std::cout << phenome.body.debugToString() << std::endl;
 
     /* string decode test */

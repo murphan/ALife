@@ -85,18 +85,18 @@ Body::Body(i32 edge, i32 center):
  * @param builder the builder for the body creation process
  * @param direction relative direction from current direction to place body part
  * @param part the body segment to add
- * @param anchor use -1 for no usingAnchor, otherwise 0,1,2,3 for anchors A,B,C,D
+ * @param jumpAnchor use -1 for no usingAnchor, otherwise 0,1,2,3 for anchors A,B,C,D
  *
  * modifies the builder's current direction and current position
  */
-auto Body::addPart(BodyBuilder & builder, Direction direction, i32 part, i32 anchor) -> void {
+auto Body::addPart(BodyBuilder & builder, Direction direction, i32 part, i32 jumpAnchor) -> void {
     /* move from current position unless anchored, then jump */
 	auto baseX = builder.currentX;
 	auto baseY = builder.currentY;
 
-	if (anchor > 0) {
-		baseX = builder.anchors[anchor].x;
-		baseY = builder.anchors[anchor].x;
+	if (jumpAnchor > -1) {
+		baseX = builder.anchors[jumpAnchor].x;
+		baseY = builder.anchors[jumpAnchor].x;
 	}
 
     /* keep moving in direction until finding an empty space */

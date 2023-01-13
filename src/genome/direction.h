@@ -39,7 +39,7 @@ public:
 	};
 
     Direction();
-	explicit Direction(i32);
+	Direction(i32);
 
 	auto x() const -> i32;
 	auto y() const -> i32;

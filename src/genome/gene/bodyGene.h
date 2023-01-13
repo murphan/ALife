@@ -8,14 +8,17 @@
 #include "../gene.h"
 #include "../direction.h"
 
-class BodyGene : Gene {
+class BodyGene : public Gene {
+protected:
+	auto writeBody(Genome & genome) -> void override;
+
 public:
 	Direction direction;
 	/** 1 - 16 */
 	i32 type;
+	bool duplicate;
 	i32 usingAnchor;
 	i32 setAnchor;
-	bool duplicate;
 
 	auto usesAnchor() const -> bool;
 	auto setsAnchor() const -> bool;
@@ -24,8 +27,6 @@ public:
 
 	BodyGene(Direction direction, i32 type, i32 usingAnchor, i32 setAnchor, bool duplicate);
 	explicit BodyGene(GenomeView & view);
-
-	auto writeBody(Genome & genome) -> void override;
 
 	/* helper factories */
 

@@ -62,6 +62,14 @@ public:
 	auto toString() const -> std::string;
 
 	auto write(Base) -> void;
+
+	/**
+	 * used for filler in between genes
+	 * @param n number of random bases to write
+	 * @param avoidEnd the last written base will not be this
+	 */
+	auto writeGarbage(i32 n, Base avoidEnd) -> void;
+
     auto mutateCopy(
         f32 substitutionChance,
         f32 insertionChance,

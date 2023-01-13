@@ -13,6 +13,7 @@
 #include "src/genome/genome.h"
 #include "src/genome/gene/reactionGene.h"
 #include "body.h"
+#include "../genome/gene/mutationRateGene.h"
 
 class Sense {
 public:
@@ -24,29 +25,14 @@ public:
 	Sense(i32 x, i32 y, i32 sense);
 };
 
-class FoodStats {
-public:
-	i32 digestionBonus;
-	i32 absorptionBonus;
-
-	FoodStats();
-
-	enum Type {
-		DIGESTION = 0,
-		ABSORPTION = 1,
-	};
+struct FoodStats {
+	i32 digestionBonus = 0;
+	i32 absoprtionBonus = 0;
 };
 
 class Phenome {
 public:
 	Body body;
-
-	enum MutationType {
-		SUBSTITUTION = 0,
-		INSERTION = 1,
-		DELETION = 2,
-		ALL = 3,
-	};
 
 	/**
 	 * these are not the actual mutation rates

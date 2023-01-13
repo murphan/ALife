@@ -49,7 +49,7 @@ public:
     auto accessExpand(i32, i32, i32) -> i32;
     auto access(i32, i32) const -> i32;
 
-	auto addPart(BodyBuilder &, Direction, i32, i32) -> void;
+	auto addPart(BodyBuilder &, Direction, i32 part, i32 jumpAnchor) -> void;
 
     auto debugToString() const -> std::string;
 };

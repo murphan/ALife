@@ -351,6 +351,32 @@ auto Genome::mutateCombine(
     return genomeWrapper;
 }
 
+auto makeNotEither(Genome::Base base, Genome::Base avoid0, Genome::Base avoid1) -> Genome::Base {
+	for (auto i = 0; i < 4; ++i) {
+		auto tryBase = (base + i) % 4;
+		if (tryBase != avoid0 && tryBase != avoid1) return (Genome::Base) tryBase;
+	}
+	throw std::exception("impossible to reach");
+}
+
+auto Genome::writeGarbage(i32 n, Base avoidEnd) -> void {
+	auto device = std::random_device();
+	auto random = std::default_random_engine(device());
+
+	auto last = std::uniform_int_distribution<i32>(0, 3)(random);
+	if (n == 1) last = makeNotEither((Base) last, avoidEnd, avoidEnd);
+
+	write((Base) last);
+
+	auto otherRange = std::uniform_int_distribution<i32>(1, 3);
+	for (auto i = 1; i < n; ++i) {
+		auto current = (last + otherRange(random)) % 4;
+		if (i == n - 1) current = makeNotEither((Base) current, (Base) last, avoidEnd);
+		write((Base) current);
+		last = current;
+	}
+}
+
 #ifdef DEBUG
 Genome::Genome(const Genome & other) : code(other.code), length(other.length) {
     std::cout << "copied genome C";

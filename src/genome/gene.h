@@ -9,10 +9,16 @@
 #include "genome.h"
 
 class Gene {
+protected:
+	/**
+	 * each type of gene should implement this
+	 * writes everything that's not the gene header
+	 * do not call this directly, instead use write();
+	 */
+	virtual auto writeBody(Genome & genome) -> void = 0;
+
 public:
 	virtual auto headerBase() -> Genome::Base = 0;
-
-	virtual auto writeBody(Genome & genome) -> void = 0;
 
 	auto write(Genome & genome) -> void;
 

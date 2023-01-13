@@ -17,12 +17,21 @@ add_executable(
 	src/test.cpp
 	src/phenome/phenome.h
 	src/phenome/phenome.cpp
-		src/genome/gene/reactionGene.h
-		src/genome/gene/reactionGene.cpp
+	src/genome/gene/reactionGene.h
+	src/genome/gene/reactionGene.cpp
 	src/phenome/body.cpp
 	src/phenome/body.h
 	src/genome/direction.h
 	src/genome/direction.cpp
-	src/genome/genomeCreator.h
-	src/genome/genomeCreator.cpp
-        src/food.h src/genome/genomeView.h src/genome/genomeView.cpp src/genome/gene.h src/genome/gene.cpp src/genome/gene/bodyGene.h src/genome/gene/bodyGene.cpp src/genome/gene/brainGene.h src/genome/gene/brainGene.cpp)
+	src/food.h
+	src/genome/genomeView.h
+	src/genome/genomeView.cpp
+	src/genome/gene.h
+	src/genome/gene.cpp
+	src/genome/gene/bodyGene.h
+	src/genome/gene/bodyGene.cpp
+	src/genome/gene/foodGene.h
+	src/genome/gene/foodGene.cpp
+	src/genome/gene/mutationRateGene.h
+	src/genome/gene/mutationRateGene.cpp
+)
