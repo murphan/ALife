@@ -119,4 +119,14 @@ class EnvironmentControl:
                            10, 10)
         # TODO: Might need to change the color of this rectangle fill
         pygame.draw.rect(SCREEN, GREEN, rect)
-        self.environment_grid[coord[0], coord[1]] = 1
+        self.environment_grid[coord[0]][coord[1]] = 1
+
+    def click_type(self, clicked_type):
+        """
+        When a square is clicked in the environment, the user can
+        specify what they want it to be
+
+        :param clicked_type: The type of square the user will fill with
+        :param type: String
+        """
+        print("Clicking type")

@@ -16,6 +16,10 @@ SPEEDS = [".5x",
           "2x",
           "4x"]
 
+SQUARE_TYPES = ["Wall",
+                "Organism",
+                "Food"]
+
 
 class SetupSettings:
     """
@@ -56,20 +60,21 @@ class SetupSettings:
 
     def setup_configurations(self):
         """
-        This sets up the different configuration options which are split into three sections
+        This sets up the different configuration options which are split into four sections
 
-        --------------------------------------------------------------
-        |                  |                      |                  |
-        |                  |                      |                  |
-        |       speed      |        size          |    Environment   |
-        |                  |                      |   Manipulations  |
-        |                  |                      |                  |
-        --------------------------------------------------------------
+        -----------------------------------------------------------------------------------
+        |                  |                      |                  |                    |
+        |                  |                      |                  |                    |
+        |       speed      |        size          |    Environment   |       Click        |
+        |                  |                      |   Manipulations  |       Type         |
+        |                  |                      |                  |                    |
+        -----------------------------------------------------------------------------------
         """
         middle_frame = tkinter.Frame(self.window, bg=LIGHT_GREEN, borderwidth=150)
-        speed_frame = tkinter.Frame(middle_frame, bg=LIGHT_GREEN, borderwidth=100)
-        size_frame = tkinter.Frame(middle_frame, bg=LIGHT_GREEN, borderwidth=100)
-        env_manip_frame = tkinter.Frame(middle_frame, bg=LIGHT_GREEN, borderwidth=100)
+        speed_frame = tkinter.Frame(middle_frame, bg=LIGHT_GREEN, borderwidth=50)
+        size_frame = tkinter.Frame(middle_frame, bg=LIGHT_GREEN, borderwidth=50)
+        env_manip_frame = tkinter.Frame(middle_frame, bg=LIGHT_GREEN, borderwidth=50)
+        click_type_frame = tkinter.Frame(middle_frame, bg=LIGHT_GREEN, borderwidth=50)
 
         # Setting up the speed dropdown frame
         speed_text_frame = tkinter.Frame(speed_frame, bg=LIGHT_GREEN)
@@ -154,6 +159,23 @@ class SetupSettings:
         oxygen_control_frame.pack(side=TOP)
 
         env_manip_frame.pack(side=LEFT)
+
+        # Setup Click type section
+        click_title_frame = tkinter.Frame(click_type_frame, bg=LIGHT_GREEN)
+        click_title_frame.pack(side=TOP, expand=True)
+        click_title_label = Label(click_title_frame, text="Change Click Type", background=LIGHT_GREEN)
+        click_title_label.config(font=("Arial", 12))
+        click_title_label.pack(side=TOP)
+        click_title_frame.pack(side=TOP)
+
+        self.click_dd_value = tkinter.StringVar(click_type_frame)
+        self.click_dd_value.set("Organism")
+        self.speed_dd = tkinter.OptionMenu(click_type_frame, self.click_dd_value, *SQUARE_TYPES, command=lambda event:
+        Control_Environment.EnvironmentControl.click_type(self, self.click_dd_value.get()))
+        self.speed_dd.config(width=15, bg="white")
+        self.speed_dd.pack(side=TOP)
+        speed_frame.pack(side=LEFT)
+        click_type_frame.pack(side=LEFT)
 
         middle_frame.pack(side=TOP, expand=True)
 
