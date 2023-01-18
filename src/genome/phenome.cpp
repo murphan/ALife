@@ -3,11 +3,11 @@
 //
 
 #include <algorithm>
-#include <genome/genomeView.h>
-#include <genome/gene/bodyGene.h>
-#include <genome/gene/foodGene.h>
+#include "genomeView.h"
+#include "src/genome/gene/bodyGene.h"
+#include "src/genome/gene/foodGene.h"
 
-#include "src/phenome/phenome.h"
+#include "phenome.h"
 
 Sense::Sense(int x, int y, int sense) : x(x), y(y), sense(sense) {}
 

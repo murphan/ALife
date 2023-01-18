@@ -13,7 +13,7 @@
 #include "src/genome/genome.h"
 #include "src/genome/gene/reactionGene.h"
 #include "body.h"
-#include "../genome/gene/mutationRateGene.h"
+#include "src/genome/gene/mutationRateGene.h"
 
 class Sense {
 public:
