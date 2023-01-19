@@ -1,5 +1,12 @@
 
-# please set the required build variables in UserBuild.txt
+# When setting up locally, create a new file UserBuild.txt in the base directory
+# and put these two lines in:
+#
+# SET(PYTHON_HOME "C:/Python311")
+# SET(PYTHON_VER "311")
+#
+# you can change the python version if you need to
+
 include(UserBuild.txt)
 
 cmake_minimum_required(VERSION 3.21)
