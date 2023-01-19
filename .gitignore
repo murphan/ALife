@@ -33,3 +33,5 @@
 
 # clion stuff
 /cmake-*
+/venv
+.clang-format

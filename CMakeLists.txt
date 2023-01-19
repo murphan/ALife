@@ -1,37 +1,37 @@
+
+# please set the required build variables in UserBuild.txt
+include(UserBuild.txt)
+
 cmake_minimum_required(VERSION 3.21)
 project(ALife CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /GX")
 
-include_directories(.)
+# lets our files include from the absolute base of the src directory,
+# instead of just relative
 include_directories(src)
 
-add_executable(
-	ALife
-	src/genome/genome.h
-	src/genome/genome.cpp
-	src/types.h
-	src/util.h
-	src/util.cpp
-	src/test.cpp
-        src/genome/phenome.h
-        src/genome/phenome.cpp
-	src/genome/gene/reactionGene.h
-	src/genome/gene/reactionGene.cpp
-        src/genome/body.cpp
-        src/genome/body.h
-	src/genome/direction.h
-	src/genome/direction.cpp
-	src/food.h
-	src/genome/genomeView.h
-	src/genome/genomeView.cpp
-	src/genome/gene.h
-	src/genome/gene.cpp
-	src/genome/gene/bodyGene.h
-	src/genome/gene/bodyGene.cpp
-	src/genome/gene/foodGene.h
-	src/genome/gene/foodGene.cpp
-	src/genome/gene/mutationRateGene.h
-	src/genome/gene/mutationRateGene.cpp
-)
+# definitions for the python interface library
+include_directories(${PYTHON_HOME}/include)
+
+file(GLOB_RECURSE alife_src_files CONFIGURE_DEPENDS "src/*.h" "src/*.cpp" "src/**/*.h" "src/**/*.cpp")
+
+add_executable(ALife ${alife_src_files})
+
+# link the python interface library
+# will ultimately use the python-provided dll at runtime
+target_link_libraries(ALife debug ${PYTHON_HOME}/libs/python${PYTHON_VER}_d.lib)
+target_link_libraries(ALife optimized ${PYTHON_HOME}/libs/python${PYTHON_VER}.lib)
+
+file(GLOB_RECURSE alife_python_files CONFIGURE_DEPENDS "src/python/*.py" "src/python/**/*.py")
+
+foreach(py_file ${alife_python_files})
+    get_filename_component(py_filename ${py_file} NAME)
+    add_custom_command(
+        TARGET ALife POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+        "${py_file}"
+        "${CMAKE_CURRENT_BINARY_DIR}/${py_filename}"
+    )
+endforeach(py_file)

@@ -4,8 +4,8 @@
 
 #include <algorithm>
 #include "genomeView.h"
-#include "src/genome/gene/bodyGene.h"
-#include "src/genome/gene/foodGene.h"
+#include "genome/gene/bodyGene.h"
+#include "genome/gene/foodGene.h"
 
 #include "phenome.h"
 

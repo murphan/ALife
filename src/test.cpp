@@ -3,15 +3,25 @@
 //
 
 #include <iostream>
-#include "src/genome/phenome.h"
+#include "genome/phenome.h"
 
 #include "genome/genome.h"
 #include "types.h"
-#include "util.h"
-#include <tuple>
 #include <genome/gene/bodyGene.h>
 
+#include "pythonInterface.h"
+
 auto main () -> int {
+    PythonProgram::init();
+
+	{
+		auto program = PythonProgram("testmodule");
+
+		auto result = program.callFunction("add", { PyLong_FromLong(1), PyLong_FromLong(8) });
+
+		std::cout << "result: " << PyLong_AsLong(result.get()) << std::endl;
+	}
+
     auto g0 = Genome("AAACAAADAAABAAACAAAD");
     auto g1 = Genome("AAADAAABAAABAAACAAAC");
 
@@ -29,7 +39,7 @@ auto main () -> int {
     auto mutatedGenome = ogGenome.mutateCopy(0.01_f32, 0.01_f32, 0.01_f32);
 
     std::cout << ogGenome.toString() << std::endl;
-    std::cout << mutatedGenome.toString() << '\n' << std::endl;
+	std::cout << mutatedGenome.toString() << '\n' << std::endl;
 
     /* create body test */
 	auto creator = Genome();
@@ -52,4 +62,6 @@ auto main () -> int {
 	auto genome1 = Genome("ABDACDABBDCABBBCBABCBADBCBDABBBCBDABBABDBADBCBABBDABDDACBCBCDBABC");
 
 	std::cout << genome1.toString() << std::endl;
+
+	//PythonProgram::cleanup();
 }

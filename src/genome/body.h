@@ -9,7 +9,7 @@
 
 #include "types.h"
 #include "util.h"
-#include "src/genome/direction.h"
+#include "genome/direction.h"
 
 /**
  * additional context needed to build a body from instructions

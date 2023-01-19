@@ -1,0 +1,8 @@
+# UserBuild.txt is local to you only. This file is untracked and any changes you make here
+# won't be committed.
+
+# PYTHON_HOME is the path to your python install directory, ex: "C:/Python311"
+# PYTHON_VER is the major version string for python, ex: "311"
+
+SET(PYTHON_HOME "C:/Python311")
+SET(PYTHON_VER "311")

@@ -31,7 +31,7 @@ auto ReactionGene::writeBody(Genome & genome) -> void {
 
 EyeGene::EyeGene(GenomeView & view) :
 	seeingThing((EyeGene::SeeingThing)read3(view, 2)),
-	specific(read2(view, 4) == true),
+	specific(read2(view, 4)),
 	modifier(read4(view, 6)),
 	ReactionGene(view) {}
 
@@ -70,7 +70,7 @@ auto EnvironmentGene::triggers(f32 level) const -> bool {
 
 EnvironmentGene::EnvironmentGene(GenomeView & view) :
 	factor(read3(view, 2)),
-	above(read2(view, 4) == true),
+	above(read2(view, 4)),
 	threshold(read5(view, 6)),
 	ReactionGene(view) {}
 

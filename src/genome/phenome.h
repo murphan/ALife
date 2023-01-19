@@ -10,10 +10,10 @@
 #include <vector>
 
 #include "types.h"
-#include "src/genome/genome.h"
-#include "src/genome/gene/reactionGene.h"
+#include "genome/genome.h"
+#include "genome/gene/reactionGene.h"
 #include "body.h"
-#include "src/genome/gene/mutationRateGene.h"
+#include "genome/gene/mutationRateGene.h"
 
 class Sense {
 public:
