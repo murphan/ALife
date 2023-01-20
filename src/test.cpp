@@ -2,6 +2,8 @@
 // Created by Emmet on 11/9/2022.
 //
 
+#include "pythonInterface.h"
+
 #include <iostream>
 #include "genome/phenome.h"
 
@@ -9,15 +11,46 @@
 #include "types.h"
 #include <genome/gene/bodyGene.h>
 
-#include "pythonInterface.h"
+auto product(PyObject * self, PyObject * args) -> PyObject * {
+	auto result = PyLong_AsLong(PyTuple_GetItem(args, 0)) * PyLong_AsLong(PyTuple_GetItem(args, 1));
+	return PyLong_FromLong(result);
+}
+
+static PyMethodDef aLifeMethodDefinitions[] = {
+{ "product", product, METH_VARARGS, nullptr },
+{ nullptr, nullptr, 0, nullptr }
+};
+
+static PyModuleDef aLifeModule = {
+	PyModuleDef_HEAD_INIT,
+	"alife",
+	nullptr,
+	-1,
+	aLifeMethodDefinitions,
+};
+
+PyMODINIT_FUNC initALifeModule() {
+	return PyModule_Create(&aLifeModule);
+}
 
 auto main () -> int {
-    PythonProgram::init();
+	PyImport_AppendInittab("alife", initALifeModule);
+
+	PythonScript::init();
+
+	auto * mmm = PyImport_ImportModule("alife");
+	if (mmm == nullptr) throw std::exception("bruh");
+
+	auto * dict = PyModule_GetDict(mmm);
+	auto * keys = PyDict_Keys(dict);
+	for (auto i = 0; i < PyList_Size(keys); ++i) {
+		std::cout << PyUnicode_AsUTF8(PyList_GetItem(keys, i)) << std::endl;
+	}
 
 	{
-		auto program = PythonProgram("testmodule");
+		auto program = PythonScript("testmodule");
 
-		auto result = program.callFunction("add", { PyLong_FromLong(1), PyLong_FromLong(8) });
+		auto result = program.callFunction("add", { PyLong_FromLong(3), PyLong_FromLong(4) });
 
 		std::cout << "result: " << PyLong_AsLong(result.get()) << std::endl;
 	}
@@ -63,5 +96,5 @@ auto main () -> int {
 
 	std::cout << genome1.toString() << std::endl;
 
-	//PythonProgram::cleanup();
+	//PythonScript::cleanup();
 }

@@ -1,10 +1,7 @@
-def add(a, b):
-    return a + b
+import alife
 
-skek = {
-    "name": 3,
-    "sdfaef": 123,
-}
+def add(a, b):
+    return alife.product(a, b)
 
 def helloWorld():
     print("Hello, world")

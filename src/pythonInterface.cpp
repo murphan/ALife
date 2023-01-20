@@ -2,8 +2,6 @@
 // Created by Emmet on 1/18/2023.
 //
 
-#include <Python.h>
-
 #include <exception>
 #include <sstream>
 #include <filesystem>
@@ -24,7 +22,7 @@ auto PythonHolder::get() -> PyObject * {
 
 /* program */
 
-PythonProgram::PythonProgram(const char * filename) : PythonHolder(nullptr) {
+PythonScript::PythonScript(const char * filename) : PythonHolder(nullptr) {
 	auto currentPath = std::filesystem::current_path().string();
 	replace(currentPath.begin(), currentPath.end(), '\\', '/');
 
@@ -43,18 +41,16 @@ PythonProgram::PythonProgram(const char * filename) : PythonHolder(nullptr) {
 	Py_DECREF(pName);
 }
 
-auto PythonProgram::init() -> void {
+auto PythonScript::init() -> void {
 	Py_Initialize();
 	PyRun_SimpleString("import sys");
 }
 
-auto PythonProgram::cleanup() -> void {
+[[maybe_unused]] auto PythonScript::cleanup() -> void {
 	Py_Finalize();
 }
 
-#include <iostream>
-
-auto PythonProgram::callFunction(const char * functionName, std::initializer_list<PyObject *> args) -> PythonHolder {
+auto PythonScript::callFunction(const char * functionName, std::initializer_list<PyObject *> args) -> PythonHolder {
 	auto dict = PyModule_GetDict(object);
 
 	auto functionHandle = PyDict_GetItemString(dict, functionName);

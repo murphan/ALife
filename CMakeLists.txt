@@ -31,14 +31,18 @@ add_executable(ALife ${alife_src_files})
 target_link_libraries(ALife debug ${PYTHON_HOME}/libs/python${PYTHON_VER}_d.lib)
 target_link_libraries(ALife optimized ${PYTHON_HOME}/libs/python${PYTHON_VER}.lib)
 
+# "builds" the python files by moving them to the build directory
 file(GLOB_RECURSE alife_python_files CONFIGURE_DEPENDS "src/python/*.py" "src/python/**/*.py")
 
-foreach(py_file ${alife_python_files})
-    get_filename_component(py_filename ${py_file} NAME)
-    add_custom_command(
-        TARGET ALife POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        "${py_file}"
-        "${CMAKE_CURRENT_BINARY_DIR}/${py_filename}"
-    )
-endforeach(py_file)
+add_custom_command(
+    TARGET ALife POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${alife_python_files}
+    ${CMAKE_CURRENT_BINARY_DIR}
+)
+
+#foreach(py_file ${alife_python_files})
+#    get_filename_component(py_filename ${py_file} NAME)
+#    message(${py_filename})
+#
+#endforeach(py_file)

@@ -5,10 +5,19 @@
 #ifndef ALIFE_PYTHONINTERFACE_H
 #define ALIFE_PYTHONINTERFACE_H
 
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
+#include "pyconfig.h"
+
+#include <functional>
 #include <initializer_list>
 
+/**
+ * simple wrapper for a python object
+ * manages the memory for it so you don't have to worry about how crappy the,
+ * python library is
+ */
 class PythonHolder {
 protected:
 	PyObject * object;
@@ -19,14 +28,24 @@ public:
 	auto get() -> PyObject *;
 };
 
-class PythonProgram : public PythonHolder {
+/**
+ * created to call python code in c++
+ */
+class PythonScript : public PythonHolder {
 public:
-	explicit PythonProgram(const char * filename);
+	explicit PythonScript(const char * filename);
 
 	auto callFunction(const char * functionName, std::initializer_list<PyObject *> args) -> PythonHolder;
 
 	static auto init() -> void;
-	static auto cleanup() -> void;
+
+	//TODO this function crashes for some reason
+	[[maybe_unused]] static auto cleanup() -> void;
 };
 
-#endif//ALIFE_PYTHONINTERFACE_H
+struct PythonMethodDefinition {
+	const char * name;
+	PyCFunction function;
+};
+
+#endif
