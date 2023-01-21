@@ -28,7 +28,7 @@ class SetupEnvironment:
         self.pause_button = Button(SCREEN, (1364, 738), "Pause", (255, 0, 0))
         self.play_button = Button(SCREEN, (1320, 738), "Play", (0, 255, 0))
 
-        self.environment_grid = [[0] * int(WINDOW_HEIGHT / 10) for i in range(WINDOW_WIDTH)]
+        self.environment_grid = [[0] * int(WINDOW_WIDTH / 10) for i in range(int(WINDOW_HEIGHT / 10))]
 
         # TODO: Likely need to create instances of the setup_settings and setup_dataprocessing GUI's
         # So that I can access each of them and pass settings along through pages and changes of states

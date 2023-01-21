@@ -15,6 +15,7 @@ class EnvironmentControl:
         # TODO: Make these correspond to the correct values in setup_environmentGUI
         self.height = 1
         self.width = 1
+        self.clicktype = 'Organism'
 
     def set_speed(self, speed):
         """
@@ -43,14 +44,14 @@ class EnvironmentControl:
         """
         This is where the environment is started up again when it is selected in the environment window
         """
-        print("start")
+        # print("start")
         pass
 
     def stop(self):
         """
         This is the call to stop whenever it is clicked in the environment window
         """
-        print("stop")
+        /print("stop")
         pass
 
     def set_width(self, width):
@@ -60,7 +61,7 @@ class EnvironmentControl:
         :param width: The width of the window
         :Param type: int
         """
-        print(f"width: {width}")
+        # print(f"width: {width}")
         self.width = width
 
     def set_height(self, height):
@@ -70,7 +71,7 @@ class EnvironmentControl:
         :param height: The height of the window
         :param type: int
         """
-        print(f"height: {height}")
+        # print(f"height: {height}")
         self.height = height
 
     def set_temperature(self, temperature):
@@ -80,7 +81,7 @@ class EnvironmentControl:
         :param temperature: The temperature of the environment in degrees Celsius
         :param type: int
         """
-        print(f"temperature: {temperature}")
+        # print(f"temperature: {temperature}")
         pass
 
     def set_light(self, brightness):
@@ -90,7 +91,7 @@ class EnvironmentControl:
         :param brightness: The brightness of the environment in percentage
         :param type: int
         """
-        print(f"brightness: {brightness}")
+        # print(f"brightness: {brightness}")
         pass
 
     def set_oxygen(self, level):
@@ -100,7 +101,7 @@ class EnvironmentControl:
         :param level: The oxygen level of the environment in percentage
         :param type: int
         """
-        print(f"oxygen level: {level}")
+        # print(f"oxygen level: {level}")
         pass
 
     def square_clicked(self, event, SCREEN):
@@ -129,4 +130,4 @@ class EnvironmentControl:
         :param clicked_type: The type of square the user will fill with
         :param type: String
         """
-        print("Clicking type")
+        self.clicktype = clicked_type
