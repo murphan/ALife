@@ -3,7 +3,7 @@
 //
 
 #include <iostream>
-#include "src/genome/phenome.h"
+#include "genome/phenome.h"
 
 #include "genome/genome.h"
 #include "types.h"
