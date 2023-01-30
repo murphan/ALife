@@ -1,5 +1,6 @@
 import pygame
 import sys
+import socket
 
 import Control_EnvironmentGUI as Control_Environment
 import Setup_settingsGUI
@@ -23,31 +24,40 @@ class SetupEnvironment:
         CLOCK = pygame.time.Clock()
         SCREEN.fill(WHITE)
 
-        # The three buttons that are on the environment screen
-        self.settings_button = Button(SCREEN, (1424, 738), "Settings", (255, 255, 0))
-        self.pause_button = Button(SCREEN, (1364, 738), "Pause", (255, 0, 0))
-        self.play_button = Button(SCREEN, (1320, 738), "Play", (0, 255, 0))
+        self.createButtons()
 
-        self.environment_grid = [[0] * int(WINDOW_WIDTH / 10) for i in range(int(WINDOW_HEIGHT / 10))]
+        self.environment_size = (WINDOW_WIDTH / 10, (WINDOW_HEIGHT - 50) / 10)
 
         # TODO: Likely need to create instances of the setup_settings and setup_dataprocessing GUI's
         # So that I can access each of them and pass settings along through pages and changes of states
 
+        # Set up the socket connection to the c++ application
+        host = socket.gethostname()
+        port = self.read_port()
+        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server_socket.connect((host, port))
+
         while True:
+            # We will listen until we have a full message. At that point, we will update the display.
+            message = False
+            while not message:
+                message = self.conn.recv(1024).decode()
+                Control_Environment.decodeMessage(self, message)
+
             self.drawGrid()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
-                if self.settings_button.mouse_click(event):
-                    Setup_settingsGUI.SetupSettings()
-                elif self.play_button.mouse_click(event):
-                    Control_Environment.EnvironmentControl.start(self)
-                elif self.pause_button.mouse_click(event):
-                    Control_Environment.EnvironmentControl.stop(self)
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    Control_Environment.EnvironmentControl.square_clicked(self, event, SCREEN)
-                # TODO: Likely will have to have another call here to update data and position of organisms
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if self.settings_button.mouse_click(event):  # Show the settings window
+                        Setup_settingsGUI.SetupSettings()
+                    elif self.play_button.mouse_click(event):  # Register that the start button was clicked
+                        Control_Environment.EnvironmentControl.start(self)
+                    elif self.pause_button.mouse_click(event):  # Register that the pause button was clicked
+                        Control_Environment.EnvironmentControl.stop(self)
+                    else:  # Display on the environment that a square was clicked
+                        Control_Environment.EnvironmentControl.square_clicked(self, event, SCREEN)
 
             pygame.display.update()
 
@@ -56,13 +66,21 @@ class SetupEnvironment:
         This will draw the grid of the environment and initialize a two-dimensional array
         """
         global SCREEN
-        blockSize = 10
-        for x in range(0, WINDOW_WIDTH, blockSize):
-            for y in range(0, WINDOW_HEIGHT, blockSize):
-                if x >= WINDOW_WIDTH - 180 and y >= WINDOW_HEIGHT - 35:
-                    continue
-                rect = pygame.Rect(x, y, blockSize, blockSize)
+        block_size = 10
+        for x in range(0, WINDOW_WIDTH, block_size):
+            for y in range(0, WINDOW_HEIGHT - 50, block_size):
+                rect = pygame.Rect(x, y, block_size, block_size)
                 pygame.draw.rect(SCREEN, BLACK, rect, 1)
+
+    def createButtons(self):
+        # The three buttons that are on the environment screen
+        self.settings_button = Button(SCREEN, (1420, 738), "Settings", (255, 255, 0))
+        self.pause_button = Button(SCREEN, (1356, 738), "Pause", (255, 0, 0))
+        self.play_button = Button(SCREEN, (1307, 738), "Play", (0, 255, 0))
+
+    def read_port(self):
+        f = open("../config.txt", "r")
+        return int(f.read())
 
 
 class Button:

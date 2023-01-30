@@ -1,7 +1,6 @@
 from tkinter import *
 import pygame
 
-
 GREEN = '#0c871b'
 
 
@@ -51,7 +50,7 @@ class EnvironmentControl:
         """
         This is the call to stop whenever it is clicked in the environment window
         """
-        /print("stop")
+        # print("stop")
         pass
 
     def set_width(self, width):
@@ -118,9 +117,12 @@ class EnvironmentControl:
         coord = mpos_x // 10, mpos_y // 10
         rect = pygame.Rect(coord[0] * 10, coord[1] * 10,
                            10, 10)
-        # TODO: Might need to change the color of this rectangle fill
+        # Check that the coordinates are within the bounds of the environment (only check height)
+        if coord[1] > self.environment_size[1]:
+            return
+        # TODO: Also check if the coordinates are already filled. If so, request data about that organism
+        # TODO: Need to change the color based on the type being rendered
         pygame.draw.rect(SCREEN, GREEN, rect)
-        self.environment_grid[coord[0]][coord[1]] = 1
 
     def click_type(self, clicked_type):
         """
@@ -131,3 +133,14 @@ class EnvironmentControl:
         :param type: String
         """
         self.clicktype = clicked_type
+
+    def decode_message(self, message):
+        """
+        This will decode the message that is sent from the c++ application
+        :param message:
+        :param type: String/json
+        """
+        print(message)
+
+    def send_message(self, message_type):
+        pass
