@@ -33,7 +33,7 @@ constexpr auto operator "" _i16(unsigned long long int i) -> i16 { return static
 constexpr auto operator "" _i32(unsigned long long int i) -> i32 { return static_cast<i32>(i); }
 constexpr auto operator "" _i64(unsigned long long int i) -> i64 { return static_cast<i64>(i); }
 
-constexpr auto operator "" _i32(long double i) -> f32 { return static_cast<f32>(i); }
-constexpr auto operator "" _i64(long double i) -> f64 { return static_cast<f64>(i); }
+constexpr auto operator "" _f32(long double i) -> f32 { return static_cast<f32>(i); }
+constexpr auto operator "" _f64(long double i) -> f64 { return static_cast<f64>(i); }
 
 #endif //ALIFE_TYPES_H
