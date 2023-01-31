@@ -13,11 +13,12 @@
 class Environment {
     private:
             int cells;                                   //Length of side of the square map
-            std::vector<std::vector<MapCell>> map;  //2d Vector of each cell in the map
+            std::vector<MapCell> map;  //2d Vector of each cell in the map
 
     public:
         Environment(int);
         void EnvironmentStep();
+        MapCell getCell(int,int);
 
 };
 

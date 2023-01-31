@@ -14,10 +14,14 @@ class MapCell {
         int light;
         std::vector<Food> food;
     public:
-        MapCell(int inTemp, int inLight);
-        void mapCellStep();
-        int getTemperature();
-        int getLight();
+        MapCell(int parameters[4]);
+        MapCell();
+
+    void mapCellStep();
+    int getTemperature();
+    int getLight();
+
+    void genFood(int Food);
 };
 
 #endif //ALIFE_MAPCELL_H
