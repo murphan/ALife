@@ -82,6 +82,7 @@ public:
 	static auto queueMessage() -> std::optional<std::vector<char>>;
 
 	static auto send(const std::vector<char> & data) -> void;
+	static auto send(const std::vector<std::vector<char>> & data) -> void;
 };
 
 #endif //ALIFE_SOCKET_H
