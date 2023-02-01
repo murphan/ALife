@@ -9,6 +9,8 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 
+#pragma comment(lib, "Ws2_32.lib")
+
 #include <windows.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -46,7 +48,7 @@ public:
 	 */
 	Socket() = delete;
 
-	static auto init(const char * address, const char * port) -> void;
+	static auto init(const char * port) -> void;
 
 	static auto poll() -> void;
 

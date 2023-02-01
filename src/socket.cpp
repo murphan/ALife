@@ -12,9 +12,11 @@ auto Socket::wsaData = WSAData {0,};
 auto Socket::listenSocket = INVALID_SOCKET;
 auto Socket::clientSocket = INVALID_SOCKET;
 
-auto Socket::readingMessage = false;
 auto Socket::messageLengthIndex = 0;
 auto Socket::currentMessageLength = 0_u32;
+
+auto Socket::storage = std::deque<std::vector<char>>();
+auto Socket::currentMessage = std::vector<char>();
 
 auto Socket::errorCleanup(addrinfo *& addressInfo) -> void {
 	if (addressInfo != nullptr) freeaddrinfo(addressInfo);
@@ -29,7 +31,7 @@ auto Socket::errorCleanup(addrinfo *& addressInfo) -> void {
 /**
  * @throw std::exception if could not be initialized
  */
-auto Socket::init(const char * address, const char * port) -> void {
+auto Socket::init(const char * port) -> void {
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
 		throw std::exception("Could not start socket service");
 
@@ -44,7 +46,7 @@ auto Socket::init(const char * address, const char * port) -> void {
 		.ai_protocol = IPPROTO_TCP,
 	};
 
-	if(getaddrinfo(address, port, &hints, &addressInfo)) {
+	if(getaddrinfo(nullptr, port, &hints, &addressInfo)) {
 		errorCleanup(addressInfo);
 		throw std::exception("Could not resolve address");
 	}
@@ -137,12 +139,31 @@ auto Socket::queueMessage() -> std::optional<std::vector<char>> {
 auto Socket::send(std::vector<char> & data) -> void {
 	char tempBuffer[BUFFER_LENGTH];
 
-	auto i = 0;
-	while (i < data.) {
+	auto messageIndex = 0;
+	auto fullMessageSize = data.size() + 4;
 
-	}
+	while (messageIndex < fullMessageSize) {
+		auto chunkIndex = 0;
 
-	if (::send(clientSocket, tempBuffer, 3, 0) == SOCKET_ERROR) {
-		std::cerr << "socket send error " << std::endl;
+		if (messageIndex == 0) {
+			tempBuffer[0] = (char)(data.size() >> 24);
+			tempBuffer[1] = (char)((data.size() >> 16) & 0xff);
+			tempBuffer[2] = (char)((data.size() >> 8) & 0xff);
+			tempBuffer[3] = (char)(data.size() & 0xff);
+
+			chunkIndex += 4;
+		}
+
+		auto messagePartSize = min(BUFFER_LENGTH - chunkIndex, fullMessageSize - messageIndex);
+		chunkIndex += messagePartSize;
+
+		memcpy_s(tempBuffer, BUFFER_LENGTH, data.data() + messageIndex - 4, messagePartSize);
+
+		if (::send(clientSocket, tempBuffer, chunkIndex, 0) == SOCKET_ERROR) {
+			std::cerr << "socket send error " << std::endl;
+			break;
+		}
+
+		messageIndex += chunkIndex;
 	}
 }

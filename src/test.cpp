@@ -9,9 +9,30 @@
 #include "types.h"
 #include "util.h"
 #include <tuple>
+#include <chrono>
+#include <thread>
+
 #include <genome/gene/bodyGene.h>
 
+#include "socket.h"
+
 auto main () -> int {
+	Socket::init("51679");
+	while (true) {
+		Socket::poll();
+		while (true) {
+			auto message = Socket::queueMessage();
+			if (!message.has_value()) break;
+
+			auto str = std::string(message.value().begin(), message.value().end());
+			std::cout << "received message" << std::endl;
+			std::cout << str << std::endl;
+		}
+
+		std::this_thread::sleep_for(std::chrono::microseconds(100));
+	}
+	Socket::close();
+
     auto g0 = Genome("AAACAAADAAABAAACAAAD");
     auto g1 = Genome("AAADAAABAAABAAACAAAC");
 
