@@ -18,6 +18,8 @@
 #include <vector>
 #include <optional>
 #include <deque>
+#include <mutex>
+#include <condition_variable>
 
 #include "types.h"
 
@@ -30,17 +32,37 @@ private:
 	static SOCKET listenSocket;
 	static SOCKET clientSocket;
 
-	static std::deque<std::vector<char>> storage;
+	static std::deque<std::vector<char>> inQueue;
+	static std::deque<std::vector<char>> outQueue;
 
 	static i32 messageLengthIndex;
 	static u32 currentMessageLength;
 	static std::vector<char> currentMessage;
+
+	/* multithreading */
+
+	static bool running;
+
+	static std::thread readerThread;
+	static std::thread writerThread;
+
+	static std::mutex inQueueMutex;
+	static std::mutex outQueueMutex;
+	static std::condition_variable outQueueSignal;
+
+	/* internal utility */
 
 	static auto errorCleanup(addrinfo *& addressInfo) -> void;
 
 	static auto resetCurrentMessage() -> void;
 
 	static auto readIntoMessage(char * buffer, i32 bytesReceived, i32 & start) -> void;
+
+	static auto writeMessage(char * buffer, const std::vector<char> & data) -> void;
+
+	static auto readerLoop() -> void;
+	static auto writerLoop() -> void;
+
 public:
 	/**
 	 * winsock is global for the entire program
@@ -49,8 +71,6 @@ public:
 	Socket() = delete;
 
 	static auto init(const char * port) -> void;
-
-	static auto poll() -> void;
 
 	static auto isConnected() -> bool;
 
@@ -61,7 +81,7 @@ public:
 	 */
 	static auto queueMessage() -> std::optional<std::vector<char>>;
 
-	static auto send(std::vector<char> & data) -> void;
+	static auto send(const std::vector<char> & data) -> void;
 };
 
 #endif //ALIFE_SOCKET_H

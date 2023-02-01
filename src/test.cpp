@@ -19,7 +19,6 @@
 auto main () -> int {
 	Socket::init("51679");
 	while (true) {
-		Socket::poll();
 		while (true) {
 			auto message = Socket::queueMessage();
 			if (!message.has_value()) break;
@@ -28,8 +27,7 @@ auto main () -> int {
 			std::cout << "received message" << std::endl;
 			std::cout << str << std::endl;
 		}
-
-		std::this_thread::sleep_for(std::chrono::microseconds(100));
+		std::this_thread::sleep_for(std::chrono::milliseconds (1000));
 	}
 	Socket::close();
 

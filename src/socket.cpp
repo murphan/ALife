@@ -15,8 +15,21 @@ auto Socket::clientSocket = INVALID_SOCKET;
 auto Socket::messageLengthIndex = 0;
 auto Socket::currentMessageLength = 0_u32;
 
-auto Socket::storage = std::deque<std::vector<char>>();
+auto Socket::inQueue = std::deque<std::vector<char>>();
+auto Socket::outQueue = std::deque<std::vector<char>>();
+
 auto Socket::currentMessage = std::vector<char>();
+
+/* multithreading */
+
+auto Socket::running = false;
+
+auto Socket::readerThread = std::thread();
+auto Socket::writerThread = std::thread();
+
+auto Socket::inQueueMutex = std::mutex();
+auto Socket::outQueueMutex = std::mutex();
+auto Socket::outQueueSignal = std::condition_variable();
 
 auto Socket::errorCleanup(addrinfo *& addressInfo) -> void {
 	if (addressInfo != nullptr) freeaddrinfo(addressInfo);
@@ -69,6 +82,11 @@ auto Socket::init(const char * port) -> void {
 		errorCleanup(addressInfo);
 		throw std::exception("could not listen on socket");
 	}
+
+	running = true;
+
+	readerThread = std::thread(readerLoop);
+	writerThread = std::thread(writerLoop);
 }
 
 auto Socket::isConnected() -> bool {
@@ -76,6 +94,11 @@ auto Socket::isConnected() -> bool {
 }
 
 auto Socket::close() -> void {
+	running = false;
+
+	readerThread.join();
+	writerThread.join();
+
 	closesocket(listenSocket);
 }
 
@@ -100,45 +123,82 @@ auto Socket::readIntoMessage(char * buffer, i32 bytesReceived, i32 & index) -> v
 	index += bodyBytesToRead;
 
 	if (currentMessage.size() == currentMessageLength) {
-		storage.push_back(std::move(currentMessage));
+		inQueue.push_back(std::move(currentMessage));
 		resetCurrentMessage();
 	}
 }
 
-auto Socket::poll() -> void {
-	if (clientSocket == INVALID_SOCKET) {
-		clientSocket = accept(listenSocket, nullptr, nullptr);
-	}
+auto Socket::readerLoop() -> void {
+	while (running) {
+		if (clientSocket == INVALID_SOCKET) {
+			clientSocket = accept(listenSocket, nullptr, nullptr);
+		}
 
-	if (clientSocket == INVALID_SOCKET) return;
+		if (clientSocket == INVALID_SOCKET) return;
 
-	char tempBuffer[BUFFER_LENGTH];
+		char tempBuffer[BUFFER_LENGTH];
 
-	auto bytesReceived = recv(clientSocket, tempBuffer, BUFFER_LENGTH, 0);
+		auto bytesReceived = recv(clientSocket, tempBuffer, BUFFER_LENGTH, 0);
 
-	/* negative numbers are error codes */
-	if (bytesReceived < 0) {
-		resetCurrentMessage();
-		std::cerr << "socket receive error code " << bytesReceived << std::endl;
+		/* negative numbers are error codes */
+		if (bytesReceived < 0) {
+			resetCurrentMessage();
+			std::cerr << "socket receive error code " << bytesReceived << std::endl;
 
-	} else {
-		for (auto i = 0; i < bytesReceived; readIntoMessage(tempBuffer, bytesReceived, i));
+			/* client disconnected */
+			if (bytesReceived == -1) clientSocket = INVALID_SOCKET;
+
+		} else {
+			std::cout << "received " << bytesReceived << " bytes" << std::endl;
+
+			inQueueMutex.lock();
+			for (auto i = 0; i < bytesReceived; readIntoMessage(tempBuffer, bytesReceived, i));
+			inQueueMutex.unlock();
+		}
 	}
 }
 
 auto Socket::queueMessage() -> std::optional<std::vector<char>> {
-	if (storage.empty()) return std::nullopt;
+	inQueueMutex.lock();
 
-	auto ret = std::make_optional(std::move(storage.front()));
+	if (inQueue.empty()) {
+		inQueueMutex.unlock();
+		return std::nullopt;
+	}
 
-	storage.pop_front();
+	auto ret = std::make_optional(std::move(inQueue.front()));
+
+	inQueue.pop_front();
+	inQueueMutex.unlock();
 
 	return ret;
 }
 
-auto Socket::send(std::vector<char> & data) -> void {
-	char tempBuffer[BUFFER_LENGTH];
+auto Socket::send(const std::vector<char> & data) -> void {
+	outQueueMutex.lock();
+	outQueue.push_back(data);
+	outQueueSignal.notify_all();
+	outQueueMutex.unlock();
+}
 
+auto Socket::writerLoop() -> void {
+	char tempBuffer[BUFFER_LENGTH];
+	auto lock = std::unique_lock(outQueueMutex);
+
+	while (running) {
+		if (outQueue.empty()) outQueueSignal.wait(lock);
+
+		while (!outQueue.empty()) {
+			writeMessage(tempBuffer, outQueue.front());
+			outQueue.pop_front();
+		}
+
+		lock.unlock();
+		outQueueSignal.notify_one();
+	}
+}
+
+auto Socket::writeMessage(char * buffer, const std::vector<char> & data) -> void {
 	auto messageIndex = 0;
 	auto fullMessageSize = data.size() + 4;
 
@@ -146,20 +206,20 @@ auto Socket::send(std::vector<char> & data) -> void {
 		auto chunkIndex = 0;
 
 		if (messageIndex == 0) {
-			tempBuffer[0] = (char)(data.size() >> 24);
-			tempBuffer[1] = (char)((data.size() >> 16) & 0xff);
-			tempBuffer[2] = (char)((data.size() >> 8) & 0xff);
-			tempBuffer[3] = (char)(data.size() & 0xff);
+			buffer[0] = (char)(data.size() >> 24);
+			buffer[1] = (char)((data.size() >> 16) & 0xff);
+			buffer[2] = (char)((data.size() >> 8) & 0xff);
+			buffer[3] = (char)(data.size() & 0xff);
 
 			chunkIndex += 4;
 		}
 
-		auto messagePartSize = min(BUFFER_LENGTH - chunkIndex, fullMessageSize - messageIndex);
+		auto messagePartSize = (i32)min(BUFFER_LENGTH - chunkIndex, fullMessageSize - messageIndex);
 		chunkIndex += messagePartSize;
 
-		memcpy_s(tempBuffer, BUFFER_LENGTH, data.data() + messageIndex - 4, messagePartSize);
+		memcpy_s(buffer, BUFFER_LENGTH, data.data() + messageIndex - 4, messagePartSize);
 
-		if (::send(clientSocket, tempBuffer, chunkIndex, 0) == SOCKET_ERROR) {
+		if (::send(clientSocket, buffer, chunkIndex, 0) == SOCKET_ERROR) {
 			std::cerr << "socket send error " << std::endl;
 			break;
 		}
