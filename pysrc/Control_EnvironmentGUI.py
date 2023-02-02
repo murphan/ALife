@@ -2,6 +2,8 @@ from tkinter import *
 import pygame
 
 GREEN = '#0c871b'
+YELLOW = '#fafa16'
+BLACK = '#000000'
 
 
 class EnvironmentControl:
@@ -10,11 +12,9 @@ class EnvironmentControl:
         This is the initialization of the environment window controls that
         will need to be kept track of throughout the run
         """
-        self.speed = 1
         # TODO: Make these correspond to the correct values in setup_environmentGUI
         self.height = 1
         self.width = 1
-        self.clicktype = 'Organism'
 
     def set_speed(self, speed):
         """
@@ -23,7 +23,12 @@ class EnvironmentControl:
         :param speed: The speed of the environment. Ex. "2x" or ".5x"
         :param type: string
         """
-        self.speed = int(speed[:-1])
+        settings = self.env_settings
+        if self.env_settings.speed == int(speed[:-1]):
+            return
+        else:
+            self.env_settings.speed = int(speed[:-1])
+            EnvironmentControl.send_message(self, self.env_settings.conn, "Speed", self.env_settings.speed)
 
     def set_size(self, width, height):
         """
@@ -43,14 +48,14 @@ class EnvironmentControl:
         """
         This is where the environment is started up again when it is selected in the environment window
         """
-        # print("start")
+        # TODO: have a call to send a message of starting the environment
         pass
 
     def stop(self):
         """
         This is the call to stop whenever it is clicked in the environment window
         """
-        # print("stop")
+        # TODO: have a call to send a message of pausing the environment
         pass
 
     def set_width(self, width):
@@ -80,7 +85,7 @@ class EnvironmentControl:
         :param temperature: The temperature of the environment in degrees Celsius
         :param type: int
         """
-        # print(f"temperature: {temperature}")
+        # TODO: Send the new temperature that was set
         pass
 
     def set_light(self, brightness):
@@ -90,7 +95,7 @@ class EnvironmentControl:
         :param brightness: The brightness of the environment in percentage
         :param type: int
         """
-        # print(f"brightness: {brightness}")
+        # TODO: Send the new light amount that was set
         pass
 
     def set_oxygen(self, level):
@@ -100,7 +105,7 @@ class EnvironmentControl:
         :param level: The oxygen level of the environment in percentage
         :param type: int
         """
-        # print(f"oxygen level: {level}")
+        # TODO: Send the new oxygen level that was set
         pass
 
     def square_clicked(self, event, SCREEN):
@@ -120,9 +125,14 @@ class EnvironmentControl:
         # Check that the coordinates are within the bounds of the environment (only check height)
         if coord[1] > self.environment_size[1]:
             return
-        # TODO: Also check if the coordinates are already filled. If so, request data about that organism
-        # TODO: Need to change the color based on the type being rendered
-        pygame.draw.rect(SCREEN, GREEN, rect)
+        # TODO: Also check if the coordinates are already filled. If so,
+        #  request data about that organism if not, send data that this square is now filled
+        if self.click_type == 'Organism':
+            pygame.draw.rect(SCREEN, GREEN, rect)
+        elif self.click_type == 'Food':
+            pygame.draw.rect(SCREEN, YELLOW, rect)
+        else:
+            pygame.draw.rect(SCREEN, BLACK, rect)
 
     def click_type(self, clicked_type):
         """
@@ -132,15 +142,59 @@ class EnvironmentControl:
         :param clicked_type: The type of square the user will fill with
         :param type: String
         """
-        self.clicktype = clicked_type
+        self.env_settings.click_type = clicked_type
 
-    def decode_message(self, message):
+    def decode_message(self):
         """
-        This will decode the message that is sent from the c++ application
-        :param message:
-        :param type: String/json
-        """
-        print(message)
+        This will decode the message that is sent from the c++ application. This will be
+        started in setup Environment and will be in its own process. It will loop
+        infinitely looking for messages
 
-    def send_message(self, message_type):
-        pass
+        NOTE: Self was passed from setup_environment and so this will be a setup_environment instance of self
+        """
+        while True:
+            message_buf = ''  # The buffer to append message information to
+
+            message = self.conn.recv(1024).decode()
+            if message:
+                length = int(message[:4])
+                message = message[4:]
+                while length:
+                    if length < 1022:
+                        message_buf += message
+                        length = 0
+                        break
+                    else:
+                        message_buf += message
+                        length -= 1022
+                    message = self.conn.recv(1024).decode()
+
+                print("message received")
+
+            # TODO: Process the commands here
+
+    def send_message(self, conn, message_type, data=None):
+        """
+        This is the spot where a message can be sent to the c++ application
+
+        NOTE: Self was passed from setup_environment and so this will be a setup_environment instance of self
+
+        :param conn: connection to send the message to
+        :param type: socket
+
+        :param message_type: The type of message that will be sent (ex. pause, play, request)
+        :param type: string
+
+        :param data: Optional argument for passing data that may be needed in c++
+        :param type: Any
+        """
+        # TODO: Check the message type and create a message that is different based on the type that is given
+        message = "This is a filler message that will be changed to meet the command types later"
+        length = len(message)
+        if len(str(length)) < 4:
+            length = str(length).zfill(4)
+            message = str(length).encode("utf-8") + message.encode("utf-8")
+        else:
+            message = str(length).encode("utf-8") + message.encode("utf-8")
+
+        conn.send(message)

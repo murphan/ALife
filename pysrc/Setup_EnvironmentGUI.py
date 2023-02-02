@@ -1,3 +1,4 @@
+from multiprocessing import Process
 import pygame
 import sys
 import socket
@@ -27,6 +28,9 @@ class SetupEnvironment:
         self.createButtons()
 
         self.environment_size = (WINDOW_WIDTH / 10, (WINDOW_HEIGHT - 50) / 10)
+        # Environment factors
+        self.click_type = "Organism"
+        self.speed = 1
 
         # TODO: Likely need to create instances of the setup_settings and setup_dataprocessing GUI's
         # So that I can access each of them and pass settings along through pages and changes of states
@@ -34,16 +38,16 @@ class SetupEnvironment:
         # Set up the socket connection to the c++ application
         host = socket.gethostname()
         port = self.read_port()
-        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server_socket.connect((host, port))
+        self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.conn.connect((host, port))
 
+        proc = Process(target=Control_Environment.EnvironmentControl.decode_message, args=(self,))
+        proc.start()
+
+        self.start_main_loop()
+
+    def start_main_loop(self):
         while True:
-            # We will listen until we have a full message. At that point, we will update the display.
-            message = False
-            while not message:
-                message = self.conn.recv(1024).decode()
-                Control_Environment.decodeMessage(self, message)
-
             self.drawGrid()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -51,7 +55,7 @@ class SetupEnvironment:
                     sys.exit()
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if self.settings_button.mouse_click(event):  # Show the settings window
-                        Setup_settingsGUI.SetupSettings()
+                        self.open_settings()
                     elif self.play_button.mouse_click(event):  # Register that the start button was clicked
                         Control_Environment.EnvironmentControl.start(self)
                     elif self.pause_button.mouse_click(event):  # Register that the pause button was clicked
@@ -81,6 +85,10 @@ class SetupEnvironment:
     def read_port(self):
         f = open("../config.txt", "r")
         return int(f.read())
+
+    def open_settings(self):
+        settings = Setup_settingsGUI.SetupSettings()
+        settings.start(self)
 
 
 class Button:

@@ -31,6 +31,8 @@ class SetupSettings:
         self.setup_configurations()
         self.setup_buttons()
 
+    def start(self, settings):
+        self.env_settings = settings
         self.window.mainloop()
 
     def setup_window(self):
@@ -100,7 +102,7 @@ class SetupSettings:
         size_title_label.pack(side=TOP)
 
         width_frame = tkinter.Frame(size_frame, bg=LIGHT_GREEN)
-        width_text_label = Label(width_frame, text="Width", background="White")
+        width_text_label = Label(width_frame, text="Width(don't use *yet)", background="White")
         width_text_label.config(font=("Arial", 12))
         width_text_label.pack(side=LEFT)
         width_input = ttk.Spinbox(width_frame, from_=50.0, to=77.0,increment=1.0,
@@ -110,7 +112,7 @@ class SetupSettings:
         width_frame.pack(side=TOP)
 
         height_frame = tkinter.Frame(size_frame, bg=LIGHT_GREEN)
-        height_text_label = Label(height_frame, text="Height", background="White")
+        height_text_label = Label(height_frame, text="Height(don't use *yet)", background="White")
         height_text_label.config(font=("Arial", 12))
         height_text_label.pack(side=LEFT)
         height_input = ttk.Spinbox(height_frame, from_=100.0, to=150.0, increment=1.0,
