@@ -1,10 +1,14 @@
+import os
 from multiprocessing import Process
-import pygame
 import sys
 import socket
+# Hides a console message from the pygame module
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+import pygame
 
 import Control_EnvironmentGUI as Control_Environment
 import Setup_settingsGUI
+
 
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -28,9 +32,14 @@ class SetupEnvironment:
         self.createButtons()
 
         self.environment_size = (WINDOW_WIDTH / 10, (WINDOW_HEIGHT - 50) / 10)
+
         # Environment factors
         self.click_type = "Organism"
         self.speed = 1
+        self.running = False
+        self.temperature = 0
+        self.oxygen = 0
+        self.light = 0
 
         # TODO: Likely need to create instances of the setup_settings and setup_dataprocessing GUI's
         # So that I can access each of them and pass settings along through pages and changes of states

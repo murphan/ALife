@@ -10,15 +10,16 @@ import Setup_EnvironmentGUI as Setup_Environment
 LIGHT_GREEN = '#5fad75'
 ORANGE_YELLOW = '#e8b320'
 GREEN = '#0c871b'
+BLUE = '#3289a8'
 
 SPEEDS = [".5x",
           "1x",
           "2x",
           "4x"]
 
-SQUARE_TYPES = ["Wall",
-                "Organism",
-                "Food"]
+CLICK_TYPES = ["Wall",
+               "Organism",
+               "Food"]
 
 
 class SetupSettings:
@@ -134,9 +135,8 @@ class SetupSettings:
         temp_text_label = Label(temp_control_frame, text=f"Temperature (C{chr(176)})", background="White")
         temp_text_label.config(font=("Arial", 12))
         temp_text_label.pack(side=LEFT)
-        temp_input = ttk.Spinbox(temp_control_frame, from_=0.0, to=200.0, increment=1.0,
-                                 width=12, wrap=True, command=lambda:
-                                 Control_Environment.EnvironmentControl.set_temperature(self, temp_input.get()))
+        temp_input = ttk.Spinbox(temp_control_frame, from_=0.0, to=100.0, increment=1.0,
+                                 width=12, wrap=True)
         temp_input.pack(side=LEFT)
         temp_control_frame.pack(side=TOP)
 
@@ -145,8 +145,7 @@ class SetupSettings:
         light_text_label.config(font=("Arial", 12))
         light_text_label.pack(side=LEFT)
         light_input = ttk.Spinbox(light_control_frame, from_=0.0, to=100.0, increment=1.0,
-                                  width=22, wrap=True, command=lambda:
-                                  Control_Environment.EnvironmentControl.set_light(self, light_input.get()))
+                                  width=22, wrap=True)
         light_input.pack(side=LEFT)
         light_control_frame.pack(side=TOP)
 
@@ -155,10 +154,20 @@ class SetupSettings:
         oxygen_text_label.config(font=("Arial", 12))
         oxygen_text_label.pack(side=LEFT)
         oxygen_input = ttk.Spinbox(oxygen_control_frame, from_=0.0, to=100.0, increment=1.0,
-                                   width=19, wrap=True, command=lambda:
-                                   Control_Environment.EnvironmentControl.set_oxygen(self, light_input.get()))
+                                   width=19, wrap=True)
         oxygen_input.pack(side=LEFT)
         oxygen_control_frame.pack(side=TOP)
+
+        # Button for telling program user is done changing numbers
+        done_button_frame = tkinter.Frame(env_manip_frame, bg=LIGHT_GREEN)
+
+        done_button = tkinter.Button(done_button_frame, text="Numbers are good!",
+                                     bg=BLUE, padx=20, bd=3, font=font.Font(size=10), command=lambda:
+                                     Control_Environment.EnvironmentControl.set_env_vars(self, temp_input.get(),
+                                                                                         light_input.get(),
+                                                                                         oxygen_input.get()))
+        done_button.pack(side=LEFT)
+        done_button_frame.pack(side=TOP)
 
         env_manip_frame.pack(side=LEFT)
 
@@ -172,7 +181,7 @@ class SetupSettings:
 
         self.click_dd_value = tkinter.StringVar(click_type_frame)
         self.click_dd_value.set("Organism")
-        self.speed_dd = tkinter.OptionMenu(click_type_frame, self.click_dd_value, *SQUARE_TYPES, command=lambda event:
+        self.speed_dd = tkinter.OptionMenu(click_type_frame, self.click_dd_value, *CLICK_TYPES, command=lambda event:
         Control_Environment.EnvironmentControl.click_type(self, self.click_dd_value.get()))
         self.speed_dd.config(width=15, bg="white")
         self.speed_dd.pack(side=TOP)
