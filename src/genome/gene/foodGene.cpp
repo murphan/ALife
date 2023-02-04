@@ -5,11 +5,11 @@
 #include "foodGene.h"
 
 FoodGene::FoodGene(GenomeView & view) :
-	foodType((FoodType) read4(view, 0)),
+	foodType((Food::Type) read4(view, 0)),
 	bonus0((Bonus) read2(view, 2)),
 	bonus1((Bonus) read2(view, 4)) {}
 
-FoodGene::FoodGene(FoodType foodType, Bonus bonus0, Bonus bonus1) :
+FoodGene::FoodGene(Food::Type foodType, Bonus bonus0, Bonus bonus1) :
 	foodType(foodType),
 	bonus0(bonus0),
 	bonus1(bonus1) {}

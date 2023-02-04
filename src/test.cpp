@@ -13,12 +13,19 @@
 #include <thread>
 
 #include <genome/gene/bodyGene.h>
-#include "src/Environment/SimulationController.h"
+#include "environment/simulationController.h"
+#include "stateSerializer.h"
 
 #include "socket.h"
 
 auto main () -> int {
 	Socket::init("51679");
+
+	auto simulationController = SimulationController(Environment(160, 90));
+
+	simulationController.organisms.emplace_back();
+	simulationController.organisms.emplace_back();
+
 	while (true) {
 		while (true) {
 			auto message = Socket::queueMessage();
@@ -28,8 +35,20 @@ auto main () -> int {
 			std::cout << "received message" << std::endl;
 			std::cout << str << std::endl;
 		}
+
+		simulationController.step();
+
+		if (Socket::isConnected()) {
+			auto stateJson = StateSerializer::serialize(simulationController.currentStep, simulationController.environment, simulationController.organisms);
+
+			std::cout << stateJson << std::endl;
+			auto jsonData = stateJson.dump();
+			Socket::send(jsonData.begin(), jsonData.end());
+		}
+
 		std::this_thread::sleep_for(std::chrono::milliseconds (1000));
 	}
+
 	Socket::close();
 
     auto g0 = Genome("AAACAAADAAABAAACAAAD");
@@ -67,7 +86,4 @@ auto main () -> int {
 
     auto phenome = Phenome(creator);
     std::cout << phenome.body.debugToString() << std::endl;
-
-
-	std::cout << genome1.toString() << std::endl;
 }

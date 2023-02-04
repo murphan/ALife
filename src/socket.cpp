@@ -174,15 +174,6 @@ auto Socket::queueMessage() -> std::optional<std::vector<char>> {
 	return ret;
 }
 
-auto Socket::send(const std::vector<char> & data) -> void {
-	outQueueMutex.lock();
-
-	outQueue.push_back(data);
-
-	outQueueMutex.unlock();
-	outQueueSignal.notify_all();
-}
-
 auto Socket::send(const std::vector<std::vector<char>> & data) -> void {
 	outQueueMutex.lock();
 

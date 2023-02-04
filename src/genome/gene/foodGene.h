@@ -6,7 +6,7 @@
 #define ALIFE_FOODGENE_H
 
 #include "../gene.h"
-#include "../../food.h"
+#include "environment/food.h"
 
 /**
  * organims with this gene get more from the food they eat
@@ -35,10 +35,10 @@ protected:
 	auto writeBody(Genome & genome) -> void override;
 
 public:
-	FoodType foodType;
+	Food::Type foodType;
 
 	explicit FoodGene(GenomeView & view);
-	FoodGene(FoodType foodType, Bonus bonus0, Bonus bonus1);
+	FoodGene(Food::Type foodType, Bonus bonus0, Bonus bonus1);
 
 	auto headerBase() -> Genome::Base override;
 

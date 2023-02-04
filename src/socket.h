@@ -81,7 +81,18 @@ public:
 	 */
 	static auto queueMessage() -> std::optional<std::vector<char>>;
 
-	static auto send(const std::vector<char> & data) -> void;
+	template<typename T, std::enable_if_t<std::_Is_iterator_v<T>, int> = 0>
+	static auto send(T begin, T end) -> void {
+		outQueueMutex.lock();
+
+		outQueue.emplace_back();
+		auto & message = outQueue.back();
+		message.assign(begin, end);
+
+		outQueueMutex.unlock();
+		outQueueSignal.notify_all();
+	}
+
 	static auto send(const std::vector<std::vector<char>> & data) -> void;
 };
 

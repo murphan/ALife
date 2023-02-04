@@ -5,4 +5,7 @@ Depends on the Websocketpp library. Get it from this link: https://github.com/za
 
 To set up the build, create a `UserBuild.txt` file in the project's directory and include the following line with the local path to the header files of Websocketpp:
 
-> `SET(WEBSOCKETPP_DIR "C:/{{PATH TO WEBSOCKET LIBRARY}}/websocketpp-0.8.2/websocketpp")`
+> `SET(JSONHPP_DIR "C:/Users/{{path to folder containing json.hpp}}")`
+
+To add new files to the CMake project, click the refresh button in the CMake panel in CLion.
+Do not manually add files to the `add_executable()` in `CMakeLists.txt`.  

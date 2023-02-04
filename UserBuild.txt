@@ -1,2 +1,2 @@
 
-SET(WEBSOCKETPP_DIR "C:/Users/Emmet/Programming/lib/websocketpp-0.8.2/websocketpp")
+SET(JSONHPP_DIR "C:/Users/Emmet/Programming/lib/json-hpp")
