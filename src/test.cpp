@@ -10,6 +10,7 @@
 #include "util.h"
 #include <tuple>
 #include <genome/gene/bodyGene.h>
+#include "src/Environment/SimulationController.h"
 
 auto main () -> int {
     auto g0 = Genome("AAACAAADAAABAAACAAAD");
@@ -48,8 +49,6 @@ auto main () -> int {
     auto phenome = Phenome(creator);
     std::cout << phenome.body.debugToString() << std::endl;
 
-    /* string decode test */
-	auto genome1 = Genome("ABDACDABBDCABBBCBABCBADBCBDABBBCBDABBABDBADBCBABBDABDDACBCBCDBABC");
 
 	std::cout << genome1.toString() << std::endl;
 }
