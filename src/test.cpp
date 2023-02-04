@@ -21,7 +21,7 @@
 auto main () -> int {
 	Socket::init("51679");
 
-	auto simulationController = SimulationController(Environment(160, 90));
+	auto simulationController = SimulationController(Environment(20, 9));
 
 	simulationController.organisms.emplace_back();
 	simulationController.organisms.emplace_back();

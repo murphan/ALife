@@ -4,6 +4,8 @@
 
 #include <exception>
 #include <iostream>
+#include <span>
+#include <functional>
 
 #include "socket.h"
 
@@ -174,58 +176,81 @@ auto Socket::queueMessage() -> std::optional<std::vector<char>> {
 	return ret;
 }
 
-auto Socket::send(const std::vector<std::vector<char>> & data) -> void {
-	outQueueMutex.lock();
-
-	outQueue.insert(outQueue.end(), data.begin(), data.end());
-
-	outQueueMutex.unlock();
-	outQueueSignal.notify_all();
-}
-
 auto Socket::writerLoop() -> void {
 	char tempBuffer[BUFFER_LENGTH];
-	auto lock = std::unique_lock(outQueueMutex);
 
 	while (running) {
-		if (outQueue.empty()) outQueueSignal.wait(lock);
+		auto lock = std::unique_lock(outQueueMutex);
+		outQueueSignal.wait(lock, [] { return !outQueue.empty(); });
 
 		while (!outQueue.empty()) {
 			writeMessage(tempBuffer, outQueue.front());
 			outQueue.pop_front();
 		}
-
-		lock.unlock();
-		outQueueSignal.notify_one();
 	}
 }
 
-auto Socket::writeMessage(char * buffer, const std::vector<char> & data) -> void {
-	auto messageIndex = 0;
-	auto fullMessageSize = data.size() + 4;
+inline auto writePartIntoBuffer(std::span<char> buffer, i32 & bufferIndex, std::span<const char> data) {
+	auto leftInBuffer = buffer.size() - bufferIndex;
+	auto writeSize = (i32)min(data.size(), leftInBuffer);
 
-	while (messageIndex < fullMessageSize) {
-		auto chunkIndex = 0;
+	memcpy_s(buffer.data() + bufferIndex, leftInBuffer, data.data(), writeSize);
 
-		if (messageIndex == 0) {
-			buffer[0] = (char)(data.size() >> 24);
-			buffer[1] = (char)((data.size() >> 16) & 0xff);
-			buffer[2] = (char)((data.size() >> 8) & 0xff);
-			buffer[3] = (char)(data.size() & 0xff);
+	bufferIndex += writeSize;
+	return writeSize;
+}
 
-			chunkIndex += 4;
+template<typename T>
+concept BufferConsumer = requires(T functionLike, std::span<const char> param) {
+	([](bool) {})(functionLike(param));
+};
+
+template<BufferConsumer T>
+inline auto shipIntoBuffer(std::span<char> buffer, i32 & bufferIndex, std::span<const char> data, T onBufferFilled) {
+	auto dataIndex = 0;
+
+	while (dataIndex < data.size()) {
+		dataIndex += writePartIntoBuffer(buffer, bufferIndex, data.subspan(dataIndex, data.size() - dataIndex));
+
+		if (bufferIndex == buffer.size()) {
+			if (onBufferFilled(buffer.subspan(0, buffer.size()))) return true;
+
+			bufferIndex = 0;
 		}
-
-		auto messagePartSize = (i32)min(BUFFER_LENGTH - chunkIndex, fullMessageSize - messageIndex);
-		chunkIndex += messagePartSize;
-
-		memcpy_s(buffer, BUFFER_LENGTH, data.data() + messageIndex - 4, messagePartSize);
-
-		if (::send(clientSocket, buffer, chunkIndex, 0) == SOCKET_ERROR) {
-			std::cerr << "socket send error " << std::endl;
-			break;
-		}
-
-		messageIndex += chunkIndex;
 	}
+
+	return false;
+}
+
+template<BufferConsumer T>
+inline auto shipRemainingInBuffer(std::span<char> buffer, i32 bufferIndex, T onBufferFilled) {
+	if (bufferIndex == 0) return false;
+
+	return onBufferFilled(buffer.subspan(0, bufferIndex));
+}
+
+auto Socket::writeMessage(char * buffer, const std::vector<char> & data) -> void {
+	auto bufferIndex = 0;
+	auto bufferView = std::span { buffer, BUFFER_LENGTH };
+
+	auto send = [&](std::span<const char> buffer) {
+		if (::send(clientSocket, buffer.data(), buffer.size(), 0) == SOCKET_ERROR) {
+			std::cerr << "socket send error " << std::endl;
+			return true;
+		}
+		return false;
+	};
+
+	char header[4] = {
+		(char)(data.size() >> 24),
+		(char)((data.size() >> 16) & 0xff),
+		(char)((data.size() >> 8) & 0xff),
+		(char)(data.size() & 0xff),
+	};
+
+	if (shipIntoBuffer(bufferView, bufferIndex, { header, 4 }, send)) return;
+
+	if (shipIntoBuffer(bufferView, bufferIndex, { data.data(), data.size() }, send)) return;
+
+	if (shipRemainingInBuffer(bufferView, bufferIndex, send)) return;
 }

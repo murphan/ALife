@@ -83,17 +83,14 @@ public:
 
 	template<typename T, std::enable_if_t<std::_Is_iterator_v<T>, int> = 0>
 	static auto send(T begin, T end) -> void {
-		outQueueMutex.lock();
+		auto lockGuard = std::lock_guard(outQueueMutex);
 
 		outQueue.emplace_back();
 		auto & message = outQueue.back();
 		message.assign(begin, end);
 
-		outQueueMutex.unlock();
 		outQueueSignal.notify_all();
 	}
-
-	static auto send(const std::vector<std::vector<char>> & data) -> void;
 };
 
 #endif //ALIFE_SOCKET_H
