@@ -9,6 +9,15 @@ include_directories(src)
 
 add_executable(
 	ALife
+		src/Environment/SimulationController.cpp
+		src/Environment/SimulationController.h
+		src/Environment/Environment.cpp
+		src/Environment/Environment.h
+		src/Environment/MapCell.h
+		src/Environment/MapCell.cpp
+		src/Environment/Food.h
+		src/Environment/Food.cpp
+    
 	src/genome/genome.h
 	src/genome/genome.cpp
 	src/types.h
