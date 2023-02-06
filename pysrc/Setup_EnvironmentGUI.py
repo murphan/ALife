@@ -2,11 +2,10 @@ import os
 from multiprocessing import Process
 import sys
 import socket
-# Hides a console message from the pygame module
-os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 import pygame
+import random
 
-import Control_EnvironmentGUI as Control_Environment
+import Control_EnvironmentGUI
 import Setup_settingsGUI
 
 
@@ -14,7 +13,6 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 WINDOW_HEIGHT = 770
 WINDOW_WIDTH = 1500
-SCREEN = None
 CLOCK = None
 
 
@@ -23,81 +21,54 @@ class SetupEnvironment:
     This will set up the actual environment for the simulation to be displayed in
     """
     def __init__(self):
-        global SCREEN, CLOCK
+        global CLOCK
         pygame.init()
-        SCREEN = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+        self.SCREEN = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         CLOCK = pygame.time.Clock()
-        SCREEN.fill(WHITE)
+        self.SCREEN.fill(WHITE)
 
         self.createButtons()
-
         self.environment_size = (WINDOW_WIDTH / 10, (WINDOW_HEIGHT - 50) / 10)
-
-        # Environment factors
-        self.click_type = "Organism"
-        self.speed = 1
-        self.running = False
-        self.temperature = 0
-        self.oxygen = 0
-        self.light = 0
-
-        # TODO: Likely need to create instances of the setup_settings and setup_dataprocessing GUI's
-        # So that I can access each of them and pass settings along through pages and changes of states
-
-        # Set up the socket connection to the c++ application
-        host = socket.gethostname()
-        port = self.read_port()
-        self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.conn.connect((host, port))
-
-        proc = Process(target=Control_Environment.EnvironmentControl.decode_message, args=(self,))
-        proc.start()
-
-        self.start_main_loop()
-
-    def start_main_loop(self):
-        while True:
-            self.drawGrid()
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if self.settings_button.mouse_click(event):  # Show the settings window
-                        self.open_settings()
-                    elif self.play_button.mouse_click(event):  # Register that the start button was clicked
-                        Control_Environment.EnvironmentControl.start(self)
-                    elif self.pause_button.mouse_click(event):  # Register that the pause button was clicked
-                        Control_Environment.EnvironmentControl.stop(self)
-                    else:  # Display on the environment that a square was clicked
-                        Control_Environment.EnvironmentControl.square_clicked(self, event, SCREEN)
-
-            pygame.display.update()
+        Control_EnvironmentGUI.EnvironmentControl.define_grid(self, self.environment_size[0], self.environment_size[1])
 
     def drawGrid(self):
         """
         This will draw the grid of the environment and initialize a two-dimensional array
         """
-        global SCREEN
         block_size = 10
         for x in range(0, WINDOW_WIDTH, block_size):
             for y in range(0, WINDOW_HEIGHT - 50, block_size):
                 rect = pygame.Rect(x, y, block_size, block_size)
-                pygame.draw.rect(SCREEN, BLACK, rect, 1)
+                pygame.draw.rect(self.SCREEN, BLACK, rect, 1)
 
     def createButtons(self):
         # The three buttons that are on the environment screen
-        self.settings_button = Button(SCREEN, (1420, 738), "Settings", (255, 255, 0))
-        self.pause_button = Button(SCREEN, (1356, 738), "Pause", (255, 0, 0))
-        self.play_button = Button(SCREEN, (1307, 738), "Play", (0, 255, 0))
+        self.settings_button = Button(self.SCREEN, (1420, 730), "Settings", (255, 255, 0))
+        self.pause_button = Button(self.SCREEN, (1356, 730), "Pause", (255, 0, 0))
+        self.play_button = Button(self.SCREEN, (1307, 730), "Play", (0, 255, 0))
 
-    def read_port(self):
-        f = open("../config.txt", "r")
-        return int(f.read())
+    def add_organism_display(self, formatted_string):
+        """
+        This will display the formatted string of organism information at the bottom of the screen
 
-    def open_settings(self):
-        settings = Setup_settingsGUI.SetupSettings()
-        settings.start(self)
+        :param formatted_string: formatted string with the organism information
+        :param type: string
+        """
+
+        test_string = f"ID: {random.randint(111111111, 999999999)}  \
+          Body = U2FsdGVkX1/DX9ztNOyA+E0ztNTyMtLx/bKrIzZlN/E=  \
+          width = 5  \
+          height = 5  \
+          energy = 100  \
+          age = 122  \
+          x = 54  \
+          y = 81"
+
+        font = pygame.font.SysFont("freesansbold.ttf", 22)
+        text_options = font.render(test_string, True, (0, 0, 0))
+        textRect = text_options.get_rect()
+        textRect.center = (670, 745)
+        self.SCREEN.blit(text_options, textRect)
 
 
 class Button:
@@ -126,7 +97,3 @@ class Button:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if pygame.mouse.get_pressed()[0]:
                 return True if self.clicked() else False
-
-
-if __name__ == "__main__":
-    SetupEnvironment()
