@@ -67,7 +67,7 @@ auto StateSerializer::serialize(i32 tick, Environment & environment, std::vector
 	}
 
 	return json {
-		{ "type", "environment-frame" },
+		{ "type", "environment_frame" },
 		{ "width", environment.getWidth() },
 		{ "height", environment.getHeight() },
 		{ "tick", tick },
