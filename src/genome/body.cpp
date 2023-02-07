@@ -72,11 +72,11 @@ auto Body::canvasUp() const -> i32 {
     return (height - 1) - originY;
 }
 
-Body::Body(i32 edge, i32 center):
+Body::Body(i32 edge, BodyPart center):
     width(edge * 2 + 1), height(edge * 2 + 1),
 	originX(edge), originY(edge),
 	canvas(width * height),
-    left(0), right(0), down(0), up(0)
+    left(0), right(0), down(0), up(0), numCells(0)
 {
 	canvas[indexOf(0, 0)] = center;
 }
@@ -89,7 +89,7 @@ Body::Body(i32 edge, i32 center):
  *
  * modifies the builder's current direction and current position
  */
-auto Body::addPart(BodyBuilder & builder, Direction direction, i32 part, i32 jumpAnchor) -> void {
+auto Body::addPart(BodyBuilder & builder, Direction direction, BodyPart part, i32 jumpAnchor) -> void {
     /* move from current position unless anchored, then jump */
 	auto baseX = builder.currentX;
 	auto baseY = builder.currentY;
@@ -120,6 +120,8 @@ auto Body::addPart(BodyBuilder & builder, Direction direction, i32 part, i32 jum
     builder.currentDirection = newDirection;
 	builder.currentX = newX;
 	builder.currentY = newY;
+
+	++numCells;
 }
 
 /** may resize the canvas if out of bounds */
@@ -158,4 +160,8 @@ auto Body::debugToString() const -> std::string {
     }
 
     return string;
+}
+
+auto Body::getNumCells() const -> i32 {
+	return numCells;
 }

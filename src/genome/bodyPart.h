@@ -1,0 +1,28 @@
+//
+// Created by Emmet on 2/6/2023.
+//
+
+#ifndef ALIFE_BODYPART_H
+#define ALIFE_BODYPART_H
+
+enum BodyPart {
+	NONE = 0,
+	MOUTH = 1,
+	BASIC = 2,
+	MOVER = 3,
+	PHOTOSYNTHESIZER = 4,
+	WEAPON = 5,
+	ARMOR = 6,
+	EYE = 7,
+	SENSOR = 8,
+	STOMACH = 9,
+	GONAD = 10,
+	LIFE_EXPANDER = 11,
+	MUTATOR = 12,
+	UNKNOWN0 = 13,
+	UNKNOWN1 = 14,
+	UNKNOWN2 = 15,
+	UNKNOWN03 = 16,
+};
+
+#endif //ALIFE_BODYPART_H

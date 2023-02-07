@@ -7,6 +7,7 @@
 
 #include "../gene.h"
 #include "../direction.h"
+#include "../bodyPart.h"
 
 class BodyGene : public Gene {
 protected:
@@ -15,7 +16,7 @@ protected:
 public:
 	Direction direction;
 	/** 1 - 16 */
-	i32 type;
+	BodyPart bodyPart;
 	bool duplicate;
 	i32 usingAnchor;
 	i32 setAnchor;
@@ -25,15 +26,15 @@ public:
 
 	auto headerBase() -> Genome::Base override;
 
-	BodyGene(Direction direction, i32 type, i32 usingAnchor, i32 setAnchor, bool duplicate);
+	BodyGene(Direction direction, BodyPart bodyPart, i32 usingAnchor, i32 setAnchor, bool duplicate);
 	explicit BodyGene(GenomeView & view);
 
 	/* helper factories */
 
-	static auto create(Direction, i32) -> BodyGene;
-	static auto createDuplicate(Direction, i32) -> BodyGene;
-	static auto createUseAnchor(Direction, i32, i32) -> BodyGene;
-	static auto createSetAnchor(Direction, i32, i32) -> BodyGene;
+	static auto create(Direction, BodyPart) -> BodyGene;
+	static auto createDuplicate(Direction, BodyPart) -> BodyGene;
+	static auto createUseAnchor(Direction, BodyPart, i32) -> BodyGene;
+	static auto createSetAnchor(Direction, BodyPart, i32) -> BodyGene;
 };
 
 #endif //ALIFE_BODYGENE_H

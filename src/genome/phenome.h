@@ -19,10 +19,9 @@ class Sense {
 public:
 	i32 x;
 	i32 y;
-	/* the body part code at this x, y in the organism */
-	i32 sense;
+	BodyPart senseCell;
 
-	Sense(i32 x, i32 y, i32 sense);
+	Sense(i32 x, i32 y, BodyPart senseCell);
 };
 
 struct FoodStats {
@@ -32,6 +31,7 @@ struct FoodStats {
 
 class Phenome {
 public:
+	Genome genome;
 	Body body;
 
 	/**
@@ -52,10 +52,9 @@ public:
 	std::vector<EyeGene> eyeReactions;
 	std::vector<EnvironmentGene> environmentReactions;
 
-	/**
-	 * the phenome is entirely derived from the genome
-	 */
-	explicit Phenome(Genome &);
+	explicit Phenome(Genome && inGenome, Body && inBody);
+
+	auto maxAge(i32 ageFactor) const -> i32;
 };
 
 #endif //ALIFE_PHENOME_H

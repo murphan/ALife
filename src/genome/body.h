@@ -10,6 +10,7 @@
 #include "types.h"
 #include "util.h"
 #include "genome/direction.h"
+#include "bodyPart.h"
 
 /**
  * additional context needed to build a body from instructions
@@ -32,6 +33,8 @@ private:
     /** organism's body parts */
     std::vector<i32> canvas;
 
+	i32 numCells;
+
 	auto expand(i32, i32) -> void;
 	auto indexOf(i32, i32) const -> i32;
 
@@ -44,14 +47,16 @@ public:
     /** bounds of the organism in the canvas, inclusive on both ends */
 	i32 left, right, down, up;
 
-	Body(i32, i32);
+	Body(i32 edge, BodyPart center);
 
     auto accessExpand(i32, i32, i32) -> i32;
     auto access(i32, i32) const -> i32;
 
-	auto addPart(BodyBuilder &, Direction, i32 part, i32 jumpAnchor) -> void;
+	auto addPart(BodyBuilder &, Direction, BodyPart part, i32 jumpAnchor) -> void;
 
     auto debugToString() const -> std::string;
+
+	auto getNumCells() const -> i32;
 };
 
 #endif //ALIFE_BODY_H

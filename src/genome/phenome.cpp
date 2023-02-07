@@ -9,7 +9,7 @@
 
 #include "phenome.h"
 
-Sense::Sense(int x, int y, int sense) : x(x), y(y), sense(sense) {}
+Sense::Sense(i32 x, i32 y, BodyPart senseCell) : x(x), y(y), senseCell(senseCell) {}
 
 /**
  * INTERNAL USE FOR GENOME DECODER
@@ -48,8 +48,9 @@ auto readNBases(const Genome & genome, i32 & i, i32 length) -> GenomeView {
 	return view;
 }
 
-Phenome::Phenome(Genome & genome):
-	body(2, 1),
+Phenome::Phenome(Genome && inGenome, Body && inBody):
+	genome(std::move(inGenome)),
+	body(std::move(inBody)),
 	foodStats(),
 	senses(),
 	eyeReactions(),
@@ -70,7 +71,7 @@ Phenome::Phenome(Genome & genome):
 	        auto bodyGene = BodyGene(gene);
 
 	        for (auto d = 0; d <= bodyGene.duplicate; ++d) {
-		        body.addPart(bodyBuilder, bodyGene.direction, bodyGene.type, bodyGene.usingAnchor);
+		        body.addPart(bodyBuilder, bodyGene.direction, bodyGene.bodyPart, bodyGene.usingAnchor);
 	        }
 
 	        if (bodyGene.setsAnchor()) {
@@ -120,4 +121,8 @@ Phenome::Phenome(Genome & genome):
 
 	std::sort(eyeReactions.begin(), eyeReactions.end(), descendingPriority);
 	std::sort(environmentReactions.begin(), environmentReactions.end(), descendingPriority);
+}
+
+auto Phenome::maxAge(i32 ageFactor) const -> i32 {
+	return body.getNumCells() * ageFactor;
 }

@@ -15,7 +15,7 @@ public:
 	int currentStep;
 
     explicit SimulationController(Environment && environment);
-    void step();
+    auto step() -> void;
 };
 
 #endif //ALIFE_SIMULATIONCONTROLLER_H
