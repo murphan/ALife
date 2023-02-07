@@ -1,6 +1,7 @@
 import sys
 from tkinter import *
 import pygame
+import base64
 
 GREEN = '#0c871b'
 YELLOW = '#fafa16'
@@ -122,9 +123,9 @@ class EnvironmentControl:
             settings.temperature = int(temperature) if temperature != "" else 0
             settings.light = int(light) if light != "" else 0
             settings.oxygen = int(oxygen) if oxygen != "" else 0
-            data = settings.temperature.to_bytes(1, sys.byteorder, signed=True), \
-                settings.light.to_bytes(1, sys.byteorder, signed=True), \
-                settings.oxygen.to_bytes(1, sys.byteorder, signed=True)
+            data = settings.temperature.to_bytes(1, "Big", signed=True), \
+                settings.light.to_bytes(1, "Big", signed=True), \
+                settings.oxygen.to_bytes(1, "Big", signed=True)
             EnvironmentControl.send_message(self, settings.conn, "Environment Variables", data)
 
     def square_clicked(self, event, envVars, conn):
@@ -194,10 +195,11 @@ class EnvironmentControl:
         while True:
             message_buf = ''  # The buffer to append message information to
 
-            message = conn.recv(1024).decode()
+            message = conn.recv(1024)
             if message:
-                length = int(message[:4])
+                length = int.from_bytes(message[:4], "big")
                 message = message[4:]
+                message = message.decode("utf-8", errors="ignore")
                 while length:
                     if length < 1022:
                         message_buf += message
@@ -206,7 +208,7 @@ class EnvironmentControl:
                     else:
                         message_buf += message
                         length -= 1022
-                    message = conn.recv(1024).decode()
+                    message = conn.recv(1024).decode("utf-8", errors="ignore")
 
                 print("message received")
 
