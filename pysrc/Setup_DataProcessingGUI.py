@@ -8,7 +8,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
 
-from Control_DataProcessingGUI import DataDisplayControl
+import Control_DataProcessingGUI
 
 matplotlib.use("TkAgg")
 
@@ -29,6 +29,7 @@ class SetupDataDisplay:
     displaying in the window.
     """
     def __init__(self):
+        self.control = Control_DataProcessingGUI.DataDisplayControl()
         self.setup_graph_one()
         self.setup_graph_two()
         self.setup_window()
@@ -132,7 +133,7 @@ class SetupDataDisplay:
         self.top_dd_1_value.set("Attribute/Variable")
         self.top_dd_1 = tkinter.OptionMenu(frame, self.top_dd_1_value, *ATTRIBUTES,
                                            command=lambda event:
-                                           DataDisplayControl.set_graph1_array1(self, self.top_dd_1_value.get()))
+                                           self.control.set_graph1_array1(self, self.top_dd_1_value.get()))
         self.top_dd_1.pack(side=TOP)
         self.top_dd_1.config(fg="red", bg="white", width=20)
 
@@ -140,7 +141,7 @@ class SetupDataDisplay:
         self.top_dd_2_value.set("Attribute/Variable")
         self.top_dd_2 = tkinter.OptionMenu(frame, self.top_dd_2_value, *ATTRIBUTES,
                                            command=lambda event:
-                                           DataDisplayControl.set_graph1_array2(self, self.top_dd_2_value.get()))
+                                           self.control.set_graph1_array2(self, self.top_dd_2_value.get()))
         self.top_dd_2.pack(side=TOP)
         self.top_dd_2.config(fg="blue", bg="white", width=20)
 
@@ -148,7 +149,7 @@ class SetupDataDisplay:
         self.top_dd_3_value.set("Attribute/Variable")
         self.top_dd_3 = tkinter.OptionMenu(frame, self.top_dd_3_value, *ATTRIBUTES,
                                            command=lambda event:
-                                           DataDisplayControl.set_graph1_array3(self, self.top_dd_3_value.get()))
+                                           self.control.DataDisplayControl.set_graph1_array3(self, self.top_dd_3_value.get()))
         self.top_dd_3.pack(side=TOP)
         self.top_dd_3.config(fg="orange", bg="white", width=20)
 
@@ -156,7 +157,7 @@ class SetupDataDisplay:
         self.top_dd_4_value.set("Attribute/Variable")
         self.top_dd_4 = tkinter.OptionMenu(frame, self.top_dd_4_value, *ATTRIBUTES,
                                            command=lambda event:
-                                           DataDisplayControl.set_graph1_array4(self, self.top_dd_4_value.get()))
+                                           self.control.set_graph1_array4(self.top_dd_4_value.get()))
         self.top_dd_4.pack(side=TOP)
         self.top_dd_4.config(fg="green", bg="white", width=20)
 
@@ -164,7 +165,7 @@ class SetupDataDisplay:
         self.top_dd_5_value.set("Attribute/Variable")
         self.top_dd_5 = tkinter.OptionMenu(frame, self.top_dd_5_value, *ATTRIBUTES,
                                            command=lambda event:
-                                           DataDisplayControl.set_graph1_array5(self, self.top_dd_5_value.get()))
+                                           self.control.set_graph1_array5(self, self.top_dd_5_value.get()))
         self.top_dd_5.pack(side=TOP)
         self.top_dd_5.config(fg="purple", bg="white", width=20)
 
@@ -180,7 +181,7 @@ class SetupDataDisplay:
         self.btm_dd_1_value.set("Attribute/Variable")
         self.btm_dd_1 = tkinter.OptionMenu(frame, self.btm_dd_1_value, *ATTRIBUTES,
                                            command=lambda event:
-                                           DataDisplayControl.set_graph2_array1(self, self.btm_dd_1_value.get()))
+                                           self.control.set_graph2_array1(self, self.btm_dd_1_value.get()))
         self.btm_dd_1.pack(side=TOP)
         self.btm_dd_1.config(fg="red", bg="white", width=20)
 
@@ -188,7 +189,7 @@ class SetupDataDisplay:
         self.btm_dd_2_value.set("Attribute/Variable")
         self.btm_dd_2 = tkinter.OptionMenu(frame, self.btm_dd_2_value, *ATTRIBUTES,
                                            command=lambda event:
-                                           DataDisplayControl.set_graph2_array2(self, self.btm_dd_2_value.get()))
+                                           self.control.set_graph2_array2(self, self.btm_dd_2_value.get()))
         self.btm_dd_2.pack(side=TOP)
         self.btm_dd_2.config(fg="blue", bg="white", width=20)
 
@@ -196,7 +197,7 @@ class SetupDataDisplay:
         self.btm_dd_3_value.set("Attribute/Variable")
         self.btm_dd_3 = tkinter.OptionMenu(frame, self.btm_dd_3_value, *ATTRIBUTES,
                                            command=lambda event:
-                                           DataDisplayControl.set_graph2_array3(self, self.btm_dd_3_value.get()))
+                                           self.control.set_graph2_array3(self, self.btm_dd_3_value.get()))
         self.btm_dd_3.pack(side=TOP)
         self.btm_dd_3.config(fg="orange", bg="white", width=20)
 
@@ -204,7 +205,7 @@ class SetupDataDisplay:
         self.btm_dd_4_value.set("Attribute/Variable")
         self.btm_dd_4 = tkinter.OptionMenu(frame, self.btm_dd_4_value, *ATTRIBUTES,
                                            command=lambda event:
-                                           DataDisplayControl.set_graph2_array4(self, self.btm_dd_4_value.get()))
+                                           self.control.set_graph2_array4(self, self.btm_dd_4_value.get()))
         self.btm_dd_4.pack(side=TOP)
         self.btm_dd_4.config(fg="green", bg="white", width=20)
 
@@ -212,7 +213,7 @@ class SetupDataDisplay:
         self.btm_dd_5_value.set("Attribute/Variable")
         self.btm_dd_5 = tkinter.OptionMenu(frame, self.btm_dd_5_value, *ATTRIBUTES,
                                            command=lambda event:
-                                           DataDisplayControl.set_graph2_array5(self, self.btm_dd_5_value.get()))
+                                           self.control.set_graph2_array5(self, self.btm_dd_5_value.get()))
         self.btm_dd_5.pack(side=TOP)
         self.btm_dd_5.config(fg="purple", bg="white", width=20)
 
@@ -236,8 +237,3 @@ class SetupDataDisplay:
 
         canvas = FigureCanvasTkAgg(self.bottom_figure, self.bottom_graph)
         canvas.get_tk_widget().grid(row=0, column=0)
-
-
-# This can be enabled at the moment for temporary purposes of testing whether or not the GUI is working or not
-if __name__ == "__main__":
-    SetupDataDisplay()

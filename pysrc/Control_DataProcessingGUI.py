@@ -5,6 +5,7 @@ class DataDisplayControl:
     def __init__(self):
         pass
 
+    # Todo: This can all be refactored to one function
     def set_graph1_array1(self, data):
         """
         This will set the graph1 array one data

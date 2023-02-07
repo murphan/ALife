@@ -3,22 +3,23 @@ from tkinter import *
 import tkinter.ttk as ttk
 import tkinter.font as font
 
+import Setup_DataProcessingGUI
+import Setup_EnvironmentGUI
 import Control_EnvironmentGUI as Control_Environment
-import Setup_DataProcessingGUI as Setup_DataProcessing
-import Setup_EnvironmentGUI as Setup_Environment
 
 LIGHT_GREEN = '#5fad75'
 ORANGE_YELLOW = '#e8b320'
 GREEN = '#0c871b'
+BLUE = '#3289a8'
 
 SPEEDS = [".5x",
           "1x",
           "2x",
           "4x"]
 
-SQUARE_TYPES = ["Wall",
-                "Organism",
-                "Food"]
+CLICK_TYPES = ["Wall",
+               "Organism",
+               "Food"]
 
 
 class SetupSettings:
@@ -31,6 +32,14 @@ class SetupSettings:
         self.setup_configurations()
         self.setup_buttons()
 
+    def start(self, settings):
+        """
+        This will actually display the settings window
+
+        :param settings: An instance of the main "management" class
+        :param type: Management class instance
+        """
+        self.env_settings = settings
         self.window.mainloop()
 
     def setup_window(self):
@@ -71,10 +80,10 @@ class SetupSettings:
         -----------------------------------------------------------------------------------
         """
         middle_frame = tkinter.Frame(self.window, bg=LIGHT_GREEN, borderwidth=150)
-        speed_frame = tkinter.Frame(middle_frame, bg=LIGHT_GREEN, borderwidth=50)
-        size_frame = tkinter.Frame(middle_frame, bg=LIGHT_GREEN, borderwidth=50)
-        env_manip_frame = tkinter.Frame(middle_frame, bg=LIGHT_GREEN, borderwidth=50)
-        click_type_frame = tkinter.Frame(middle_frame, bg=LIGHT_GREEN, borderwidth=50)
+        speed_frame = tkinter.Frame(middle_frame, bg=LIGHT_GREEN, borderwidth=25)
+        size_frame = tkinter.Frame(middle_frame, bg=LIGHT_GREEN, borderwidth=25)
+        env_manip_frame = tkinter.Frame(middle_frame, bg=LIGHT_GREEN, borderwidth=25)
+        click_type_frame = tkinter.Frame(middle_frame, bg=LIGHT_GREEN, borderwidth=25)
 
         # Setting up the speed dropdown frame
         speed_text_frame = tkinter.Frame(speed_frame, bg=LIGHT_GREEN)
@@ -100,7 +109,7 @@ class SetupSettings:
         size_title_label.pack(side=TOP)
 
         width_frame = tkinter.Frame(size_frame, bg=LIGHT_GREEN)
-        width_text_label = Label(width_frame, text="Width", background="White")
+        width_text_label = Label(width_frame, text="Width(don't use *yet)", background="White")
         width_text_label.config(font=("Arial", 12))
         width_text_label.pack(side=LEFT)
         width_input = ttk.Spinbox(width_frame, from_=50.0, to=77.0,increment=1.0,
@@ -110,7 +119,7 @@ class SetupSettings:
         width_frame.pack(side=TOP)
 
         height_frame = tkinter.Frame(size_frame, bg=LIGHT_GREEN)
-        height_text_label = Label(height_frame, text="Height", background="White")
+        height_text_label = Label(height_frame, text="Height(don't use *yet)", background="White")
         height_text_label.config(font=("Arial", 12))
         height_text_label.pack(side=LEFT)
         height_input = ttk.Spinbox(height_frame, from_=100.0, to=150.0, increment=1.0,
@@ -124,39 +133,47 @@ class SetupSettings:
         # set up the environment variable controls
         env_title_frame = tkinter.Frame(env_manip_frame, bg=LIGHT_GREEN)
         env_title_frame.pack(side=TOP, expand=True)
-        env_title_label = Label(env_title_frame, text="Change Environment Variables", background=LIGHT_GREEN)
+        env_title_label = Label(env_title_frame, text="Change Environment Variables Noise Levels", background=LIGHT_GREEN)
         env_title_label.config(font=("Arial", 12))
         env_title_label.pack(side=TOP)
 
         temp_control_frame = tkinter.Frame(env_manip_frame, bg=LIGHT_GREEN)
-        temp_text_label = Label(temp_control_frame, text=f"Temperature (C{chr(176)})", background="White")
+        temp_text_label = Label(temp_control_frame, text=f"Temperature", background="White")
         temp_text_label.config(font=("Arial", 12))
         temp_text_label.pack(side=LEFT)
-        temp_input = ttk.Spinbox(temp_control_frame, from_=0.0, to=200.0, increment=1.0,
-                                 width=12, wrap=True, command=lambda:
-                                 Control_Environment.EnvironmentControl.set_temperature(self, temp_input.get()))
+        temp_input = ttk.Spinbox(temp_control_frame, from_=-128.0, to=127.0, increment=1.0,
+                                 width=12, wrap=True)
         temp_input.pack(side=LEFT)
         temp_control_frame.pack(side=TOP)
 
         light_control_frame = tkinter.Frame(env_manip_frame, bg=LIGHT_GREEN)
-        light_text_label = Label(light_control_frame, text="Light (%)", background="White")
+        light_text_label = Label(light_control_frame, text="Light", background="White")
         light_text_label.config(font=("Arial", 12))
         light_text_label.pack(side=LEFT)
-        light_input = ttk.Spinbox(light_control_frame, from_=0.0, to=100.0, increment=1.0,
-                                  width=22, wrap=True, command=lambda:
-                                  Control_Environment.EnvironmentControl.set_light(self, light_input.get()))
+        light_input = ttk.Spinbox(light_control_frame, from_=-128.0, to=127.0, increment=1.0,
+                                  width=22, wrap=True)
         light_input.pack(side=LEFT)
         light_control_frame.pack(side=TOP)
 
         oxygen_control_frame = tkinter.Frame(env_manip_frame, bg=LIGHT_GREEN)
-        oxygen_text_label = Label(oxygen_control_frame, text="Oxygen (%)", background="White")
+        oxygen_text_label = Label(oxygen_control_frame, text="Oxygen", background="White")
         oxygen_text_label.config(font=("Arial", 12))
         oxygen_text_label.pack(side=LEFT)
-        oxygen_input = ttk.Spinbox(oxygen_control_frame, from_=0.0, to=100.0, increment=1.0,
-                                   width=19, wrap=True, command=lambda:
-                                   Control_Environment.EnvironmentControl.set_oxygen(self, light_input.get()))
+        oxygen_input = ttk.Spinbox(oxygen_control_frame, from_=-128.0, to=127.0, increment=1.0,
+                                   width=19, wrap=True)
         oxygen_input.pack(side=LEFT)
         oxygen_control_frame.pack(side=TOP)
+
+        # Button for telling program user is done changing numbers
+        done_button_frame = tkinter.Frame(env_manip_frame, bg=LIGHT_GREEN)
+
+        done_button = tkinter.Button(done_button_frame, text="Numbers are good!",
+                                     bg=BLUE, padx=20, bd=3, font=font.Font(size=10), command=lambda:
+                                     Control_Environment.EnvironmentControl.set_env_vars(self, temp_input.get(),
+                                                                                         light_input.get(),
+                                                                                         oxygen_input.get()))
+        done_button.pack(side=LEFT)
+        done_button_frame.pack(side=TOP)
 
         env_manip_frame.pack(side=LEFT)
 
@@ -170,7 +187,7 @@ class SetupSettings:
 
         self.click_dd_value = tkinter.StringVar(click_type_frame)
         self.click_dd_value.set("Organism")
-        self.speed_dd = tkinter.OptionMenu(click_type_frame, self.click_dd_value, *SQUARE_TYPES, command=lambda event:
+        self.speed_dd = tkinter.OptionMenu(click_type_frame, self.click_dd_value, *CLICK_TYPES, command=lambda event:
         Control_Environment.EnvironmentControl.click_type(self, self.click_dd_value.get()))
         self.speed_dd.config(width=15, bg="white")
         self.speed_dd.pack(side=TOP)
@@ -180,11 +197,14 @@ class SetupSettings:
         middle_frame.pack(side=TOP, expand=True)
 
     def setup_buttons(self):
+        """
+        This will create the buttons in the settings window for statistics and back
+        """
         bottom_frame = tkinter.Frame(self.window, bg=LIGHT_GREEN)
 
         statistics_button = tkinter.Button(bottom_frame, text="Statistics",
                                            bg=ORANGE_YELLOW, padx=20, bd=3, font=font.Font(size=16),
-                                           command=lambda: Setup_DataProcessing.SetupDataDisplay())
+                                           command=lambda: self.request_data())
         statistics_button.pack(side=LEFT, padx=300)
 
         back_button = tkinter.Button(bottom_frame, text="Back", bg=GREEN, padx=20, bd=3, font=font.Font(size=16),
@@ -193,6 +213,12 @@ class SetupSettings:
 
         bottom_frame.pack(side=TOP, expand=True)
 
-
-if __name__ == "__main__":
-    SetupSettings()
+    def request_data(self):
+        """
+        This will request data from the c++ application for the data processing window
+        """
+        Control_Environment.EnvironmentControl.send_message(self, self.env_settings.conn, "Request All")
+        # TODO: This call should actually be moved to the decoding of the messages
+        # We need to ensure that we have all of the data before we display the window
+        # Keeping this here for now in order to display the window and demonstrate functionality
+        Setup_DataProcessingGUI.SetupDataDisplay()
