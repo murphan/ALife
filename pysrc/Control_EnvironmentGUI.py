@@ -47,7 +47,7 @@ class EnvironmentControl:
             return
         else:
             settings.speed = float(speed[:-1])
-            EnvironmentControl.send_message(self, settings.conn, "Speed", settings.speed)
+            EnvironmentControl.send_message(self, settings.conn, "speed", settings.speed)
 
     def set_size(self, width, height):
         """
@@ -71,7 +71,7 @@ class EnvironmentControl:
             return
         else:
             self.running = True
-            self.send_message(conn, "Control", self.running)
+            self.send_message(conn, "control", "true")
 
     def stop(self, conn):
         """
@@ -81,7 +81,7 @@ class EnvironmentControl:
             return
         else:
             self.running = False
-            self.send_message(conn, "Control", self.running)
+            self.send_message(conn, "control", "false")
 
     def set_width(self, width):
         """
@@ -123,10 +123,10 @@ class EnvironmentControl:
             settings.temperature = int(temperature) if temperature != "" else 0
             settings.light = int(light) if light != "" else 0
             settings.oxygen = int(oxygen) if oxygen != "" else 0
-            data = settings.temperature.to_bytes(1, "Big", signed=True), \
-                settings.light.to_bytes(1, "Big", signed=True), \
-                settings.oxygen.to_bytes(1, "Big", signed=True)
-            EnvironmentControl.send_message(self, settings.conn, "Environment Variables", data)
+            data = settings.temperature.to_bytes(1, "big", signed=True), \
+                settings.light.to_bytes(1, "big", signed=True), \
+                settings.oxygen.to_bytes(1, "big", signed=True)
+            EnvironmentControl.send_message(self, settings.conn, "environment_variables", data)
 
     def square_clicked(self, event, envVars, conn):
         """
@@ -156,22 +156,22 @@ class EnvironmentControl:
                 return  # This is a wall cell
             else:
                 org_id = ENVIRONMENT_GRID[coord[0]][coord[1]]
-                self.send_message(conn, "Request", org_id)
+                self.send_message(conn, "request", org_id)
         else:
             # Grid coords are different in python than they are in c++
             y_coord = int(envVars.environment_size[1] - coord[1] - 1)
             if CLICK_TYPE == 'Organism':
                 pygame.draw.rect(envVars.SCREEN, GREEN, rect)
                 ENVIRONMENT_GRID[coord[0]][coord[1]] = 1000
-                self.send_message(conn, "New Filled", (coord[0], y_coord, "Organism"))
+                self.send_message(conn, "new_filled", (coord[0], y_coord, "organism"))
             elif CLICK_TYPE == 'Food':
                 pygame.draw.rect(envVars.SCREEN, YELLOW, rect)
                 ENVIRONMENT_GRID[coord[0]][coord[1]] = 1
-                self.send_message(conn, "New Filled", (coord[0], y_coord, "Food"))
+                self.send_message(conn, "new_filled", (coord[0], y_coord, "food"))
             else:
                 pygame.draw.rect(envVars.SCREEN, BLACK, rect)
                 ENVIRONMENT_GRID[coord[0]][coord[1]] = 2
-                self.send_message(conn, "New Filled", (coord[0], y_coord, "Wall"))
+                self.send_message(conn, "new_filled", (coord[0], y_coord, "wall"))
 
     def click_type(self, clicked_type):
         """
@@ -214,7 +214,7 @@ class EnvironmentControl:
 
             # TODO: Process the commands here
 
-    def send_message(self, conn, message_type, data=None):
+    def send_message(self, conn, message_type, data=""):
         """
         This is the spot where a message can be sent to the c++ application
 
@@ -249,13 +249,13 @@ class EnvironmentControl:
         :param data: Optional argument for passing data that may be needed in c++
         :param type: Any
         """
-        if message_type == "Control" or message_type == "Request" \
-           or message_type == "Speed" or message_type == "Request All":
-            return "{type: " + message_type + ", data: " + str(data) + "}"
-        elif message_type == "Environment Variables":
-            formatted_data = "{temperature: " + str(data[0]) + ", light: " \
-                             + str(data[1]) + ", oxygen: " + str(data[2]) + "}"
-            return "{type: " + message_type + ", data: " + formatted_data + "}"
-        elif message_type == "New Filled":
-            formatted_data = "{x: " + str(data[0]) + ", y: " + str(data[1]) + ", type: " + str(data[2]) + "}"
-            return "{type: " + message_type + ", data: " + formatted_data + "}"
+        if message_type == "control" or message_type == "request" \
+           or message_type == "speed" or message_type == "request_all":
+            return "{type:" + message_type + ",data:" + str(data) + "}"
+        elif message_type == "environment_variables":
+            formatted_data = "{temperature:" + str(data[0]) + ",light:" \
+                             + str(data[1]) + ",oxygen:" + str(data[2]) + "}"
+            return "{type: " + message_type + ",data:" + formatted_data + "}"
+        elif message_type == "new_filled":
+            formatted_data = "{x:" + str(data[0]) + ",y:" + str(data[1]) + ",type:" + str(data[2]) + "}"
+            return "{type:" + message_type + ",data:" + formatted_data + "}"

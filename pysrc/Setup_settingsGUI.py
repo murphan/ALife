@@ -217,7 +217,7 @@ class SetupSettings:
         """
         This will request data from the c++ application for the data processing window
         """
-        Control_Environment.EnvironmentControl.send_message(self, self.env_settings.conn, "Request All")
+        Control_Environment.EnvironmentControl.send_message(self, self.env_settings.conn, "request_all")
         # TODO: This call should actually be moved to the decoding of the messages
         # We need to ensure that we have all of the data before we display the window
         # Keeping this here for now in order to display the window and demonstrate functionality
