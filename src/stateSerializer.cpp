@@ -51,18 +51,29 @@ auto StateSerializer::serialize(i32 tick, Environment & environment, std::vector
 
 	auto organismsArray = json::array();
 	for (auto & organism : organisms) {
+		auto & body = organism.body();
+
+		auto byteEncodedBody = std::string();
+		byteEncodedBody.reserve(body.getWidth() * body.getHeight());
+
+		for (auto j = body.down; j <= body.up; ++j) {
+			for (auto i = body.left; i <= body.right; ++i) {
+				byteEncodedBody.push_back((char)body.access(i, j));
+			}
+		}
+
 		organismsArray.push_back(json {
-			{ "id", "TEST" },
-			{ "body", "TEST" },
-			{ "width", 9 },
-			{ "height", 9 },
-			{ "centerX", 2 },
-			{ "centerY", 2 },
-			{ "rotation", 1 },
-			{ "x", 4 },
-			{ "y", 4 },
-			{ "energy", 34 },
-			{ "age", 128 },
+			{ "id", organism.uuid.asString() },
+			{ "body", Util::base64Encode(byteEncodedBody) },
+			{ "left", body.left },
+			{ "right", body.right },
+			{ "down", body.down },
+			{ "up", body.up },
+			{ "rotation", organism.rotation },
+			{ "x", organism.x },
+			{ "y", organism.y },
+			{ "energy", organism.energy },
+			{ "age", organism.age },
 		});
 	}
 

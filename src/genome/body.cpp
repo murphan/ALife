@@ -165,3 +165,11 @@ auto Body::debugToString() const -> std::string {
 auto Body::getNumCells() const -> i32 {
 	return numCells;
 }
+
+auto Body::getWidth() const -> i32 {
+	return right - left + 1;
+}
+
+auto Body::getHeight() const -> i32 {
+	return up - down + 1;
+}

@@ -57,6 +57,9 @@ public:
     auto debugToString() const -> std::string;
 
 	auto getNumCells() const -> i32;
+
+	auto getWidth() const -> i32;
+	auto getHeight() const -> i32;
 };
 
 #endif //ALIFE_BODY_H

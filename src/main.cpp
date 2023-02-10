@@ -36,6 +36,7 @@ auto main () -> int {
 
 	auto baseOrganism = Organism(
 		Phenome(std::move(baseGenome), Body(2, BodyPart::MOUTH)),
+		UUID::generateRandom(),
 		75,
 		36
 	);
