@@ -37,7 +37,7 @@ auto Body::expand(i32 expandX, i32 expandY) -> void {
 		newHeight += expandY;
 	}
 
-	auto newCanvas = std::vector<i32>(newWidth * newHeight);
+	auto newCanvas = std::vector<BodyPart>(newWidth * newHeight, BodyPart::NONE);
 
 	for (auto y = 0; y < height; ++y) {
 		for (auto x = 0; x < width; ++x) {
@@ -75,7 +75,7 @@ auto Body::canvasUp() const -> i32 {
 Body::Body(i32 edge, BodyPart center):
     width(edge * 2 + 1), height(edge * 2 + 1),
 	originX(edge), originY(edge),
-	canvas(width * height),
+	canvas(width * height, BodyPart::NONE),
     left(0), right(0), down(0), up(0), numCells(0)
 {
 	canvas[indexOf(0, 0)] = center;
@@ -107,7 +107,7 @@ auto Body::addPart(BodyBuilder & builder, Direction direction, BodyPart part, i3
         newX += newDirection.x();
         newY += newDirection.y();
     } while (accessExpand(newX, newY, 5) != 0);
-;
+
 	canvas[indexOf(newX, newY)] = part;
 
     /* update bounds */
@@ -144,7 +144,7 @@ auto Body::accessExpand(i32 x, i32 y, i32 expandBy) -> i32 {
     return canvas[indexOf(x, y)];
 }
 
-auto Body::access(i32 x, i32 y) const -> i32 {
+auto Body::access(i32 x, i32 y) const -> BodyPart {
     return canvas[indexOf(x, y)];
 }
 

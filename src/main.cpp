@@ -35,8 +35,7 @@ auto main () -> int {
 	baseGenome.writeGarbage(4, Genome::A);
 
 	auto baseOrganism = Organism(
-		Phenome(std::move(baseGenome),
-		Body(2, BodyPart::MOUTH)),
+		Phenome(std::move(baseGenome), Body(2, BodyPart::MOUTH)),
 		75,
 		36
 	);

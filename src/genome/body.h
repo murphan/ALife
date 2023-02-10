@@ -31,7 +31,7 @@ private:
     /** distance from bottom left of the canvas to the 0,0 point of the organism */
     i32 originX, originY;
     /** organism's body parts */
-    std::vector<i32> canvas;
+    std::vector<BodyPart> canvas;
 
 	i32 numCells;
 
@@ -50,7 +50,7 @@ public:
 	Body(i32 edge, BodyPart center);
 
     auto accessExpand(i32, i32, i32) -> i32;
-    auto access(i32, i32) const -> i32;
+    auto access(i32, i32) const -> BodyPart;
 
 	auto addPart(BodyBuilder &, Direction, BodyPart part, i32 jumpAnchor) -> void;
 
