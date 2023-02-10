@@ -33,3 +33,6 @@
 
 # clion stuff
 /cmake-*
+
+# UserBuild.txt
+UserBuild.txt
