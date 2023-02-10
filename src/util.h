@@ -23,6 +23,11 @@ namespace Util {
 	auto positiveMod(i32 i, i32 n) -> i32;
 
     auto printGrid(std::vector<i32> &, i32 width) -> void;
+
+	constexpr const char * BASE64_STRING = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+	auto base64Encode(const std::string & in) -> std::string;
+	auto base64Decode(const std::string & in) -> std::string;
 }
 
 #endif //ALIFE_UTIL_H

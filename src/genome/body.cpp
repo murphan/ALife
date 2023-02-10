@@ -37,7 +37,7 @@ auto Body::expand(i32 expandX, i32 expandY) -> void {
 		newHeight += expandY;
 	}
 
-	auto newCanvas = std::vector<i32>(newWidth * newHeight);
+	auto newCanvas = std::vector<BodyPart>(newWidth * newHeight, BodyPart::NONE);
 
 	for (auto y = 0; y < height; ++y) {
 		for (auto x = 0; x < width; ++x) {
@@ -72,11 +72,11 @@ auto Body::canvasUp() const -> i32 {
     return (height - 1) - originY;
 }
 
-Body::Body(i32 edge, i32 center):
+Body::Body(i32 edge, BodyPart center):
     width(edge * 2 + 1), height(edge * 2 + 1),
 	originX(edge), originY(edge),
-	canvas(width * height),
-    left(0), right(0), down(0), up(0)
+	canvas(width * height, BodyPart::NONE),
+    left(0), right(0), down(0), up(0), numCells(0)
 {
 	canvas[indexOf(0, 0)] = center;
 }
@@ -89,7 +89,7 @@ Body::Body(i32 edge, i32 center):
  *
  * modifies the builder's current direction and current position
  */
-auto Body::addPart(BodyBuilder & builder, Direction direction, i32 part, i32 jumpAnchor) -> void {
+auto Body::addPart(BodyBuilder & builder, Direction direction, BodyPart part, i32 jumpAnchor) -> void {
     /* move from current position unless anchored, then jump */
 	auto baseX = builder.currentX;
 	auto baseY = builder.currentY;
@@ -107,7 +107,7 @@ auto Body::addPart(BodyBuilder & builder, Direction direction, i32 part, i32 jum
         newX += newDirection.x();
         newY += newDirection.y();
     } while (accessExpand(newX, newY, 5) != 0);
-;
+
 	canvas[indexOf(newX, newY)] = part;
 
     /* update bounds */
@@ -120,6 +120,8 @@ auto Body::addPart(BodyBuilder & builder, Direction direction, i32 part, i32 jum
     builder.currentDirection = newDirection;
 	builder.currentX = newX;
 	builder.currentY = newY;
+
+	++numCells;
 }
 
 /** may resize the canvas if out of bounds */
@@ -142,7 +144,7 @@ auto Body::accessExpand(i32 x, i32 y, i32 expandBy) -> i32 {
     return canvas[indexOf(x, y)];
 }
 
-auto Body::access(i32 x, i32 y) const -> i32 {
+auto Body::access(i32 x, i32 y) const -> BodyPart {
     return canvas[indexOf(x, y)];
 }
 
@@ -158,4 +160,8 @@ auto Body::debugToString() const -> std::string {
     }
 
     return string;
+}
+
+auto Body::getNumCells() const -> i32 {
+	return numCells;
 }
