@@ -1,2 +1,0 @@
-
-SET(JSONHPP_DIR "C:/Users/Emmet/Programming/lib/json-hpp")
