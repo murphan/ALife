@@ -14,6 +14,7 @@ WHITE = (255, 255, 255)
 WINDOW_HEIGHT = 770
 WINDOW_WIDTH = 1500
 CLOCK = None
+SCREEN = None
 
 
 class SetupEnvironment:
@@ -21,9 +22,10 @@ class SetupEnvironment:
     This will set up the actual environment for the simulation to be displayed in
     """
     def __init__(self):
-        global CLOCK
+        global CLOCK, SCREEN
         pygame.init()
         self.SCREEN = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+        SCREEN = self.SCREEN
         CLOCK = pygame.time.Clock()
         self.SCREEN.fill(WHITE)
 

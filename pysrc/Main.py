@@ -15,6 +15,8 @@ class Management:
     def __init__(self, *args, **kwargs):
         self.EnvironmentGui = Setup_EnvironmentGUI.SetupEnvironment()
         self.EnvironmentControl = Control_EnvironmentGUI.EnvironmentControl()
+        self.EnvironmentControl.setScreen(self.EnvironmentGui.SCREEN)
+        self.EnvironmentControl.fill_cell(1, 2)
 
         # Environment factors
         self.speed = 1
@@ -31,6 +33,10 @@ class Management:
     def start_receiver(self):
         self.proc = Process(target=self.EnvironmentControl.decode_message, args=(self.conn,))
         self.proc.start()
+
+    def square_clicked_test(self, event):
+        proc = Process(target=self.EnvironmentControl.square_clicked, args=((event, self.EnvironmentGui, self.conn),))
+        proc.start()
 
     def main_loop(self):
         while True:
@@ -49,6 +55,7 @@ class Management:
                     elif self.EnvironmentGui.pause_button.mouse_click(event):  # pause button was clicked
                         self.EnvironmentControl.stop(self.conn)
                     else:  # Display on the environment that a square was clicked
+                        # self.square_clicked_test(event)
                         self.EnvironmentControl.square_clicked(event, self.EnvironmentGui, self.conn)
 
             pygame.display.update()
@@ -58,6 +65,7 @@ class Management:
         return int(f.read())
 
     def open_settings(self):
+        self.EnvironmentControl.stop(self.conn)
         settings = Setup_settingsGUI.SetupSettings()
         settings.start(self)
 

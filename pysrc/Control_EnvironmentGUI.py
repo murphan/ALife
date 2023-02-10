@@ -2,6 +2,9 @@ import sys
 from tkinter import *
 import pygame
 import base64
+import json
+import ast
+import random
 
 GREEN = '#0c871b'
 YELLOW = '#fafa16'
@@ -9,6 +12,7 @@ BLACK = '#000000'
 
 CLICK_TYPE = "Organism"
 ENVIRONMENT_GRID = []
+SCREEN = None
 
 
 class EnvironmentControl:
@@ -123,9 +127,7 @@ class EnvironmentControl:
             settings.temperature = int(temperature) if temperature != "" else 0
             settings.light = int(light) if light != "" else 0
             settings.oxygen = int(oxygen) if oxygen != "" else 0
-            data = settings.temperature.to_bytes(1, "big", signed=True), \
-                settings.light.to_bytes(1, "big", signed=True), \
-                settings.oxygen.to_bytes(1, "big", signed=True)
+            data = settings.temperature, settings.light, settings.oxygen
             EnvironmentControl.send_message(self, settings.conn, "environment_variables", data)
 
     def square_clicked(self, event, envVars, conn):
@@ -136,7 +138,7 @@ class EnvironmentControl:
         :param type: event type
 
         :param envVars: Variables from the environment window
-        :param type: pygame.display
+        :param type: setupenvironment instance
 
         :param conn: connection to send message with
         :param type: socket
@@ -173,6 +175,26 @@ class EnvironmentControl:
                 ENVIRONMENT_GRID[coord[0]][coord[1]] = 2
                 self.send_message(conn, "new_filled", (coord[0], y_coord, "wall"))
 
+    def setScreen(self, screen):
+        global SCREEN
+        SCREEN = screen
+
+    def fill_cell(self, x, y):
+        """
+        This will fill in a cell when the information is passed from c++
+
+        :param envVars: variables for the environment
+        :type envVars: setupenvironment instance
+        """
+        global ENVIRONMENT_GRID, SCREEN
+        # mpos_x, mpos_y = event.pos
+        coord = x // 10, y // 10
+        rect = pygame.Rect(coord[0] * 10, coord[1] * 10,
+                           10, 10)
+        # y_coord = int(envVars.environment_size[1] - coord[1] - 1)
+        pygame.draw.rect(SCREEN, GREEN, rect)
+        ENVIRONMENT_GRID[coord[0]][coord[1]] = 1000
+
     def click_type(self, clicked_type):
         """
         When a square is clicked in the environment, the user can
@@ -198,19 +220,32 @@ class EnvironmentControl:
             message = conn.recv(1024)
             if message:
                 length = int.from_bytes(message[:4], "big")
+                length_same = length
                 message = message[4:]
-                message = message.decode("utf-8", errors="ignore")
+                message = message.decode(errors="ignore")
                 while length:
-                    if length < 1022:
+                    if length < 1020:
                         message_buf += message
                         length = 0
                         break
                     else:
                         message_buf += message
-                        length -= 1022
-                    message = conn.recv(1024).decode("utf-8", errors="ignore")
+                        length -= 1020
 
+                    if length < 1020:
+                        message = conn.recv(length).decode(errors="ignore")
+                    else:
+                        message = conn.recv(1024).decode(errors="ignore")
                 print("message received")
+
+                # data_map = ast.literal_eval(message_buf[:length_same])
+                # message_type = data_map["type"]
+                # if message_type == "environment_frame":
+                #     pass
+                    # data_map["grid"] = data_map["grid"].split("/")
+                    # for cell in data_map["grid"]:
+                    #     self.fill_cell(random.randint(0, 10), random.randint(0, 10))
+
 
             # TODO: Process the commands here
 
