@@ -7,14 +7,9 @@ import random
 
 import Control_EnvironmentGUI
 import Setup_settingsGUI
+import Global_access
 
-
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-WINDOW_HEIGHT = 770
-WINDOW_WIDTH = 1500
 CLOCK = None
-SCREEN = None
 
 
 class SetupEnvironment:
@@ -22,32 +17,31 @@ class SetupEnvironment:
     This will set up the actual environment for the simulation to be displayed in
     """
     def __init__(self):
-        global CLOCK, SCREEN
+        global CLOCK
         pygame.init()
-        self.SCREEN = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-        SCREEN = self.SCREEN
+        Global_access.SCREEN = pygame.display.set_mode((Global_access.WINDOW_WIDTH, Global_access.WINDOW_HEIGHT))
         CLOCK = pygame.time.Clock()
-        self.SCREEN.fill(WHITE)
+        Global_access.SCREEN.fill(Global_access.WHITE)
 
         self.createButtons()
-        self.environment_size = (WINDOW_WIDTH / 10, (WINDOW_HEIGHT - 50) / 10)
-        Control_EnvironmentGUI.EnvironmentControl.define_grid(self, self.environment_size[0], self.environment_size[1])
+        Global_access.set_environment_size(Global_access.WINDOW_WIDTH / 10, (Global_access.WINDOW_HEIGHT - 50) / 10)
+        Global_access.define_grid(Global_access.environment_size[0], Global_access.environment_size[1])
 
     def drawGrid(self):
         """
         This will draw the grid of the environment and initialize a two-dimensional array
         """
         block_size = 10
-        for x in range(0, WINDOW_WIDTH, block_size):
-            for y in range(0, WINDOW_HEIGHT - 50, block_size):
+        for x in range(0, Global_access.WINDOW_WIDTH, block_size):
+            for y in range(0, Global_access.WINDOW_HEIGHT - 50, block_size):
                 rect = pygame.Rect(x, y, block_size, block_size)
-                pygame.draw.rect(self.SCREEN, BLACK, rect, 1)
+                pygame.draw.rect(Global_access.SCREEN, Global_access.BLACK, rect, 1)
 
     def createButtons(self):
         # The three buttons that are on the environment screen
-        self.settings_button = Button(self.SCREEN, (1420, 730), "Settings", (255, 255, 0))
-        self.pause_button = Button(self.SCREEN, (1356, 730), "Pause", (255, 0, 0))
-        self.play_button = Button(self.SCREEN, (1307, 730), "Play", (0, 255, 0))
+        self.settings_button = Button(Global_access.SCREEN, (1420, 730), "Settings", (255, 255, 0))
+        self.pause_button = Button(Global_access.SCREEN, (1356, 730), "Pause", (255, 0, 0))
+        self.play_button = Button(Global_access.SCREEN, (1307, 730), "Play", (0, 255, 0))
 
     def add_organism_display(self, formatted_string):
         """
@@ -70,7 +64,7 @@ class SetupEnvironment:
         text_options = font.render(test_string, True, (0, 0, 0))
         textRect = text_options.get_rect()
         textRect.center = (670, 745)
-        self.SCREEN.blit(text_options, textRect)
+        Global_access.SCREEN.blit(text_options, textRect)
 
 
 class Button:

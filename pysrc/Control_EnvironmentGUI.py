@@ -6,13 +6,7 @@ import json
 import ast
 import random
 
-GREEN = '#0c871b'
-YELLOW = '#fafa16'
-BLACK = '#000000'
-
-CLICK_TYPE = "Organism"
-ENVIRONMENT_GRID = []
-SCREEN = None
+import Global_access
 
 
 class EnvironmentControl:
@@ -21,23 +15,7 @@ class EnvironmentControl:
         This is the initialization of the environment window controls that
         will need to be kept track of throughout the run
         """
-        # TODO: Make these correspond to the correct values in setup_environmentGUI
-        self.height = 1
-        self.width = 1
-        self.running = False
-
-    def define_grid(self, width, height):
-        """
-        This will set the correct size of the environment window reference grid
-
-        :param width: width of the environment
-        :param type: int, float
-
-        :param height: height of the environment
-        :param type: int, float
-        """
-        global ENVIRONMENT_GRID
-        ENVIRONMENT_GRID = [[0for x in range(int(height))] for y in range(int(width))]
+        pass
 
     def set_speed(self, speed):
         """
@@ -46,12 +24,11 @@ class EnvironmentControl:
         :param speed: The speed of the environment. Ex. "2x" or ".5x"
         :param type: string
         """
-        settings = self.env_settings
-        if settings.speed == float(speed[:-1]):
+        if Global_access.speed == float(speed[:-1]):
             return
         else:
-            settings.speed = float(speed[:-1])
-            EnvironmentControl.send_message(self, settings.conn, "speed", settings.speed)
+            Global_access.change_speed(float(speed[:-1]))
+            EnvironmentControl.send_message(self, self.env_settings.conn, "speed", Global_access.speed)
 
     def set_size(self, width, height):
         """
@@ -71,20 +48,20 @@ class EnvironmentControl:
         """
         This is where the environment is started up again when it is selected in the environment window
         """
-        if self.running:
+        if Global_access.running:
             return
         else:
-            self.running = True
+            Global_access.running = True
             self.send_message(conn, "control", "true")
 
     def stop(self, conn):
         """
         This is the call to stop whenever it is clicked in the environment window
         """
-        if not self.running:
+        if not Global_access.running:
             return
         else:
-            self.running = False
+            Global_access.running = False
             self.send_message(conn, "control", "false")
 
     def set_width(self, width):
@@ -121,13 +98,13 @@ class EnvironmentControl:
         :param type: int
         """
         settings = self.env_settings
-        if settings.temperature == temperature and settings.light == light and settings.oxygen == oxygen:
+        if Global_access.temperature == temperature and Global_access.light == light and Global_access.oxygen == oxygen:
             return
         else:
-            settings.temperature = int(temperature) if temperature != "" else 0
-            settings.light = int(light) if light != "" else 0
-            settings.oxygen = int(oxygen) if oxygen != "" else 0
-            data = settings.temperature, settings.light, settings.oxygen
+            Global_access.change_temperature(int(temperature) if temperature != "" else 0)
+            Global_access.change_light(int(light) if light != "" else 0)
+            Global_access.change_oxygen(int(oxygen) if oxygen != "" else 0)
+            data = Global_access.temperature, Global_access.light, Global_access.oxygen
             EnvironmentControl.send_message(self, settings.conn, "environment_variables", data)
 
     def square_clicked(self, event, envVars, conn):
@@ -143,57 +120,47 @@ class EnvironmentControl:
         :param conn: connection to send message with
         :param type: socket
         """
-        global ENVIRONMENT_GRID, CLICK_TYPE
         mpos_x, mpos_y = event.pos
         coord = mpos_x // 10, mpos_y // 10
         rect = pygame.Rect(coord[0] * 10, coord[1] * 10,
                            10, 10)
         # Check that the coordinates are within the bounds of the environment (only check height)
-        if coord[1] >= envVars.environment_size[1]:
+        if coord[1] >= Global_access.environment_size[1]:
             return
-        if ENVIRONMENT_GRID[coord[0]][coord[1]] != 0:
-            if ENVIRONMENT_GRID[coord[0]][coord[1]] == 1:
+        if Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]] != 0:
+            if Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]] == 1:
                 return  # This is food
-            if ENVIRONMENT_GRID[coord[0]][coord[1]] == 2:
+            if Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]] == 2:
                 return  # This is a wall cell
             else:
-                org_id = ENVIRONMENT_GRID[coord[0]][coord[1]]
+                org_id = Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]
                 self.send_message(conn, "request", org_id)
         else:
             # Grid coords are different in python than they are in c++
-            y_coord = int(envVars.environment_size[1] - coord[1] - 1)
-            if CLICK_TYPE == 'Organism':
-                pygame.draw.rect(envVars.SCREEN, GREEN, rect)
-                ENVIRONMENT_GRID[coord[0]][coord[1]] = 1000
+            y_coord = int(Global_access.environment_size[1] - coord[1] - 1)
+            if Global_access.CLICK_TYPE == 'Organism':
+                pygame.draw.rect(Global_access.SCREEN, Global_access.GREEN, rect)
+                Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]] = 1000
                 self.send_message(conn, "new_filled", (coord[0], y_coord, "organism"))
-            elif CLICK_TYPE == 'Food':
-                pygame.draw.rect(envVars.SCREEN, YELLOW, rect)
-                ENVIRONMENT_GRID[coord[0]][coord[1]] = 1
+            elif Global_access.CLICK_TYPE == 'Food':
+                pygame.draw.rect(Global_access.SCREEN, Global_access.YELLOW, rect)
+                Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]] = 1
                 self.send_message(conn, "new_filled", (coord[0], y_coord, "food"))
             else:
-                pygame.draw.rect(envVars.SCREEN, BLACK, rect)
-                ENVIRONMENT_GRID[coord[0]][coord[1]] = 2
+                pygame.draw.rect(Global_access.SCREEN, Global_access.BLACK, rect)
+                Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]] = 2
                 self.send_message(conn, "new_filled", (coord[0], y_coord, "wall"))
-
-    def setScreen(self, screen):
-        global SCREEN
-        SCREEN = screen
 
     def fill_cell(self, x, y):
         """
         This will fill in a cell when the information is passed from c++
 
-        :param envVars: variables for the environment
-        :type envVars: setupenvironment instance
         """
-        global ENVIRONMENT_GRID, SCREEN
-        # mpos_x, mpos_y = event.pos
-        coord = x // 10, y // 10
-        rect = pygame.Rect(coord[0] * 10, coord[1] * 10,
+        rect = pygame.Rect(x * 10, y * 10,
                            10, 10)
         # y_coord = int(envVars.environment_size[1] - coord[1] - 1)
-        pygame.draw.rect(SCREEN, GREEN, rect)
-        ENVIRONMENT_GRID[coord[0]][coord[1]] = 1000
+        pygame.draw.rect(Global_access.SCREEN, Global_access.GREEN, rect)
+        Global_access.ENVIRONMENT_GRID[x][y] = 1000
 
     def click_type(self, clicked_type):
         """
@@ -203,8 +170,7 @@ class EnvironmentControl:
         :param clicked_type: The type of square the user will fill with
         :param type: String
         """
-        global CLICK_TYPE
-        CLICK_TYPE = clicked_type
+        Global_access.change_click_type(clicked_type)
 
     def decode_message(self, conn):
         """
@@ -214,7 +180,7 @@ class EnvironmentControl:
 
         NOTE: Self was passed from setup_environment and so this will be a setup_environment instance of self
         """
-        while True:
+        while True and not Global_access.EXIT:
             message_buf = ''  # The buffer to append message information to
 
             message = conn.recv(1024)
@@ -238,14 +204,14 @@ class EnvironmentControl:
                         message = conn.recv(1024).decode(errors="ignore")
                 print("message received")
 
-                # data_map = ast.literal_eval(message_buf[:length_same])
-                # message_type = data_map["type"]
-                # if message_type == "environment_frame":
-                #     pass
-                    # data_map["grid"] = data_map["grid"].split("/")
-                    # for cell in data_map["grid"]:
-                    #     self.fill_cell(random.randint(0, 10), random.randint(0, 10))
-
+                data_map = ast.literal_eval(message_buf[:length_same])
+                message_type = data_map["type"]
+                if message_type == "environment_frame":
+                    pass
+                    data_map["grid"] = data_map["grid"].split("/")
+                    for cell in data_map["grid"]:
+                        self.fill_cell(random.randint(0, 100), random.randint(0, 50))
+                        pass
 
             # TODO: Process the commands here
 
