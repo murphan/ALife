@@ -17,7 +17,6 @@ class Management:
     def __init__(self, *args, **kwargs):
         self.EnvironmentGui = Setup_EnvironmentGUI.SetupEnvironment()
         self.EnvironmentControl = Control_EnvironmentGUI.EnvironmentControl()
-        # Global_access.setScreen(self.EnvironmentGui.SCREEN)
 
         # Set up the socket connection to the c++ application
         host = socket.gethostname()
@@ -46,7 +45,6 @@ class Management:
                     elif self.EnvironmentGui.pause_button.mouse_click(event):  # pause button was clicked
                         self.EnvironmentControl.stop(self.conn)
                     else:  # Display on the environment that a square was clicked
-                        # self.square_clicked_test(event)
                         self.EnvironmentControl.square_clicked(event, self.EnvironmentGui, self.conn)
 
             pygame.display.update()
@@ -56,7 +54,6 @@ class Management:
         return int(f.read())
 
     def open_settings(self):
-        self.EnvironmentControl.stop(self.conn)
         settings = Setup_settingsGUI.SetupSettings()
         settings.start(self)
 

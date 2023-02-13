@@ -20,8 +20,8 @@ temperature = 0
 oxygen = 0
 light = 0
 
-height = 1
-width = 1
+height = 72
+width = 150
 running = False
 
 CLICK_TYPE = "Organism"
@@ -31,8 +31,18 @@ SCREEN = None
 WINDOW_HEIGHT = 770
 WINDOW_WIDTH = 1500
 environment_size = 0, 0
+block_height = 10
+block_width = 10
 
 mutex = Lock()
+
+
+def check_empty():
+    global ENVIRONMENT_GRID
+    for row in ENVIRONMENT_GRID:
+        if any(row):
+            return True
+    return False
 
 
 def define_grid(width, height):
@@ -47,7 +57,25 @@ def define_grid(width, height):
     """
     mutex.acquire()
     global ENVIRONMENT_GRID
-    ENVIRONMENT_GRID = [[0 for x in range(int(height))] for y in range(int(width))]
+    if check_empty():
+        print("Found something other than 0")
+        temp_environment_grid = ENVIRONMENT_GRID
+        ENVIRONMENT_GRID = [[0 for x in range(int(height))] for y in range(int(width))]
+        for x in range(len(temp_environment_grid)):
+            for y in range(len(temp_environment_grid[0])):
+                ENVIRONMENT_GRID[x][y] = temp_environment_grid[x][y]
+    else:
+        ENVIRONMENT_GRID = [[0 for x in range(int(height))] for y in range(int(width))]
+    mutex.release()
+    set_environment_size(width, height)
+    set_block_size()
+
+
+def set_block_size():
+    mutex.acquire()
+    global block_width, WINDOW_WIDTH, width, block_height, WINDOW_HEIGHT, height
+    block_width = int(WINDOW_WIDTH / width)
+    block_height = int(WINDOW_HEIGHT / height)
     mutex.release()
 
 
@@ -96,6 +124,7 @@ def change_click_type(new_click_type):
 def set_screen(screen):
     global SCREEN
     SCREEN = screen
+
 
 def set_environment_size(width, height):
     mutex.acquire()

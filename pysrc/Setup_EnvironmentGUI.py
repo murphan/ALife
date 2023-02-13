@@ -31,10 +31,11 @@ class SetupEnvironment:
         """
         This will draw the grid of the environment and initialize a two-dimensional array
         """
-        block_size = 10
-        for x in range(0, Global_access.WINDOW_WIDTH, block_size):
-            for y in range(0, Global_access.WINDOW_HEIGHT - 50, block_size):
-                rect = pygame.Rect(x, y, block_size, block_size)
+        block_width = Global_access.block_width
+        block_height = Global_access.block_height
+        for x in range(0, Global_access.WINDOW_WIDTH, block_width):
+            for y in range(0, Global_access.WINDOW_HEIGHT - 50, block_height):
+                rect = pygame.Rect(x, y, block_width, block_height)
                 pygame.draw.rect(Global_access.SCREEN, Global_access.BLACK, rect, 1)
 
     def createButtons(self):

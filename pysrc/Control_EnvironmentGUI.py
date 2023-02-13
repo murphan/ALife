@@ -207,13 +207,11 @@ class EnvironmentControl:
                 data_map = ast.literal_eval(message_buf[:length_same])
                 message_type = data_map["type"]
                 if message_type == "environment_frame":
-                    pass
+                    Global_access.define_grid(data_map["width"], data_map["height"])
                     data_map["grid"] = data_map["grid"].split("/")
                     for cell in data_map["grid"]:
-                        self.fill_cell(random.randint(0, 100), random.randint(0, 50))
-                        pass
-
-            # TODO: Process the commands here
+                        cell = 1
+                        # self.fill_cell(random.randint(0, Global_access.environment_size[0] - 1), random.randint(0, Global_access.environment_size[1] - 1))
 
     def send_message(self, conn, message_type, data=""):
         """
