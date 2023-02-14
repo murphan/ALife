@@ -11,6 +11,7 @@ import Control_EnvironmentGUI
 import Setup_EnvironmentGUI
 import Setup_settingsGUI
 import Global_access
+import receive_message
 
 
 class Management:
@@ -25,7 +26,7 @@ class Management:
         self.conn.connect((host, port))
 
     def start_receiver(self):
-        self.thread = Thread(target=self.EnvironmentControl.decode_message, args=(self.conn,))
+        self.thread = Thread(target=receive_message.decode_message, args=(self, self.conn,))
         self.thread.start()
 
     def main_loop(self):

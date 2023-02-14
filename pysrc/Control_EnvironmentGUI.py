@@ -1,10 +1,7 @@
 import sys
 from tkinter import *
 import pygame
-import base64
 import json
-import ast
-import random
 
 import Global_access
 
@@ -158,9 +155,7 @@ class EnvironmentControl:
         """
         rect = pygame.Rect(x * 10, y * 10,
                            10, 10)
-        # y_coord = int(envVars.environment_size[1] - coord[1] - 1)
         pygame.draw.rect(Global_access.SCREEN, Global_access.GREEN, rect)
-        Global_access.ENVIRONMENT_GRID[x][y] = 1000
 
     def click_type(self, clicked_type):
         """
@@ -172,46 +167,6 @@ class EnvironmentControl:
         """
         Global_access.change_click_type(clicked_type)
 
-    def decode_message(self, conn):
-        """
-        This will decode the message that is sent from the c++ application. This will be
-        started in setup Environment and will be in its own process. It will loop
-        infinitely looking for messages
-
-        NOTE: Self was passed from setup_environment and so this will be a setup_environment instance of self
-        """
-        while True and not Global_access.EXIT:
-            message_buf = ''  # The buffer to append message information to
-
-            message = conn.recv(1024)
-            if message:
-                length = int.from_bytes(message[:4], "big")
-                length_same = length
-                message = message[4:]
-                message = message.decode(errors="ignore")
-                while length:
-                    if length < 1020:
-                        message_buf += message
-                        length = 0
-                        break
-                    else:
-                        message_buf += message
-                        length -= 1020
-
-                    if length < 1020:
-                        message = conn.recv(length).decode(errors="ignore")
-                    else:
-                        message = conn.recv(1024).decode(errors="ignore")
-                print("message received")
-
-                data_map = ast.literal_eval(message_buf[:length_same])
-                message_type = data_map["type"]
-                if message_type == "environment_frame":
-                    Global_access.define_grid(data_map["width"], data_map["height"])
-                    data_map["grid"] = data_map["grid"].split("/")
-                    for cell in data_map["grid"]:
-                        cell = 1
-                        # self.fill_cell(random.randint(0, Global_access.environment_size[0] - 1), random.randint(0, Global_access.environment_size[1] - 1))
 
     def send_message(self, conn, message_type, data=""):
         """

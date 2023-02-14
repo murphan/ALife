@@ -19,7 +19,7 @@ class SetupEnvironment:
     def __init__(self):
         global CLOCK
         pygame.init()
-        Global_access.SCREEN = pygame.display.set_mode((Global_access.WINDOW_WIDTH, Global_access.WINDOW_HEIGHT))
+        Global_access.set_screen(pygame.display.set_mode((Global_access.WINDOW_WIDTH, Global_access.WINDOW_HEIGHT)))
         CLOCK = pygame.time.Clock()
         Global_access.SCREEN.fill(Global_access.WHITE)
 
@@ -29,14 +29,29 @@ class SetupEnvironment:
 
     def drawGrid(self):
         """
-        This will draw the grid of the environment and initialize a two-dimensional array
+        This will draw the grid of the environment
         """
+        self.clear_screen()
         block_width = Global_access.block_width
         block_height = Global_access.block_height
+
+        # Ensure that there is an actual size that we have been given before rendering anything on the screen
+        if not block_height or not block_width:
+            return
+
         for x in range(0, Global_access.WINDOW_WIDTH, block_width):
             for y in range(0, Global_access.WINDOW_HEIGHT - 50, block_height):
                 rect = pygame.Rect(x, y, block_width, block_height)
                 pygame.draw.rect(Global_access.SCREEN, Global_access.BLACK, rect, 1)
+
+    def clear_screen(self):
+        """
+        This will just clear the window for when the environment changes sizes and redraws the grid
+        """
+        if Global_access.size_changed:
+            Global_access.SCREEN.fill(Global_access.WHITE)
+            self.createButtons()
+            Global_access.size_changed = False
 
     def createButtons(self):
         # The three buttons that are on the environment screen
