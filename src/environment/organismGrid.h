@@ -10,7 +10,7 @@
 
 class OrganismGrid {
 private:
-	std::vector<i32> grid
+	std::vector<i32> grid;
 
 public:
 
