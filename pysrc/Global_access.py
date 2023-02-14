@@ -46,6 +46,25 @@ TILE_TYPE = {-2: "Empty",
              2: "Food 2",
              3: "Food 3"}
 
+# Organism Colors
+org_colors = {1: '#5573a3',
+              2: '#23aac2',
+              3: '#700232',
+              4: '#9e9403',
+              5: '#7ee093',
+              6: '#0c871b',
+              7: '#03f4fc',
+              8: '#b1fc03',
+              9: '#fc95be',
+              10: '#8a05f7',
+              11: '#757171',
+              12: '#a1641f',
+              13: '#836521',
+              14: '#97b09d',
+              15: '#61223f',
+              16: '#6852f7'
+              }
+
 
 def check_empty():
     global ENVIRONMENT_GRID

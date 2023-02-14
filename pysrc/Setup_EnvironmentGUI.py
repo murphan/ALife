@@ -59,12 +59,12 @@ class SetupEnvironment:
         self.pause_button = Button(Global_access.SCREEN, (1356, 730), "Pause", (255, 0, 0))
         self.play_button = Button(Global_access.SCREEN, (1307, 730), "Play", (0, 255, 0))
 
-    def add_organism_display(self, formatted_string):
+    def add_organism_display(self, organism):
         """
         This will display the formatted string of organism information at the bottom of the screen
 
-        :param formatted_string: formatted string with the organism information
-        :param type: string
+        :param organism: organism structure to pull information from
+        :param type: organism type
         """
 
         test_string = f"ID: {random.randint(111111111, 999999999)}  \

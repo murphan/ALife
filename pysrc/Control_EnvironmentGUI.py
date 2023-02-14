@@ -124,7 +124,7 @@ class EnvironmentControl:
         coord = mpos_x // 10, int(Global_access.environment_size[1] - (mpos_y // 10) - 1)
 
         # Check that the coordinates are within the bounds of the environment (only check height)
-        if coord[1] >= Global_access.environment_size[1]:
+        if coord[1] < 0:
             return
 
         # This block checks if an organism is in the cell and then requests data if it is

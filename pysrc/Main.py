@@ -24,6 +24,7 @@ class Management:
         port = self.read_port()
         self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.conn.connect((host, port))
+        # self.temp_func()
 
     def start_receiver(self):
         self.thread = Thread(target=receive_message.decode_message, args=(self, self.conn,))
@@ -49,6 +50,24 @@ class Management:
                         self.EnvironmentControl.square_clicked(event, self.EnvironmentGui, self.conn)
 
             pygame.display.update()
+
+    def temp_func(self):
+        self.EnvironmentControl.fill_cell(12, 30, Global_access.org_colors[1])
+        self.EnvironmentControl.fill_cell(13, 30, Global_access.org_colors[2])
+        self.EnvironmentControl.fill_cell(14, 30, Global_access.org_colors[3])
+        self.EnvironmentControl.fill_cell(15, 30, Global_access.org_colors[4])
+        self.EnvironmentControl.fill_cell(16, 30, Global_access.org_colors[5])
+        self.EnvironmentControl.fill_cell(17, 30, Global_access.org_colors[6])
+        self.EnvironmentControl.fill_cell(18, 30, Global_access.org_colors[7])
+        self.EnvironmentControl.fill_cell(19, 30, Global_access.org_colors[8])
+        self.EnvironmentControl.fill_cell(20, 30, Global_access.org_colors[9])
+        self.EnvironmentControl.fill_cell(21, 30, Global_access.org_colors[10])
+        self.EnvironmentControl.fill_cell(22, 30, Global_access.org_colors[11])
+        self.EnvironmentControl.fill_cell(23, 30, Global_access.org_colors[12])
+        self.EnvironmentControl.fill_cell(24, 30, Global_access.org_colors[13])
+        self.EnvironmentControl.fill_cell(25, 30, Global_access.org_colors[14])
+        self.EnvironmentControl.fill_cell(26, 30, Global_access.org_colors[15])
+        self.EnvironmentControl.fill_cell(27, 30, Global_access.org_colors[16])
 
     def read_port(self):
         f = open("../config.txt", "r")
