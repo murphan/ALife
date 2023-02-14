@@ -7,12 +7,6 @@ import Control_EnvironmentGUI
 import Environment_cell
 import Organism_cell
 
-TILE_TYPE = {-2: "Empty",
-             -1: "Wall",
-             0: "Food 0",
-             1: "Food 1",
-             2: "Food 2",
-             3: "Food 3"}
 
 def decode_message(self, conn):
     """
@@ -79,9 +73,19 @@ def decode_grid(grid_data, width, height):
                 food_energy = int.from_bytes(data[5:6], "big")
                 food_age = int.from_bytes(data[6:9], "big")
                 pressure = int.from_bytes(data[9:], "big")
-                Global_access.ENVIRONMENT_GRID[x][y]["environment"] = Environment_cell.EnvironmentCell(factor_0, factor_1, factor_2,
-                                                                                        factor_3, tile_type,
-                                                                                        food_energy, food_age, pressure)
+                cell = Environment_cell.EnvironmentCell(factor_0, factor_1, factor_2, factor_3,
+                                                        tile_type, food_energy, food_age, pressure)
+                Global_access.ENVIRONMENT_GRID[x][y]["environment"] = cell
+                if cell.tile_type == -1:
+                    Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x, y, Global_access.BLACK)
+                if cell.tile_type == 0:
+                    Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x, y, Global_access.YELLOW)
+                if cell.tile_type == 1:
+                    Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x, y, Global_access.ORANGE)
+                if cell.tile_type == 2:
+                    Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x, y, Global_access.RED)
+                if cell.tile_type == 3:
+                    Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x, y, Global_access.PINK)
                 index += 1
 
 
@@ -90,6 +94,4 @@ def decode_organisms(self, organisms):
         organism = Organism_cell.OrganismCell(each["age"], each["body"], each["centerX"], each["centerY"], each["energy"],
                                    each["height"], each["id"], each["rotation"], each["width"], each["x"], each["y"])
         Global_access.ENVIRONMENT_GRID[organism.x][organism.y]["organism"] = organism
-        Control_EnvironmentGUI.EnvironmentControl.fill_cell(self,
-                                                            organism.x,
-                                                            organism.y)
+        Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, organism.x, organism.y, Global_access.GREEN)

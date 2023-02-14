@@ -15,6 +15,9 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GREEN = '#0c871b'
 YELLOW = '#fafa16'
+ORANGE = '#fa6c07'
+RED = '#d10a0a'
+PINK = '#f00ce1'
 
 # Environment factors
 speed = 1
@@ -35,6 +38,13 @@ block_width = 10  # TODO: set these to 0 when ready to make environment dynamic 
 size_changed = False
 
 mutex = Lock()
+
+TILE_TYPE = {-2: "Empty",
+             -1: "Wall",
+             0: "Food 0",
+             1: "Food 1",
+             2: "Food 2",
+             3: "Food 3"}
 
 
 def check_empty():

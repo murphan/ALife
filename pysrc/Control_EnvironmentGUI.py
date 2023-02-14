@@ -4,6 +4,8 @@ import pygame
 import json
 
 import Global_access
+import Organism_cell
+import Environment_cell
 
 
 class EnvironmentControl:
@@ -118,44 +120,54 @@ class EnvironmentControl:
         :param type: socket
         """
         mpos_x, mpos_y = event.pos
-        coord = mpos_x // 10, mpos_y // 10
-        rect = pygame.Rect(coord[0] * 10, coord[1] * 10,
-                           10, 10)
+        # Grid coords are different in python than they are in c++ for y coordinates
+        coord = mpos_x // 10, int(Global_access.environment_size[1] - (mpos_y // 10) - 1)
+
         # Check that the coordinates are within the bounds of the environment (only check height)
         if coord[1] >= Global_access.environment_size[1]:
             return
-        if Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]] != 0:
-            if Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]] == 1:
-                return  # This is food
-            if Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]] == 2:
-                return  # This is a wall cell
-            else:
-                org_id = Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]
-                self.send_message(conn, "request", org_id)
-        else:
-            # Grid coords are different in python than they are in c++
-            y_coord = int(Global_access.environment_size[1] - coord[1] - 1)
-            if Global_access.CLICK_TYPE == 'Organism':
-                pygame.draw.rect(Global_access.SCREEN, Global_access.GREEN, rect)
-                Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]] = 1000
-                self.send_message(conn, "new_filled", (coord[0], y_coord, "organism"))
-            elif Global_access.CLICK_TYPE == 'Food':
-                pygame.draw.rect(Global_access.SCREEN, Global_access.YELLOW, rect)
-                Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]] = 1
-                self.send_message(conn, "new_filled", (coord[0], y_coord, "food"))
-            else:
-                pygame.draw.rect(Global_access.SCREEN, Global_access.BLACK, rect)
-                Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]] = 2
-                self.send_message(conn, "new_filled", (coord[0], y_coord, "wall"))
 
-    def fill_cell(self, x, y):
+        # This block checks if an organism is in the cell and then requests data if it is
+        if Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["organism"] is not None:
+            org_id = Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["organism"].organism_id
+            self.send_message(conn, "request", org_id)
+        # If the cell wasn't filled with an organism we check if it is empty (not food or a wall cell but empty)
+        elif Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["environment"].tile_type == -2:
+            if Global_access.CLICK_TYPE == 'Organism':
+                self.fill_cell(coord[0], coord[1], Global_access.GREEN)
+                new_cell = Organism_cell.OrganismCell(0, 0, 0, 0, 0, 0, 0, 0, 0, coord[0], coord[1])
+                Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["organism"] = new_cell
+                self.send_message(conn, "new_filled", (coord[0], coord[1], "organism"))
+            elif Global_access.CLICK_TYPE == 'Food':
+                self.fill_cell(coord[0], coord[1], Global_access.YELLOW)
+                new_cell = Environment_cell.EnvironmentCell(0, 0, 0, 0, 0, 0, 0, 0)
+                Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["environment"] = new_cell
+                self.send_message(conn, "new_filled", (coord[0], coord[1], "food"))
+            else:
+                self.fill_cell(coord[0], coord[1], Global_access.BLACK)
+                new_cell = Environment_cell.EnvironmentCell(0, 0, 0, 0, -1, 0, 0, 0)
+                Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["environment"] = new_cell
+                self.send_message(conn, "new_filled", (coord[0], coord[1], "wall"))
+
+    def fill_cell(self, x, y, color):
         """
         This will fill in a cell when the information is passed from c++
+        Grid coords are different in python than they are in c++.
+        This converts from the c++ coordinate style to python
 
+        :param x: x coordinate
+        :type x: int
+
+        :param y: y coordinate
+        :type y: int
+
+        :param color: color to fill cell with
+        :type color: Global_access.color
         """
+        y = int(Global_access.environment_size[1] - y - 1)
         rect = pygame.Rect(x * 10, y * 10,
                            10, 10)
-        pygame.draw.rect(Global_access.SCREEN, Global_access.GREEN, rect)
+        pygame.draw.rect(Global_access.SCREEN, color, rect)
 
     def click_type(self, clicked_type):
         """
@@ -166,7 +178,6 @@ class EnvironmentControl:
         :param type: String
         """
         Global_access.change_click_type(clicked_type)
-
 
     def send_message(self, conn, message_type, data=""):
         """
