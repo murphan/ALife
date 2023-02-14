@@ -1,15 +1,15 @@
 
 
 class OrganismCell:
-    def __init__(self, age, body, centerx, centery, energy, height, organism_id, rotation, width, x, y, *args, **kwargs):
+    def __init__(self, age, body, down, energy, organism_id, left, right, rotation, up, x, y):
         self.age = age
         self.body = body
-        self.centerx = centerx
-        self.centery = centery
+        self.down = down
         self.energy = energy
-        self.height = height
         self.organism_id = organism_id
+        self.left = left
+        self.right = right
         self.rotation = rotation
-        self.width = width
+        self.up = up
         self.x = x
         self.y = y
