@@ -48,10 +48,11 @@ class SetupEnvironment:
         """
         This will just clear the window for when the environment changes sizes and redraws the grid
         """
-        if Global_access.size_changed:
+        if Global_access.size_changed or Global_access.new_frame:
             Global_access.SCREEN.fill(Global_access.WHITE)
             self.createButtons()
             Global_access.size_changed = False
+            Global_access.new_frame = False
 
     def createButtons(self):
         # The three buttons that are on the environment screen

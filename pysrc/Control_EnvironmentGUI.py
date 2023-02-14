@@ -27,7 +27,7 @@ class EnvironmentControl:
             return
         else:
             Global_access.change_speed(float(speed[:-1]))
-            EnvironmentControl.send_message(self, self.env_settings.conn, "speed", Global_access.speed)
+            EnvironmentControl.send_message(self, self.env_settings.conn, "control")
 
     def set_size(self, width, height):
         """
@@ -51,7 +51,7 @@ class EnvironmentControl:
             return
         else:
             Global_access.running = True
-            self.send_message(conn, "control", "true")
+            self.send_message(conn, "control")
 
     def stop(self, conn):
         """
@@ -61,7 +61,7 @@ class EnvironmentControl:
             return
         else:
             Global_access.running = False
-            self.send_message(conn, "control", "false")
+            self.send_message(conn, "control")
 
     def set_width(self, width):
         """
@@ -214,13 +214,18 @@ class EnvironmentControl:
         :param data: Optional argument for passing data that may be needed in c++
         :param type: Any
         """
-        if message_type == "control" or message_type == "request" \
-           or message_type == "speed" or message_type == "request_all":
+        if message_type == "request" or message_type == "request_all":
             return "{type:" + message_type + ",data:" + str(data) + "}"
+        elif message_type == "control":
+            formatted_data = "{playing:" + str(Global_access.running) + \
+                             ",speed:" + str(Global_access.speed) + "}"
         elif message_type == "environment_variables":
-            formatted_data = "{temperature:" + str(data[0]) + ",light:" \
-                             + str(data[1]) + ",oxygen:" + str(data[2]) + "}"
-            return "{type: " + message_type + ",data:" + formatted_data + "}"
+            formatted_data = "{temperature:" + str(data[0]) + \
+                             ",light:" + str(data[1]) + \
+                             ",oxygen:" + str(data[2]) + "}"
         elif message_type == "new_filled":
-            formatted_data = "{x:" + str(data[0]) + ",y:" + str(data[1]) + ",type:" + str(data[2]) + "}"
-            return "{type:" + message_type + ",data:" + formatted_data + "}"
+            formatted_data = "{x:" + str(data[0]) + \
+                             ",y:" + str(data[1]) + \
+                             ",type:" + str(data[2]) + "}"
+
+        return "{type:" + message_type + ",data:" + formatted_data + "}"

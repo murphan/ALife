@@ -35,7 +35,9 @@ WINDOW_WIDTH = 1500
 environment_size = 150, 72  # Set these to 0 when ready to make environment dynamically sized
 block_height = 10  # TODO: set these to 0 when ready to make environment dynamic sizeable
 block_width = 10  # TODO: set these to 0 when ready to make environment dynamic sizeable
+
 size_changed = False
+new_frame = False
 
 mutex = Lock()
 
