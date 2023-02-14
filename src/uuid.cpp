@@ -22,7 +22,7 @@ auto UUID::operator==(const UUID & other) const -> bool {
 }
 
 auto UUID::asString() const -> std::string {
-	auto str = std::string(16, ' ');
+	auto str = std::string();
 	str.reserve(32);
 
 	for (auto i = 0; i < 16; ++i) {
