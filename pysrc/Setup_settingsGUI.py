@@ -6,6 +6,7 @@ import tkinter.font as font
 import Setup_DataProcessingGUI
 import Setup_EnvironmentGUI
 import Control_EnvironmentGUI as Control_Environment
+import Global_access
 
 LIGHT_GREEN = '#5fad75'
 ORANGE_YELLOW = '#e8b320'
@@ -94,7 +95,7 @@ class SetupSettings:
         speed_text_label.pack()
 
         self.speed_dd_value = tkinter.StringVar(speed_frame)
-        self.speed_dd_value.set("1x")
+        self.speed_dd_value.set(str(Global_access.speed) + "x")
         self.speed_dd = tkinter.OptionMenu(speed_frame, self.speed_dd_value, *SPEEDS, command=lambda event:
                                     Control_Environment.EnvironmentControl.set_speed(self, self.speed_dd_value.get()))
         self.speed_dd.config(width=15, bg="white")
@@ -138,29 +139,35 @@ class SetupSettings:
         env_title_label.pack(side=TOP)
 
         temp_control_frame = tkinter.Frame(env_manip_frame, bg=LIGHT_GREEN)
+        self.temp_text_var = tkinter.StringVar(env_manip_frame)
+        self.temp_text_var.set(Global_access.temperature)
         temp_text_label = Label(temp_control_frame, text=f"Temperature", background="White")
         temp_text_label.config(font=("Arial", 12))
         temp_text_label.pack(side=LEFT)
         temp_input = ttk.Spinbox(temp_control_frame, from_=-128.0, to=127.0, increment=1.0,
-                                 width=12, wrap=True)
+                                 width=12, wrap=True, textvariable=self.temp_text_var)
         temp_input.pack(side=LEFT)
         temp_control_frame.pack(side=TOP)
 
         light_control_frame = tkinter.Frame(env_manip_frame, bg=LIGHT_GREEN)
+        self.light_text_var = tkinter.StringVar(env_manip_frame)
+        self.light_text_var.set(Global_access.light)
         light_text_label = Label(light_control_frame, text="Light", background="White")
         light_text_label.config(font=("Arial", 12))
         light_text_label.pack(side=LEFT)
         light_input = ttk.Spinbox(light_control_frame, from_=-128.0, to=127.0, increment=1.0,
-                                  width=22, wrap=True)
+                                  width=22, wrap=True, textvariable=self.light_text_var)
         light_input.pack(side=LEFT)
         light_control_frame.pack(side=TOP)
 
         oxygen_control_frame = tkinter.Frame(env_manip_frame, bg=LIGHT_GREEN)
+        self.oxygen_text_var = tkinter.StringVar(env_manip_frame)
+        self.oxygen_text_var.set(Global_access.oxygen)
         oxygen_text_label = Label(oxygen_control_frame, text="Oxygen", background="White")
         oxygen_text_label.config(font=("Arial", 12))
         oxygen_text_label.pack(side=LEFT)
         oxygen_input = ttk.Spinbox(oxygen_control_frame, from_=-128.0, to=127.0, increment=1.0,
-                                   width=19, wrap=True)
+                                   width=19, wrap=True, textvariable=self.oxygen_text_var)
         oxygen_input.pack(side=LEFT)
         oxygen_control_frame.pack(side=TOP)
 
@@ -185,15 +192,17 @@ class SetupSettings:
         click_title_label.pack(side=TOP)
         click_title_frame.pack(side=TOP)
 
+        self.click_dd_frame = tkinter.Frame(click_type_frame, bg=LIGHT_GREEN)
         self.click_dd_value = tkinter.StringVar(click_type_frame)
-        self.click_dd_value.set("Organism")
-        self.speed_dd = tkinter.OptionMenu(click_type_frame, self.click_dd_value, *CLICK_TYPES, command=lambda event:
-        Control_Environment.EnvironmentControl.click_type(self, self.click_dd_value.get()))
-        self.speed_dd.config(width=15, bg="white")
-        self.speed_dd.pack(side=TOP)
-        speed_frame.pack(side=LEFT)
-        click_type_frame.pack(side=LEFT)
+        self.click_dd_value.set(Global_access.CLICK_TYPE)
+        self.click_dd = tkinter.OptionMenu(click_type_frame, self.click_dd_value, *CLICK_TYPES, command=lambda event:
+                        Control_Environment.EnvironmentControl.click_type(self, self.click_dd_value.get()))
+        self.click_dd.config(width=15, bg="white")
+        self.click_dd.pack(side=TOP)
+        click_title_frame.pack(side=TOP)
+        self.click_dd_frame.pack(side=LEFT)
 
+        click_type_frame.pack(side=LEFT)
         middle_frame.pack(side=TOP, expand=True)
 
     def setup_buttons(self):
@@ -217,7 +226,7 @@ class SetupSettings:
         """
         This will request data from the c++ application for the data processing window
         """
-        Control_Environment.EnvironmentControl.send_message(self, self.env_settings.conn, "Request All")
+        Control_Environment.EnvironmentControl.send_message(self, self.env_settings.conn, "request_all")
         # TODO: This call should actually be moved to the decoding of the messages
         # We need to ensure that we have all of the data before we display the window
         # Keeping this here for now in order to display the window and demonstrate functionality

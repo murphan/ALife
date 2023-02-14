@@ -1,4 +1,5 @@
 import os
+from threading import Thread
 from multiprocessing import Process
 import sys
 import socket
@@ -9,18 +10,14 @@ import pygame
 import Control_EnvironmentGUI
 import Setup_EnvironmentGUI
 import Setup_settingsGUI
+import Global_access
+import receive_message
 
 
 class Management:
     def __init__(self, *args, **kwargs):
         self.EnvironmentGui = Setup_EnvironmentGUI.SetupEnvironment()
         self.EnvironmentControl = Control_EnvironmentGUI.EnvironmentControl()
-
-        # Environment factors
-        self.speed = 1
-        self.temperature = 0
-        self.oxygen = 0
-        self.light = 0
 
         # Set up the socket connection to the c++ application
         host = socket.gethostname()
@@ -29,8 +26,8 @@ class Management:
         self.conn.connect((host, port))
 
     def start_receiver(self):
-        self.proc = Process(target=self.EnvironmentControl.decode_message, args=(self.conn,))
-        self.proc.start()
+        self.thread = Thread(target=receive_message.decode_message, args=(self, self.conn,))
+        self.thread.start()
 
     def main_loop(self):
         while True:
@@ -38,7 +35,7 @@ class Management:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
-                    self.proc.terminate()
+                    Global_access.STOPPED = 1
                     self.conn.close()
                     sys.exit()
                 if event.type == pygame.MOUSEBUTTONDOWN:

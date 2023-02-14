@@ -1,13 +1,11 @@
 import sys
 from tkinter import *
 import pygame
+import json
 
-GREEN = '#0c871b'
-YELLOW = '#fafa16'
-BLACK = '#000000'
-
-CLICK_TYPE = "Organism"
-ENVIRONMENT_GRID = []
+import Global_access
+import Organism_cell
+import Environment_cell
 
 
 class EnvironmentControl:
@@ -16,23 +14,7 @@ class EnvironmentControl:
         This is the initialization of the environment window controls that
         will need to be kept track of throughout the run
         """
-        # TODO: Make these correspond to the correct values in setup_environmentGUI
-        self.height = 1
-        self.width = 1
-        self.running = False
-
-    def define_grid(self, width, height):
-        """
-        This will set the correct size of the environment window reference grid
-
-        :param width: width of the environment
-        :param type: int, float
-
-        :param height: height of the environment
-        :param type: int, float
-        """
-        global ENVIRONMENT_GRID
-        ENVIRONMENT_GRID = [[0for x in range(int(height))] for y in range(int(width))]
+        pass
 
     def set_speed(self, speed):
         """
@@ -41,12 +23,11 @@ class EnvironmentControl:
         :param speed: The speed of the environment. Ex. "2x" or ".5x"
         :param type: string
         """
-        settings = self.env_settings
-        if settings.speed == float(speed[:-1]):
+        if Global_access.speed == float(speed[:-1]):
             return
         else:
-            settings.speed = float(speed[:-1])
-            EnvironmentControl.send_message(self, settings.conn, "Speed", settings.speed)
+            Global_access.change_speed(float(speed[:-1]))
+            EnvironmentControl.send_message(self, self.env_settings.conn, "speed", Global_access.speed)
 
     def set_size(self, width, height):
         """
@@ -66,21 +47,21 @@ class EnvironmentControl:
         """
         This is where the environment is started up again when it is selected in the environment window
         """
-        if self.running:
+        if Global_access.running:
             return
         else:
-            self.running = True
-            self.send_message(conn, "Control", self.running)
+            Global_access.running = True
+            self.send_message(conn, "control", "true")
 
     def stop(self, conn):
         """
         This is the call to stop whenever it is clicked in the environment window
         """
-        if not self.running:
+        if not Global_access.running:
             return
         else:
-            self.running = False
-            self.send_message(conn, "Control", self.running)
+            Global_access.running = False
+            self.send_message(conn, "control", "false")
 
     def set_width(self, width):
         """
@@ -116,16 +97,14 @@ class EnvironmentControl:
         :param type: int
         """
         settings = self.env_settings
-        if settings.temperature == temperature and settings.light == light and settings.oxygen == oxygen:
+        if Global_access.temperature == temperature and Global_access.light == light and Global_access.oxygen == oxygen:
             return
         else:
-            settings.temperature = int(temperature) if temperature != "" else 0
-            settings.light = int(light) if light != "" else 0
-            settings.oxygen = int(oxygen) if oxygen != "" else 0
-            data = settings.temperature.to_bytes(1, sys.byteorder, signed=True), \
-                settings.light.to_bytes(1, sys.byteorder, signed=True), \
-                settings.oxygen.to_bytes(1, sys.byteorder, signed=True)
-            EnvironmentControl.send_message(self, settings.conn, "Environment Variables", data)
+            Global_access.change_temperature(int(temperature) if temperature != "" else 0)
+            Global_access.change_light(int(light) if light != "" else 0)
+            Global_access.change_oxygen(int(oxygen) if oxygen != "" else 0)
+            data = Global_access.temperature, Global_access.light, Global_access.oxygen
+            EnvironmentControl.send_message(self, settings.conn, "environment_variables", data)
 
     def square_clicked(self, event, envVars, conn):
         """
@@ -135,42 +114,60 @@ class EnvironmentControl:
         :param type: event type
 
         :param envVars: Variables from the environment window
-        :param type: pygame.display
+        :param type: setupenvironment instance
 
         :param conn: connection to send message with
         :param type: socket
         """
-        global ENVIRONMENT_GRID, CLICK_TYPE
         mpos_x, mpos_y = event.pos
-        coord = mpos_x // 10, mpos_y // 10
-        rect = pygame.Rect(coord[0] * 10, coord[1] * 10,
-                           10, 10)
+        # Grid coords are different in python than they are in c++ for y coordinates
+        coord = mpos_x // 10, int(Global_access.environment_size[1] - (mpos_y // 10) - 1)
+
         # Check that the coordinates are within the bounds of the environment (only check height)
-        if coord[1] >= envVars.environment_size[1]:
+        if coord[1] >= Global_access.environment_size[1]:
             return
-        if ENVIRONMENT_GRID[coord[0]][coord[1]] != 0:
-            if ENVIRONMENT_GRID[coord[0]][coord[1]] == 1:
-                return  # This is food
-            if ENVIRONMENT_GRID[coord[0]][coord[1]] == 2:
-                return  # This is a wall cell
+
+        # This block checks if an organism is in the cell and then requests data if it is
+        if Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["organism"] is not None:
+            org_id = Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["organism"].organism_id
+            self.send_message(conn, "request", org_id)
+        # If the cell wasn't filled with an organism we check if it is empty (not food or a wall cell but empty)
+        elif Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["environment"].tile_type == -2:
+            if Global_access.CLICK_TYPE == 'Organism':
+                self.fill_cell(coord[0], coord[1], Global_access.GREEN)
+                new_cell = Organism_cell.OrganismCell(0, 0, 0, 0, 0, 0, 0, 0, 0, coord[0], coord[1])
+                Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["organism"] = new_cell
+                self.send_message(conn, "new_filled", (coord[0], coord[1], "organism"))
+            elif Global_access.CLICK_TYPE == 'Food':
+                self.fill_cell(coord[0], coord[1], Global_access.YELLOW)
+                new_cell = Environment_cell.EnvironmentCell(0, 0, 0, 0, 0, 0, 0, 0)
+                Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["environment"] = new_cell
+                self.send_message(conn, "new_filled", (coord[0], coord[1], "food"))
             else:
-                org_id = ENVIRONMENT_GRID[coord[0]][coord[1]]
-                self.send_message(conn, "Request", org_id)
-        else:
-            # Grid coords are different in python than they are in c++
-            y_coord = int(envVars.environment_size[1] - coord[1] - 1)
-            if CLICK_TYPE == 'Organism':
-                pygame.draw.rect(envVars.SCREEN, GREEN, rect)
-                ENVIRONMENT_GRID[coord[0]][coord[1]] = 1000
-                self.send_message(conn, "New Filled", (coord[0], y_coord, "Organism"))
-            elif CLICK_TYPE == 'Food':
-                pygame.draw.rect(envVars.SCREEN, YELLOW, rect)
-                ENVIRONMENT_GRID[coord[0]][coord[1]] = 1
-                self.send_message(conn, "New Filled", (coord[0], y_coord, "Food"))
-            else:
-                pygame.draw.rect(envVars.SCREEN, BLACK, rect)
-                ENVIRONMENT_GRID[coord[0]][coord[1]] = 2
-                self.send_message(conn, "New Filled", (coord[0], y_coord, "Wall"))
+                self.fill_cell(coord[0], coord[1], Global_access.BLACK)
+                new_cell = Environment_cell.EnvironmentCell(0, 0, 0, 0, -1, 0, 0, 0)
+                Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["environment"] = new_cell
+                self.send_message(conn, "new_filled", (coord[0], coord[1], "wall"))
+
+    def fill_cell(self, x, y, color):
+        """
+        This will fill in a cell when the information is passed from c++
+        Grid coords are different in python than they are in c++.
+        This converts from the c++ coordinate style to python
+
+        :param x: x coordinate
+        :type x: int
+
+        :param y: y coordinate
+        :type y: int
+
+        :param color: color to fill cell with
+        :type color: Global_access.color
+        """
+        y = int(Global_access.environment_size[1] - y - 1)
+        rect = pygame.Rect(x * 10, y * 10,
+                           10, 10)
+        pygame.draw.rect(Global_access.SCREEN, color, rect)
 
     def click_type(self, clicked_type):
         """
@@ -180,39 +177,9 @@ class EnvironmentControl:
         :param clicked_type: The type of square the user will fill with
         :param type: String
         """
-        global CLICK_TYPE
-        CLICK_TYPE = clicked_type
+        Global_access.change_click_type(clicked_type)
 
-    def decode_message(self, conn):
-        """
-        This will decode the message that is sent from the c++ application. This will be
-        started in setup Environment and will be in its own process. It will loop
-        infinitely looking for messages
-
-        NOTE: Self was passed from setup_environment and so this will be a setup_environment instance of self
-        """
-        while True:
-            message_buf = ''  # The buffer to append message information to
-
-            message = conn.recv(1024).decode()
-            if message:
-                length = int(message[:4])
-                message = message[4:]
-                while length:
-                    if length < 1022:
-                        message_buf += message
-                        length = 0
-                        break
-                    else:
-                        message_buf += message
-                        length -= 1022
-                    message = conn.recv(1024).decode()
-
-                print("message received")
-
-            # TODO: Process the commands here
-
-    def send_message(self, conn, message_type, data=None):
+    def send_message(self, conn, message_type, data=""):
         """
         This is the spot where a message can be sent to the c++ application
 
@@ -247,13 +214,13 @@ class EnvironmentControl:
         :param data: Optional argument for passing data that may be needed in c++
         :param type: Any
         """
-        if message_type == "Control" or message_type == "Request" \
-           or message_type == "Speed" or message_type == "Request All":
-            return "{type: " + message_type + ", data: " + str(data) + "}"
-        elif message_type == "Environment Variables":
-            formatted_data = "{temperature: " + str(data[0]) + ", light: " \
-                             + str(data[1]) + ", oxygen: " + str(data[2]) + "}"
-            return "{type: " + message_type + ", data: " + formatted_data + "}"
-        elif message_type == "New Filled":
-            formatted_data = "{x: " + str(data[0]) + ", y: " + str(data[1]) + ", type: " + str(data[2]) + "}"
-            return "{type: " + message_type + ", data: " + formatted_data + "}"
+        if message_type == "control" or message_type == "request" \
+           or message_type == "speed" or message_type == "request_all":
+            return "{type:" + message_type + ",data:" + str(data) + "}"
+        elif message_type == "environment_variables":
+            formatted_data = "{temperature:" + str(data[0]) + ",light:" \
+                             + str(data[1]) + ",oxygen:" + str(data[2]) + "}"
+            return "{type: " + message_type + ",data:" + formatted_data + "}"
+        elif message_type == "new_filled":
+            formatted_data = "{x:" + str(data[0]) + ",y:" + str(data[1]) + ",type:" + str(data[2]) + "}"
+            return "{type:" + message_type + ",data:" + formatted_data + "}"
