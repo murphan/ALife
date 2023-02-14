@@ -3,6 +3,7 @@ from threading import Thread
 from multiprocessing import Process
 import sys
 import socket
+from tkinter import messagebox
 # Hides a console message from the pygame module
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 import pygame
@@ -35,10 +36,7 @@ class Management:
             self.EnvironmentGui.drawGrid()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    pygame.quit()
-                    Global_access.STOPPED = 1
-                    self.conn.close()
-                    sys.exit()
+                    self.exiting()
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if self.EnvironmentGui.settings_button.mouse_click(event):  # Show the settings window
                         self.open_settings()
@@ -50,6 +48,16 @@ class Management:
                         self.EnvironmentControl.square_clicked(event, self.EnvironmentGui, self.conn)
 
             pygame.display.update()
+
+    def exiting(self):
+        confirm = messagebox.askokcancel(title="Quit?", message="Are you sure that you want to Quit?")
+        if confirm:
+            pygame.quit()
+            Global_access.STOPPED = 1
+            self.conn.close()
+            sys.exit()
+        else:
+            return
 
     def temp_func(self):
         self.EnvironmentControl.fill_cell(12, 30, Global_access.org_colors[1])

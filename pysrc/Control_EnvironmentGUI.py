@@ -134,7 +134,7 @@ class EnvironmentControl:
         # If the cell wasn't filled with an organism we check if it is empty (not food or a wall cell but empty)
         elif Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["environment"].tile_type == -2:
             if Global_access.CLICK_TYPE == 'Organism':
-                self.fill_cell(coord[0], coord[1], Global_access.GREEN)
+                self.fill_cell(coord[0], coord[1], Global_access.org_colors[1])
                 new_cell = Organism_cell.OrganismCell(0, 0, 0, 0, 0, 0, 0, 0, 0, coord[0], coord[1])
                 Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["organism"] = new_cell
                 self.send_message(conn, "new_filled", (coord[0], coord[1], "organism"))
