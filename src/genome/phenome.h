@@ -54,6 +54,7 @@ public:
 
 	explicit Phenome(Genome && inGenome, Body && inBody);
 
+	Phenome(const Phenome & other) = default;
 	Phenome(Phenome && other) = default;
 	auto operator=(Phenome && other) noexcept -> Phenome & = default;
 

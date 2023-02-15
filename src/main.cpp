@@ -2,21 +2,18 @@
 // Created by Emmet on 11/9/2022.
 //
 
-#include <iostream>
 #include "genome/phenome.h"
-
 #include "genome/genome.h"
 #include "types.h"
-#include "util.h"
+
 #include <tuple>
-#include <chrono>
 #include <thread>
 
-#include <genome/gene/bodyGene.h>
+#include "genome/gene/bodyGene.h"
 #include "environment/simulationController.h"
 #include "stateSerializer.h"
-
 #include "socket.h"
+#include "environment/organismSeeder.h"
 
 auto main () -> int {
 	Socket::init("51679");
@@ -34,14 +31,9 @@ auto main () -> int {
 	BodyGene::create(Direction::RIGHT, BodyPart::EYE).write(baseGenome);
 	baseGenome.writeGarbage(4, Genome::A);
 
-	auto baseOrganism = Organism(
-		Phenome(std::move(baseGenome), Body(2, BodyPart::MOUTH)),
-		UUID::generateRandom(),
-		75,
-		36
-	);
+	auto initialPhenome = Phenome(std::move(baseGenome), Body(2, BodyPart::MOUTH));
 
-	simulationController.organisms.push_back(std::move(baseOrganism));
+	OrganismSeeder::insertInitialOrganisms(simulationController.organisms, simulationController.environment, initialPhenome, 13);
 
 	while (true) {
 		while (true) {

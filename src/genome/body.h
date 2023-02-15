@@ -47,6 +47,7 @@ public:
     /** bounds of the organism in the canvas, inclusive on both ends */
 	i32 left, right, down, up;
 
+	Body(const Body & other) = default;
 	Body(Body && other) = default;
 	Body(i32 edge, BodyPart center);
 
