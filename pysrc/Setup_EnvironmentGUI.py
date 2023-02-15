@@ -48,10 +48,11 @@ class SetupEnvironment:
         """
         This will just clear the window for when the environment changes sizes and redraws the grid
         """
-        if Global_access.size_changed:
+        if Global_access.size_changed or Global_access.new_frame:
             Global_access.SCREEN.fill(Global_access.WHITE)
             self.createButtons()
             Global_access.size_changed = False
+            Global_access.new_frame = False
 
     def createButtons(self):
         # The three buttons that are on the environment screen
@@ -59,12 +60,12 @@ class SetupEnvironment:
         self.pause_button = Button(Global_access.SCREEN, (1356, 730), "Pause", (255, 0, 0))
         self.play_button = Button(Global_access.SCREEN, (1307, 730), "Play", (0, 255, 0))
 
-    def add_organism_display(self, formatted_string):
+    def add_organism_display(self, organism):
         """
         This will display the formatted string of organism information at the bottom of the screen
 
-        :param formatted_string: formatted string with the organism information
-        :param type: string
+        :param organism: organism structure to pull information from
+        :param type: organism type
         """
 
         test_string = f"ID: {random.randint(111111111, 999999999)}  \

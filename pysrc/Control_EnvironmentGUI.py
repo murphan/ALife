@@ -27,7 +27,7 @@ class EnvironmentControl:
             return
         else:
             Global_access.change_speed(float(speed[:-1]))
-            EnvironmentControl.send_message(self, self.env_settings.conn, "speed", Global_access.speed)
+            EnvironmentControl.send_message(self, self.env_settings.conn, "control")
 
     def set_size(self, width, height):
         """
@@ -51,7 +51,7 @@ class EnvironmentControl:
             return
         else:
             Global_access.running = True
-            self.send_message(conn, "control", "true")
+            self.send_message(conn, "control")
 
     def stop(self, conn):
         """
@@ -61,7 +61,7 @@ class EnvironmentControl:
             return
         else:
             Global_access.running = False
-            self.send_message(conn, "control", "false")
+            self.send_message(conn, "control")
 
     def set_width(self, width):
         """
@@ -124,7 +124,7 @@ class EnvironmentControl:
         coord = mpos_x // 10, int(Global_access.environment_size[1] - (mpos_y // 10) - 1)
 
         # Check that the coordinates are within the bounds of the environment (only check height)
-        if coord[1] >= Global_access.environment_size[1]:
+        if coord[1] < 0:
             return
 
         # This block checks if an organism is in the cell and then requests data if it is
@@ -134,7 +134,7 @@ class EnvironmentControl:
         # If the cell wasn't filled with an organism we check if it is empty (not food or a wall cell but empty)
         elif Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["environment"].tile_type == -2:
             if Global_access.CLICK_TYPE == 'Organism':
-                self.fill_cell(coord[0], coord[1], Global_access.GREEN)
+                self.fill_cell(coord[0], coord[1], Global_access.org_colors[1])
                 new_cell = Organism_cell.OrganismCell(0, 0, 0, 0, 0, 0, 0, 0, 0, coord[0], coord[1])
                 Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["organism"] = new_cell
                 self.send_message(conn, "new_filled", (coord[0], coord[1], "organism"))
@@ -214,13 +214,18 @@ class EnvironmentControl:
         :param data: Optional argument for passing data that may be needed in c++
         :param type: Any
         """
-        if message_type == "control" or message_type == "request" \
-           or message_type == "speed" or message_type == "request_all":
+        if message_type == "request" or message_type == "request_all":
             return "{type:" + message_type + ",data:" + str(data) + "}"
+        elif message_type == "control":
+            formatted_data = "{playing:" + str(Global_access.running) + \
+                             ",speed:" + str(Global_access.speed) + "}"
         elif message_type == "environment_variables":
-            formatted_data = "{temperature:" + str(data[0]) + ",light:" \
-                             + str(data[1]) + ",oxygen:" + str(data[2]) + "}"
-            return "{type: " + message_type + ",data:" + formatted_data + "}"
+            formatted_data = "{temperature:" + str(data[0]) + \
+                             ",light:" + str(data[1]) + \
+                             ",oxygen:" + str(data[2]) + "}"
         elif message_type == "new_filled":
-            formatted_data = "{x:" + str(data[0]) + ",y:" + str(data[1]) + ",type:" + str(data[2]) + "}"
-            return "{type:" + message_type + ",data:" + formatted_data + "}"
+            formatted_data = "{x:" + str(data[0]) + \
+                             ",y:" + str(data[1]) + \
+                             ",type:" + str(data[2]) + "}"
+
+        return "{type:" + message_type + ",data:" + formatted_data + "}"
