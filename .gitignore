@@ -38,5 +38,5 @@
 UserBuild.txt
 
 /venv
-.pyc
+*.pyc
 __pycache__
