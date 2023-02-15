@@ -14,7 +14,7 @@ auto UUID::randomRange = std::uniform_int_distribution<u64>(0, UINT64_MAX);
 UUID::UUID(u64 high, u64 low): high(high), low(low) {}
 
 auto UUID::generateRandom() -> UUID {
-	return UUID(randomRange(randomEngine), randomRange(randomEngine));
+	return {randomRange(randomEngine), randomRange(randomEngine)};
 }
 
 auto UUID::operator==(const UUID & other) const -> bool {
@@ -36,10 +36,10 @@ auto UUID::asString() const -> std::string {
 	return str;
 }
 
-auto UUID::getHigh() -> u64 {
+auto UUID::getHigh() const -> u64 {
 	return high;
 }
 
-auto UUID::getLow() -> u64 {
+auto UUID::getLow() const -> u64 {
 	return low;
 }

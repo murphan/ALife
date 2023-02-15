@@ -23,13 +23,13 @@ private:
 public:
 	OrganismGrid(i32 width, i32 height);
 
-	auto placeOrganism(Organism & organism, i32 tempId) -> void;
+	auto placeOrganism(const Organism & organism, i32 tempId) -> void;
 
-	auto canMoveOrganism(Organism & organism, i32 tempId, i32 deltaX, i32 deltaY) -> bool;
+	auto canMoveOrganism(const Organism & organism, i32 tempId, i32 deltaX, i32 deltaY) -> bool;
 
 	auto moveOrganism(Organism & organism, i32 tempId, i32 deltaX, i32 deltaY) -> void;
 
-	auto isSpaceAvailable(const Body & body, i32 x, i32 y) -> bool
+	auto isSpaceAvailable(const Body & body, i32 x, i32 y) -> bool;
 };
 
 #endif //ALIFE_ORGANISMGRID_H

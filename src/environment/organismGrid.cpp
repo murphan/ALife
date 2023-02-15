@@ -34,7 +34,7 @@ auto OrganismGrid::internalSpaceAvailable(const Body & body, i32 tempId, i32 cen
 	return true;
 }
 
-auto OrganismGrid::placeOrganism(Organism & organism, i32 tempId) -> void {
+auto OrganismGrid::placeOrganism(const Organism & organism, i32 tempId) -> void {
 	auto && body = organism.body();
 
 	for (auto j = body.down; j <= body.up; ++j) {
@@ -53,7 +53,7 @@ auto OrganismGrid::placeOrganism(Organism & organism, i32 tempId) -> void {
 	}
 }
 
-auto OrganismGrid::canMoveOrganism(Organism & organism, i32 tempId, i32 deltaX, i32 deltaY) -> bool {
+auto OrganismGrid::canMoveOrganism(const Organism & organism, i32 tempId, i32 deltaX, i32 deltaY) -> bool {
 	auto && body = organism.body();
 
 	return internalSpaceAvailable(organism.body(), tempId, organism.x + deltaX, organism.y + deltaY);
@@ -84,6 +84,9 @@ auto OrganismGrid::moveOrganism(Organism & organism, i32 tempId, i32 deltaX, i32
 			grid[indexOf(x, y)] = tempId;
 		}
 	}
+
+	organism.x += deltaX;
+	organism.y += deltaY;
 }
 
 auto OrganismGrid::isSpaceAvailable(const Body & body, i32 x, i32 y) -> bool {

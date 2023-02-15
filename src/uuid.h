@@ -28,8 +28,8 @@ public:
 
 	auto asString() const -> std::string;
 
-	auto getHigh() -> u64;
-	auto getLow() -> u64;
+	auto getHigh() const -> u64;
+	auto getLow() const -> u64;
 };
 
 #endif //ALIFE_UUID_H

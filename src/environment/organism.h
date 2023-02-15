@@ -17,7 +17,7 @@ private:
 	Phenome phenome;
 
 public:
-	const UUID uuid;
+	UUID uuid;
 
 	i32 x, y;
 	i32 rotation;
@@ -25,7 +25,10 @@ public:
 	i32 energy;
 	i32 age;
 
+	Organism(Organism && other) = default;
 	Organism(Phenome && phenome, UUID uuid, i32 x, i32 y);
+
+	auto operator=(Organism && other) noexcept -> Organism & = default;
 
 	auto getPhenome() const -> const Phenome &;
 	auto getGenome() const -> const Genome &;
