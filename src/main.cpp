@@ -49,8 +49,10 @@ auto main () -> int {
 			if (!message.has_value()) break;
 
 			auto str = std::string(message.value().begin(), message.value().end());
+			#ifdef DEBUG
 			std::cout << "received message" << std::endl;
 			std::cout << str << std::endl;
+			#endif
 		}
 
 		simulationController.step();
@@ -58,7 +60,9 @@ auto main () -> int {
 		if (Socket::isConnected()) {
 			auto stateJson = StateSerializer::serialize(simulationController.currentStep, simulationController.environment, simulationController.organisms);
 
+			#ifdef DEBUG
 			std::cout << stateJson << std::endl;
+			#endif
 			auto jsonData = stateJson.dump();
 			Socket::send(jsonData.begin(), jsonData.end());
 		}
