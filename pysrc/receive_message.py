@@ -99,7 +99,7 @@ def decode_grid(self, grid_data, width, height):
             Global_access.ENVIRONMENT_GRID[x][y]["environment"] = cell
             Global_access.ENVIRONMENT_GRID[x][y]["organism"] = None
             if cell.tile_type == -1:
-                Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x, y, Global_access.BLACK)
+                Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x, y, Global_access.WHITE)
             if cell.tile_type == 0:
                 Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x, y, Global_access.YELLOW)
             if cell.tile_type == 1:
