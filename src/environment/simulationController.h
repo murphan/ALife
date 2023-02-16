@@ -15,6 +15,14 @@ private:
 
 	auto tempId(i32 index) -> i32;
 
+	/* substep functions */
+
+	auto moveOrganisms(OrganismGrid & organismGrid) -> void;
+
+	auto organismsAgeAndDie() -> void;
+
+	auto replaceOrganismWithFood(const Organism & organism) -> void;
+
 public:
 	Environment environment;
 	std::vector<Organism> organisms;
@@ -23,10 +31,6 @@ public:
     explicit SimulationController(Environment && environment);
 
     auto step() -> void;
-
-	/* substep functions */
-
-	auto moveOrganisms(OrganismGrid & organismGrid) -> void;
 };
 
 #endif //ALIFE_SIMULATIONCONTROLLER_H

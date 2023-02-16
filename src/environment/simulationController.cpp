@@ -18,6 +18,8 @@ auto SimulationController::step() -> void {
 
 	moveOrganisms(organismGrid);
 
+	organismsAgeAndDie();
+
 	++currentStep;
 }
 
@@ -35,6 +37,37 @@ auto SimulationController::moveOrganisms(OrganismGrid & organismGrid) -> void {
 
 		if (organismGrid.canMoveOrganism(organism, id, deltaX, deltaY)) {
 			organismGrid.moveOrganism(organism, id, deltaX, deltaY);
+		}
+	}
+}
+
+auto SimulationController::organismsAgeAndDie() -> void {
+	std::erase_if(organisms, [this](auto && organism) {
+		auto newAge = organism.tick();
+
+		//TODO put in settings
+		constexpr auto AGE_FACTOR = 16;
+
+		if (newAge > organism.getPhenome().maxAge(AGE_FACTOR)) {
+			replaceOrganismWithFood(organism);
+			return true;
+		} else {
+			return false;
+		}
+	});
+}
+
+auto SimulationController::replaceOrganismWithFood(const Organism & organism) -> void {
+	auto && body = organism.body();
+
+	for (auto j = body.down; j <= body.up; ++j) {
+		for (auto i = body.left; i <= body.right; ++i) {
+			auto y = organism.y + j, x = organism.x + i;
+			auto cell = body.access(i, j);
+
+			if (cell != BodyPart::NONE) {
+				environment.getCell(x, y).setFood(Food(Food::FOOD0, 1));
+			}
 		}
 	}
 }
