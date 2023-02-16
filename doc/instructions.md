@@ -16,3 +16,7 @@ Launching the project requires launching both the process built by C++, and the 
 
 When operating, the program should look like this:
 ![](screenshot.png)
+
+## Quick Distribution
+
+You can run the project without having to build it yourself. Just download the alpha release on the GitHub page.
