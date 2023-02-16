@@ -33,7 +33,7 @@ class Management:
 
     def main_loop(self):
         while True:
-            self.EnvironmentGui.drawGrid()
+            self.EnvironmentGui.clear_screen()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.exiting()

@@ -14,11 +14,11 @@ def decode_message(self, conn):
     started in setup Environment and will be in its own process. It will loop
     infinitely looking for messages
 
-    :param conn: connection to receive messages from
-    :type conn: socket
-
     :param self: instance of setup_environment self that can be passed but isn't used
     :type self: setup_environment instance
+
+    :param conn: connection to receive messages from
+    :type conn: socket
 
     NOTE: Self was passed from setup_environment and so this will be a setup_environment instance of self
     """
@@ -60,15 +60,18 @@ def decode_message(self, conn):
                 # Global_access.define_grid(width, height)   Uncomment when making grid dynamically sized
                 data_map["grid"] = base64.b64decode(data_map["grid"])
                 data_map["grid"] = [data_map["grid"][i: i + 11] for i in range(0, len(data_map["grid"]), 11)]
-                decode_grid(data_map["grid"], width, height)
+                decode_grid(self, data_map["grid"], width, height)
                 decode_organisms(self, data_map["organisms"])
             elif message_type == "organism_data":
                 pass
 
 
-def decode_grid(grid_data, width, height):
+def decode_grid(self, grid_data, width, height):
     """
     This will decode the grid that is passed from c++
+
+    :param self: instance of setup_environment self that can be passed but isn't used
+    :type self: setup_environment instance
 
     :param grid_data: the list of grid information
     :type grid_data: list
@@ -80,8 +83,8 @@ def decode_grid(grid_data, width, height):
     :type height: int
     """
     index = 0
-    for x in range(width):
-        for y in range(height):
+    for y in range(height):
+        for x in range(width):
             data = grid_data[index]
             factor_0 = int.from_bytes(data[:1], "big", signed=True)
             factor_1 = int.from_bytes(data[1:2], "big", signed=True)
@@ -96,7 +99,7 @@ def decode_grid(grid_data, width, height):
             Global_access.ENVIRONMENT_GRID[x][y]["environment"] = cell
             Global_access.ENVIRONMENT_GRID[x][y]["organism"] = None
             if cell.tile_type == -1:
-                Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x, y, Global_access.BLACK)
+                Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x, y, Global_access.WHITE)
             if cell.tile_type == 0:
                 Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x, y, Global_access.YELLOW)
             if cell.tile_type == 1:

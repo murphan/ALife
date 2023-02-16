@@ -143,8 +143,8 @@ class EnvironmentControl:
                 new_cell = Environment_cell.EnvironmentCell(0, 0, 0, 0, 0, 0, 0, 0)
                 Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["environment"] = new_cell
                 self.send_message(conn, "new_filled", (coord[0], coord[1], "food"))
-            else:
-                self.fill_cell(coord[0], coord[1], Global_access.BLACK)
+            else:  # Wall
+                self.fill_cell(coord[0], coord[1], Global_access.WHITE)
                 new_cell = Environment_cell.EnvironmentCell(0, 0, 0, 0, -1, 0, 0, 0)
                 Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["environment"] = new_cell
                 self.send_message(conn, "new_filled", (coord[0], coord[1], "wall"))

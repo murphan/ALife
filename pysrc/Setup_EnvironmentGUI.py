@@ -21,35 +21,18 @@ class SetupEnvironment:
         pygame.init()
         Global_access.set_screen(pygame.display.set_mode((Global_access.WINDOW_WIDTH, Global_access.WINDOW_HEIGHT)))
         CLOCK = pygame.time.Clock()
-        Global_access.SCREEN.fill(Global_access.WHITE)
+        Global_access.SCREEN.fill(Global_access.BLACK)
 
         self.createButtons()
         Global_access.set_environment_size(Global_access.WINDOW_WIDTH / 10, (Global_access.WINDOW_HEIGHT - 50) / 10)
         Global_access.define_grid(Global_access.environment_size[0], Global_access.environment_size[1])
-
-    def drawGrid(self):
-        """
-        This will draw the grid of the environment
-        """
-        self.clear_screen()
-        block_width = Global_access.block_width
-        block_height = Global_access.block_height
-
-        # Ensure that there is an actual size that we have been given before rendering anything on the screen
-        if not block_height or not block_width:
-            return
-
-        for x in range(0, Global_access.WINDOW_WIDTH, block_width):
-            for y in range(0, Global_access.WINDOW_HEIGHT - 50, block_height):
-                rect = pygame.Rect(x, y, block_width, block_height)
-                pygame.draw.rect(Global_access.SCREEN, Global_access.BLACK, rect, 1)
 
     def clear_screen(self):
         """
         This will just clear the window for when the environment changes sizes and redraws the grid
         """
         if Global_access.size_changed or Global_access.new_frame:
-            Global_access.SCREEN.fill(Global_access.WHITE)
+            Global_access.SCREEN.fill(Global_access.BLACK)
             self.createButtons()
             Global_access.size_changed = False
             Global_access.new_frame = False

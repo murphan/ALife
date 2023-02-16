@@ -46,14 +46,10 @@ public:
 		D
 	};
 
+	Genome(const Genome & genome) = default;
 	Genome(Genome && genome) = default;
 	Genome();
 	Genome(std::vector<u8> &&, i32);
-
-#ifdef DEBUG
-    Genome(const Genome &);
-    auto operator=(const Genome &) -> Genome &;
-#endif
 
 	auto operator=(Genome && other) noexcept -> Genome & = default;
 

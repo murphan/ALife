@@ -17,7 +17,7 @@ auto MapCell::getFactor(Factor factor) const -> i8 {
 	return factors[factor];
 }
 
-auto MapCell::setFood(Food & newFood) -> void {
+auto MapCell::setFood(Food newFood) -> void {
 	this->food = newFood;
 }
 
