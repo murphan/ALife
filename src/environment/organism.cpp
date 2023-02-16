@@ -4,7 +4,8 @@
 
 #include "organism.h"
 
-Organism::Organism(Phenome && phenome, i32 x, i32 y) :
+Organism::Organism(Phenome && phenome, UUID uuid, i32 x, i32 y) :
+	uuid(uuid),
 	phenome(std::move(phenome)),
 	x(x),
 	y(y),

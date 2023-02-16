@@ -36,3 +36,7 @@
 
 # UserBuild.txt
 UserBuild.txt
+
+/venv
+*.pyc
+__pycache__

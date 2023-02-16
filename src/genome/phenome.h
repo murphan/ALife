@@ -54,6 +54,9 @@ public:
 
 	explicit Phenome(Genome && inGenome, Body && inBody);
 
+	Phenome(Phenome && other) = default;
+	auto operator=(Phenome && other) noexcept -> Phenome & = default;
+
 	auto maxAge(i32 ageFactor) const -> i32;
 };
 

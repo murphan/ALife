@@ -7,12 +7,8 @@ import random
 
 import Control_EnvironmentGUI
 import Setup_settingsGUI
+import Global_access
 
-
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-WINDOW_HEIGHT = 770
-WINDOW_WIDTH = 1500
 CLOCK = None
 
 
@@ -23,36 +19,53 @@ class SetupEnvironment:
     def __init__(self):
         global CLOCK
         pygame.init()
-        self.SCREEN = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+        Global_access.set_screen(pygame.display.set_mode((Global_access.WINDOW_WIDTH, Global_access.WINDOW_HEIGHT)))
         CLOCK = pygame.time.Clock()
-        self.SCREEN.fill(WHITE)
+        Global_access.SCREEN.fill(Global_access.WHITE)
 
         self.createButtons()
-        self.environment_size = (WINDOW_WIDTH / 10, (WINDOW_HEIGHT - 50) / 10)
-        Control_EnvironmentGUI.EnvironmentControl.define_grid(self, self.environment_size[0], self.environment_size[1])
+        Global_access.set_environment_size(Global_access.WINDOW_WIDTH / 10, (Global_access.WINDOW_HEIGHT - 50) / 10)
+        Global_access.define_grid(Global_access.environment_size[0], Global_access.environment_size[1])
 
     def drawGrid(self):
         """
-        This will draw the grid of the environment and initialize a two-dimensional array
+        This will draw the grid of the environment
         """
-        block_size = 10
-        for x in range(0, WINDOW_WIDTH, block_size):
-            for y in range(0, WINDOW_HEIGHT - 50, block_size):
-                rect = pygame.Rect(x, y, block_size, block_size)
-                pygame.draw.rect(self.SCREEN, BLACK, rect, 1)
+        self.clear_screen()
+        block_width = Global_access.block_width
+        block_height = Global_access.block_height
+
+        # Ensure that there is an actual size that we have been given before rendering anything on the screen
+        if not block_height or not block_width:
+            return
+
+        for x in range(0, Global_access.WINDOW_WIDTH, block_width):
+            for y in range(0, Global_access.WINDOW_HEIGHT - 50, block_height):
+                rect = pygame.Rect(x, y, block_width, block_height)
+                pygame.draw.rect(Global_access.SCREEN, Global_access.BLACK, rect, 1)
+
+    def clear_screen(self):
+        """
+        This will just clear the window for when the environment changes sizes and redraws the grid
+        """
+        if Global_access.size_changed or Global_access.new_frame:
+            Global_access.SCREEN.fill(Global_access.WHITE)
+            self.createButtons()
+            Global_access.size_changed = False
+            Global_access.new_frame = False
 
     def createButtons(self):
         # The three buttons that are on the environment screen
-        self.settings_button = Button(self.SCREEN, (1420, 730), "Settings", (255, 255, 0))
-        self.pause_button = Button(self.SCREEN, (1356, 730), "Pause", (255, 0, 0))
-        self.play_button = Button(self.SCREEN, (1307, 730), "Play", (0, 255, 0))
+        self.settings_button = Button(Global_access.SCREEN, (1420, 730), "Settings", (255, 255, 0))
+        self.pause_button = Button(Global_access.SCREEN, (1356, 730), "Pause", (255, 0, 0))
+        self.play_button = Button(Global_access.SCREEN, (1307, 730), "Play", (0, 255, 0))
 
-    def add_organism_display(self, formatted_string):
+    def add_organism_display(self, organism):
         """
         This will display the formatted string of organism information at the bottom of the screen
 
-        :param formatted_string: formatted string with the organism information
-        :param type: string
+        :param organism: organism structure to pull information from
+        :param type: organism type
         """
 
         test_string = f"ID: {random.randint(111111111, 999999999)}  \
@@ -68,7 +81,7 @@ class SetupEnvironment:
         text_options = font.render(test_string, True, (0, 0, 0))
         textRect = text_options.get_rect()
         textRect.center = (670, 745)
-        self.SCREEN.blit(text_options, textRect)
+        Global_access.SCREEN.blit(text_options, textRect)
 
 
 class Button:

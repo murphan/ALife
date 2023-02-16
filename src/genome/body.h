@@ -47,7 +47,10 @@ public:
     /** bounds of the organism in the canvas, inclusive on both ends */
 	i32 left, right, down, up;
 
+	Body(Body && other) = default;
 	Body(i32 edge, BodyPart center);
+
+	auto operator=(Body && other) noexcept -> Body & = default;
 
     auto accessExpand(i32, i32, i32) -> i32;
     auto access(i32, i32) const -> BodyPart;
@@ -57,6 +60,9 @@ public:
     auto debugToString() const -> std::string;
 
 	auto getNumCells() const -> i32;
+
+	auto getWidth() const -> i32;
+	auto getHeight() const -> i32;
 };
 
 #endif //ALIFE_BODY_H
