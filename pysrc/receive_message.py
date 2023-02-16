@@ -83,8 +83,8 @@ def decode_grid(self, grid_data, width, height):
     :type height: int
     """
     index = 0
-    for x in range(width):
-        for y in range(height):
+    for y in range(height):
+        for x in range(width):
             data = grid_data[index]
             factor_0 = int.from_bytes(data[:1], "big", signed=True)
             factor_1 = int.from_bytes(data[1:2], "big", signed=True)
