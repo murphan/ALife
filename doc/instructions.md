@@ -12,9 +12,9 @@ Source code for the ALife project is available on [GitHub](https://github.com/mu
 
 ### ! This project can only be built on Windows !
 
-The recommended IDE to build the project with is [Clion](https://www.jetbrains.com/clion/). Once cloned and openened in CLion, additional steps to complete the build can be found in the included `README.md`. Notably, the project depends on the [JSON for Modern C++ library](https://github.com/nlohmann/json/releases/tag/v3.11.2).
+The recommended IDE to build the project with is [Clion](https://www.jetbrains.com/clion/). Once cloned and opened in CLion, additional steps to complete the build can be found in the included `README.md`. Notably, the project depends on the [JSON for Modern C++ library](https://github.com/nlohmann/json/releases/tag/v3.11.2).
 
-The project is split into a C++ side and a Python side. The source code for each can be found in `src/` and `pysrc/` respectively. Python 3.10 or lower is required due to PyGame being incomptable with Python 3.11.
+The project is split into a C++ side and a Python side. The source code for each can be found in `src/` and `pysrc/` respectively. Python 3.10 or lower is required due to PyGame being incompatible with Python 3.11.
 
 This project uses the LLVM compiler for its C++ 20 support, which this project makes use of. LLVM for Windows can be found [here](https://github.com/llvm/llvm-project/releases/tag/llvmorg-15.0.7). To use the compiler in CLion, navigate to `Settings > Build, Execution, Deployment > Toolchains`. You should use the Visual Studio toolchain, but replace the C Compiler and C++ Compiler fields with the path to your installed `clang-cl.exe` from LLVM.
 
