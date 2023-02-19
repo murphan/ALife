@@ -162,9 +162,9 @@ Util::Coord block5RotationMap[25] = {
 inline auto rotateCoord90(Util::Coord coord, Direction rotation) -> Util::Coord {
 	switch (rotation.value()) {
 		case Direction::RIGHT: return coord;
-		case Direction::UP: return {-coord.y, coord.x };
-		case Direction::LEFT: return {-coord.x, -coord.y };
-		case Direction::DOWN: return {coord.y, -coord.x };
+		case Direction::UP: return { coord.y, -coord.x };
+		case Direction::LEFT: return { -coord.x, -coord.y };
+		case Direction::DOWN: return { -coord.y, coord.x };
 		default: throw std::exception("bad direction input");
 	}
 }

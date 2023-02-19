@@ -140,13 +140,12 @@ def display_organism(self, organism):
     """
     index = 0  # Index of the body string that we are at
     body = base64.b64decode(organism.body)
-    top_left = organism.x + organism.up, organism.y + organism.left
-    width = organism.right - organism.left + 1
-    height = organism.up - organism.down + 1
-    for y in range(height):
-        for x in range(width):
-            x_pos = organism.x + x
-            y_pos = organism.y + y
+
+    for j in range(organism.down, organism.up + 1):
+        for i in range(organism.left, organism.right + 1):
+            y_pos = organism.y + j
+            x_pos = organism.x + i
+
             body_cell_num = body[index]
             if body_cell_num > 0:
                 Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x_pos, y_pos,

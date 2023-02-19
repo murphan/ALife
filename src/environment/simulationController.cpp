@@ -25,13 +25,14 @@ auto SimulationController::step() -> void {
 
 auto SimulationController::moveOrganisms(OrganismGrid & organismGrid) -> void {
 	for (auto i = 0; i < organisms.size(); ++i) {
+		//organisms[0].rotation = Direction::UP;
 		organismGrid.placeOrganism(organisms.at(i), tempId(i));
 	}
 
 	for (auto i = 0; i < organisms.size(); ++i) {
 		auto deltaX = 0; //std::uniform_int_distribution(-1, 1)(random);
 		auto deltaY = 0; //std::uniform_int_distribution(-1, 1)(random);
-		auto deltaRotation = 0; std::uniform_int_distribution(-1, 1)(random) * 2;
+		auto deltaRotation = std::uniform_int_distribution(-1, 1)(random) * 2;
 
 		auto && organism = organisms.at(i);
 		auto id = tempId(i);

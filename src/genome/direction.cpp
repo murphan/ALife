@@ -80,3 +80,7 @@ auto Direction::normalized() const -> i32 {
 auto Direction::isDiagonal() const -> bool {
 	return direction == RIGHT_UP || direction == LEFT_UP || direction == LEFT_DOWN || direction == RIGHT_DOWN;
 }
+
+auto Direction::opposite() const -> Direction {
+	return { (direction + 4) % 8 };
+}
