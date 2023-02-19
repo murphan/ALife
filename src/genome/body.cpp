@@ -96,7 +96,7 @@ auto Body::addPart(BodyBuilder & builder, Direction direction, BodyPart part, i3
 
 	if (jumpAnchor > -1) {
 		baseX = builder.anchors[jumpAnchor].x;
-		baseY = builder.anchors[jumpAnchor].x;
+		baseY = builder.anchors[jumpAnchor].y;
 	}
 
     /* keep moving in direction until finding an empty space */
@@ -144,8 +144,89 @@ auto Body::accessExpand(i32 x, i32 y, i32 expandBy) -> i32 {
     return canvas[indexOf(x, y)];
 }
 
-auto Body::access(i32 x, i32 y) const -> BodyPart {
-    return canvas[indexOf(x, y)];
+auto Body::safeAccess(i32 x, i32 y) const -> BodyPart {
+	if (x < canvasLeft() || x > canvasRight() || y < canvasDown() || y > canvasUp()) return BodyPart::NONE;
+	return canvas[indexOf(x, y)];
+}
+
+using XY = Util::Coord;
+
+Util::Coord block5RotationMap[25] = {
+	XY(-3, 00), XY(-2, +1), XY(-1, +1), XY(-1, +2), XY(00, +3),
+	XY(-2, -1), XY(-2, 00), XY(-1, 00), XY(00, +1), XY(00, +2),
+	XY(-1, -2), XY(-1, -1), XY(00, 00), XY(+1, +1), XY(+1, +2),
+	XY(-2, 00), XY(00, -1), XY(+1, -1), XY(+1, 00), XY(+2, +1),
+	XY(-3, 00), XY(+1, -2), XY(+2, -1), XY(+2, 00), XY(+3, 00),
+};
+
+inline auto rotateCoord90(Util::Coord coord, Direction rotation) -> Util::Coord {
+	switch (rotation.value()) {
+		case Direction::RIGHT: return coord;
+		case Direction::UP: return {-coord.y, coord.x };
+		case Direction::LEFT: return {-coord.x, -coord.y };
+		case Direction::DOWN: return {coord.y, -coord.x };
+		default: throw std::exception("bad direction input");
+	}
+}
+
+inline auto accessBlock5RotationMap(i32 blockX, i32 blockY, Direction rotation) -> Util::Coord {
+	auto indexY = 4 - (blockY + 2), indexX = blockX + 2;
+	return rotateCoord90(block5RotationMap[indexY * 5 + indexX], rotation.rotate(-1));
+}
+
+struct SuperSub {
+	Util::Coord super;
+	Util::Coord sub;
+};
+
+inline auto getSuperAndSubPosition(i32 x, i32 y) -> SuperSub {
+	return {
+		.super =  { Util::floorDiv(x + 2, 5), Util::floorDiv(y + 2, 5) },
+		.sub =  { Util::positiveMod(x + 2, 5), Util::positiveMod(y + 2, 5) },
+	};
+}
+
+
+inline auto superDiagonalOffsetX(i32 superX, i32 superY, Direction rotation) {
+	switch (rotation.value()) {
+		case Direction::RIGHT_UP: return superX * 3 + superY * -4;
+		case Direction::LEFT_UP: return superX * -4 + superY * -3;
+		case Direction::LEFT_DOWN: return superX * -3 + superY * 4;
+		case Direction::RIGHT_DOWN: return superX * 4 + superY * 3;
+		default: throw std::exception("bad direction input");
+	}
+}
+
+inline auto superDiagonalOffsetY(i32 superX, i32 superY, Direction rotation) {
+	switch (rotation.value()) {
+		case Direction::RIGHT_UP: return superY * 3 + superX * 4;
+		case Direction::LEFT_UP: return superY * -4 + superX * 3;
+		case Direction::LEFT_DOWN: return superY * -3 + superX * -4;
+		case Direction::RIGHT_DOWN: return superY * 4 + superX * -3;
+		default: throw std::exception("bad direction input");
+	}
+}
+
+inline auto rotateCoord45(Util::Coord coord, Direction rotation) -> Util::Coord {
+	auto [super, sub] = getSuperAndSubPosition(coord.x, coord.y);
+
+	auto superOffsetX = superDiagonalOffsetX(super.x, super.y, rotation);
+	auto superOffsetY = superDiagonalOffsetY(super.x, super.y, rotation);
+
+	auto [subOffsetX, subOffsetY] = accessBlock5RotationMap(sub.x, sub.y, rotation);
+
+	return {superOffsetX + subOffsetX, superOffsetY + subOffsetY };
+}
+
+auto Body::access(i32 x, i32 y, Direction rotation) const -> BodyPart {
+	if (rotation.isDiagonal()) {
+		auto coord = rotateCoord45({ x, y }, rotation);
+		return safeAccess(coord.x, coord.y);
+
+	} else {
+		auto coord = rotateCoord90({x, y}, rotation);
+		return canvas[indexOf(coord.x, coord.y)];
+	}
 }
 
 auto Body::debugToString() const -> std::string {
@@ -172,4 +253,60 @@ auto Body::getWidth() const -> i32 {
 
 auto Body::getHeight() const -> i32 {
 	return up - down + 1;
+}
+
+inline auto diagonalLength(i32 length0, i32 length1) {
+	return Util::outer(sqrtf((f32)(length0 * length0 + length1 * length1)));
+}
+
+auto Body::getRight(Direction rotation) const -> i32 {
+	switch (rotation.value()) {
+		case Direction::RIGHT: return right;
+		case Direction::RIGHT_UP: return diagonalLength(right, down);
+		case Direction::UP: return -down;
+		case Direction::LEFT_UP: return diagonalLength(down, left);
+		case Direction::LEFT: return -left;
+		case Direction::LEFT_DOWN: return diagonalLength(left, up);
+		case Direction::DOWN: return up;
+		case Direction::RIGHT_DOWN: return diagonalLength(up, right);
+	}
+}
+
+auto Body::getUp(Direction rotation) const -> i32 {
+	switch (rotation.value()) {
+		case Direction::RIGHT: return up;
+		case Direction::RIGHT_UP: return diagonalLength(up, right);
+		case Direction::UP: return right;
+		case Direction::LEFT_UP: return diagonalLength(right, down);
+		case Direction::LEFT: return -down;
+		case Direction::LEFT_DOWN: return diagonalLength(down, left);
+		case Direction::DOWN: return -left;
+		case Direction::RIGHT_DOWN: return diagonalLength(left, up);
+	}
+}
+
+auto Body::getLeft(Direction rotation) const -> i32 {
+	switch (rotation.value()) {
+		case Direction::RIGHT: return left;
+		case Direction::RIGHT_UP: return -diagonalLength(left, up);
+		case Direction::UP: return -up;
+		case Direction::LEFT_UP: return -diagonalLength(up, right);
+		case Direction::LEFT: return -right;
+		case Direction::LEFT_DOWN: return -diagonalLength(right, down);
+		case Direction::DOWN: return down;
+		case Direction::RIGHT_DOWN: return -diagonalLength(down, left);
+	}
+}
+
+auto Body::getDown(Direction rotation) const -> i32 {
+	switch (rotation.value()) {
+		case Direction::RIGHT: return down;
+		case Direction::RIGHT_UP: return -diagonalLength(down, left);
+		case Direction::UP: return left;
+		case Direction::LEFT_UP: return -diagonalLength(left, up);
+		case Direction::LEFT: return -up;
+		case Direction::LEFT_DOWN: return -diagonalLength(up, right);
+		case Direction::DOWN: return -right;
+		case Direction::RIGHT_DOWN: return -diagonalLength(right, down);
+	}
 }

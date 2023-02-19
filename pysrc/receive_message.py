@@ -143,13 +143,14 @@ def display_organism(self, organism):
     top_left = organism.x + organism.up, organism.y + organism.left
     width = organism.right - organism.left + 1
     height = organism.up - organism.down + 1
-    for x in range(width):
-        for y in range(height):
+    for y in range(height):
+        for x in range(width):
             x_pos = organism.x + x
             y_pos = organism.y + y
             body_cell_num = body[index]
-            Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x_pos, y_pos,
+            if body_cell_num > 0:
+                Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x_pos, y_pos,
                                                                 Global_access.org_colors[body_cell_num])
-            Global_access.ENVIRONMENT_GRID[x_pos][y_pos]["organism"] = organism
+                Global_access.ENVIRONMENT_GRID[x_pos][y_pos]["organism"] = organism
             index += 1
 

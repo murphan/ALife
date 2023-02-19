@@ -24,16 +24,18 @@ auto main () -> int {
 
 	BodyGene::create(Direction::RIGHT, BodyPart::BASIC).write(baseGenome);
 	baseGenome.writeGarbage(4, Genome::A);
-	BodyGene::create(Direction::RIGHT, BodyPart::MOVER).write(baseGenome);
-	baseGenome.writeGarbage(4, Genome::A);
 	BodyGene::create(Direction::RIGHT, BodyPart::BASIC).write(baseGenome);
 	baseGenome.writeGarbage(4, Genome::A);
-	BodyGene::create(Direction::RIGHT, BodyPart::EYE).write(baseGenome);
+	BodyGene::createUseAnchor(Direction::UP, BodyPart::UNKNOWN03, 0).write(baseGenome);
+	baseGenome.writeGarbage(4, Genome::A);
+	BodyGene::create(Direction::UP, BodyPart::UNKNOWN03).write(baseGenome);
+	baseGenome.writeGarbage(4, Genome::A);
+	BodyGene::create(Direction::RIGHT_UP, BodyPart::UNKNOWN03).write(baseGenome);
 	baseGenome.writeGarbage(4, Genome::A);
 
 	auto initialPhenome = Phenome(std::move(baseGenome), Body(2, BodyPart::MOUTH));
 
-	OrganismSeeder::insertInitialOrganisms(simulationController.organisms, simulationController.environment, initialPhenome, 13);
+	OrganismSeeder::insertInitialOrganisms(simulationController.organisms, simulationController.environment, initialPhenome, 1);
 
 	while (true) {
 		while (true) {

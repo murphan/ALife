@@ -29,14 +29,15 @@ auto SimulationController::moveOrganisms(OrganismGrid & organismGrid) -> void {
 	}
 
 	for (auto i = 0; i < organisms.size(); ++i) {
-		auto deltaX = std::uniform_int_distribution(-1, 1)(random);
-		auto deltaY = std::uniform_int_distribution(-1, 1)(random);
+		auto deltaX = 0; //std::uniform_int_distribution(-1, 1)(random);
+		auto deltaY = 0; //std::uniform_int_distribution(-1, 1)(random);
+		auto deltaRotation = 0; std::uniform_int_distribution(-1, 1)(random) * 2;
 
 		auto && organism = organisms.at(i);
 		auto id = tempId(i);
 
-		if (organismGrid.canMoveOrganism(organism, id, deltaX, deltaY)) {
-			organismGrid.moveOrganism(organism, id, deltaX, deltaY);
+		if (organismGrid.canMoveOrganism(organism, id, deltaX, deltaY, deltaRotation)) {
+			organismGrid.moveOrganism(organism, id, deltaX, deltaY, deltaRotation);
 		}
 	}
 }
@@ -46,7 +47,7 @@ auto SimulationController::organismsAgeAndDie() -> void {
 		auto newAge = organism.tick();
 
 		//TODO put in settings
-		constexpr auto AGE_FACTOR = 16;
+		constexpr auto AGE_FACTOR = 1600;
 
 		if (newAge > organism.getPhenome().maxAge(AGE_FACTOR)) {
 			replaceOrganismWithFood(organism);
@@ -59,11 +60,12 @@ auto SimulationController::organismsAgeAndDie() -> void {
 
 auto SimulationController::replaceOrganismWithFood(const Organism & organism) -> void {
 	auto && body = organism.body();
+	auto rotation = organism.rotation;
 
-	for (auto j = body.down; j <= body.up; ++j) {
-		for (auto i = body.left; i <= body.right; ++i) {
+	for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
+		for (auto i = body.getLeft(rotation); i <= body.getRight(rotation); ++i) {
 			auto y = organism.y + j, x = organism.x + i;
-			auto cell = body.access(i, j);
+			auto cell = body.access(i, j, rotation);
 
 			if (cell != BodyPart::NONE) {
 				environment.getCell(x, y).setFood(Food(Food::FOOD0, 1));

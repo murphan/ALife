@@ -20,13 +20,13 @@ public:
 	UUID uuid;
 
 	i32 x, y;
-	i32 rotation;
+	Direction rotation;
 
 	i32 energy;
 	i32 age;
 
 	Organism(Organism && other) = default;
-	Organism(Phenome && phenome, UUID uuid, i32 x, i32 y);
+	Organism(Phenome && phenome, UUID uuid, i32 x, i32 y, Direction rotation);
 
 	auto operator=(Organism && other) noexcept -> Organism & = default;
 

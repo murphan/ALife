@@ -11,6 +11,14 @@ auto Util::ceilDiv(u32 x, u32 y) -> u32 {
 	return x / y + (x % y != 0);
 }
 
+auto Util:: floorDiv(i32 x, u32 y) -> i32 {
+	return x >= 0 ? x / (i32)y : x / (i32)y - (x % y != 0);
+}
+
+auto Util::outer(f32 x) -> i32 {
+	return x > 0 ? (i32)ceil(x) : (i32)floor(x);
+}
+
 auto Util::positiveMod(i32 i, i32 n) -> i32 {
 	return (i % n + n) % n;
 }
