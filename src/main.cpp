@@ -35,7 +35,7 @@ auto main () -> int {
 
 	auto initialPhenome = Phenome(std::move(baseGenome), Body(2, BodyPart::MOUTH));
 
-	OrganismSeeder::insertInitialOrganisms(simulationController.organisms, simulationController.environment, initialPhenome, 1);
+	OrganismSeeder::insertInitialOrganisms(simulationController.organisms, simulationController.environment, initialPhenome, 15);
 
 	while (true) {
 		while (true) {
@@ -61,6 +61,6 @@ auto main () -> int {
 			Socket::send(jsonData.begin(), jsonData.end());
 		}
 
-		std::this_thread::sleep_for(std::chrono::milliseconds (1000));
+		std::this_thread::sleep_for(std::chrono::milliseconds (100));
 	}
 }

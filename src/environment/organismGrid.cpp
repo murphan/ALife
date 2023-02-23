@@ -19,6 +19,8 @@ auto OrganismGrid::internalSpaceAvailable(const Body & body, i32 tempId, i32 cen
 			auto y = centerY + j;
 			auto x = centerX + i;
 
+			if (!inBounds(x, y)) return false;
+
 			auto cell = body.access(i, j, rotation);
 
 			if (cell != BodyPart::NONE) {
@@ -61,8 +63,6 @@ auto OrganismGrid::placeOrganism(const Organism & organism, i32 tempId) -> void 
 }
 
 auto OrganismGrid::canMoveOrganism(const Organism & organism, i32 tempId, i32 deltaX, i32 deltaY, i32 deltaRotation) -> bool {
-	auto && body = organism.body();
-
 	return internalSpaceAvailable(
 		organism.body(),
 		tempId, organism.x + deltaX,

@@ -3,6 +3,7 @@
 
 SimulationController::SimulationController(Environment && environment) :
 	random(std::random_device()()),
+	organismGrid(environment.getWidth(), environment.getHeight()),
 	environment(std::move(environment)),
 	organisms(),
 	currentStep(0) {}
@@ -14,25 +15,26 @@ auto SimulationController::tempId(i32 index) -> i32 {
 auto SimulationController::step() -> void {
 	std::shuffle(organisms.begin(), organisms.end(), random);
 
-	auto organismGrid = OrganismGrid(environment.getWidth(), environment.getHeight());
-
-	moveOrganisms(organismGrid);
+	moveOrganisms();
 
 	organismsAgeAndDie();
 
 	++currentStep;
 }
 
-auto SimulationController::moveOrganisms(OrganismGrid & organismGrid) -> void {
+auto symmetricRange = std::uniform_int_distribution<i32>(-1, 1);
+
+auto SimulationController::moveOrganisms() -> void {
+	organismGrid.clear();
+
 	for (auto i = 0; i < organisms.size(); ++i) {
-		//organisms[0].rotation = Direction::UP;
 		organismGrid.placeOrganism(organisms.at(i), tempId(i));
 	}
 
 	for (auto i = 0; i < organisms.size(); ++i) {
-		auto deltaX = 0; //std::uniform_int_distribution(-1, 1)(random);
-		auto deltaY = 0; //std::uniform_int_distribution(-1, 1)(random);
-		auto deltaRotation = std::uniform_int_distribution(-1, 1)(random) * 2;
+		auto deltaX = symmetricRange(random);
+		auto deltaY = symmetricRange(random);
+		auto deltaRotation = symmetricRange(random);
 
 		auto && organism = organisms.at(i);
 		auto id = tempId(i);

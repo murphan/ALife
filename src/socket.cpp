@@ -136,7 +136,10 @@ auto Socket::readerLoop() -> void {
 			clientSocket = accept(listenSocket, nullptr, nullptr);
 		}
 
-		if (clientSocket == INVALID_SOCKET) return;
+		if (clientSocket == INVALID_SOCKET) {
+			std::cout << WSAGetLastError() << std::endl;
+			return;
+		}
 
 		char tempBuffer[BUFFER_LENGTH];
 

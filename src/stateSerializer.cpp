@@ -63,11 +63,6 @@ auto StateSerializer::serialize(i32 tick, Environment & environment, std::vector
 			}
 		}
 
-		auto left = body.getLeft(rotation);
-		auto right = body.getRight(rotation);
-		auto down = body.getDown(rotation);
-		auto up = body.getUp(rotation);
-
 		organismsArray.push_back(json {
 			{ "id", organism.uuid.asString() },
 			{ "body", Util::base64Encode(byteEncodedBody) },
