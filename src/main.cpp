@@ -8,15 +8,19 @@
 
 #include <tuple>
 #include <thread>
+#include <iostream>
 
 #include "genome/gene/bodyGene.h"
 #include "environment/simulationController.h"
-#include "stateSerializer.h"
+#include "messageCreator.h"
+#include "messageReceiver.h"
 #include "socket.h"
 #include "environment/organismSeeder.h"
 
 auto main () -> int {
 	Socket::init("51679");
+
+	auto controls = Controls { .running=false, .fps=60, .updateDisplay=true };
 
 	auto simulationController = SimulationController(Environment(150, 72));
 
@@ -42,21 +46,25 @@ auto main () -> int {
 			auto message = Socket::queueMessage();
 			if (!message.has_value()) break;
 
-			auto str = std::string(message.value().begin(), message.value().end());
-			#ifdef DEBUG
-			std::cout << "received message" << std::endl;
-			std::cout << str << std::endl;
-			#endif
+			auto messageString = std::string(message.value().begin(), message.value().end());
+
+			auto parsedMessage = MessageReceiver::receive(messageString);
+			if (!parsedMessage.has_value()) continue;
+
+			if (parsedMessage->type == "info") {
+				auto infoJson = MessageCreator::initMessage(simulationController.serialize(), controls.serialize()).dump();
+				Socket::send(infoJson.begin(), infoJson.end());
+
+			} else {
+				std::cout << "unknown message of type" << parsedMessage->type << std::endl;
+			}
 		}
 
 		simulationController.step();
 
 		if (Socket::isConnected()) {
-			auto stateJson = StateSerializer::environmentFrameMessage(StateSerializer::environmentBody(simulationController.currentStep, simulationController.environment, simulationController.organisms));
+			auto stateJson = MessageCreator::frameMessage(simulationController.serialize());
 
-			#ifdef DEBUG
-			std::cout << stateJson << std::endl;
-			#endif
 			auto jsonData = stateJson.dump();
 			Socket::send(jsonData.begin(), jsonData.end());
 		}

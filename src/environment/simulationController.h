@@ -6,8 +6,11 @@
 
 #include <vector>
 
+#include "controls.h"
 #include "organism.h"
 #include "organismGrid.h"
+
+using json = nlohmann::json;
 
 class SimulationController {
 private:
@@ -28,11 +31,14 @@ private:
 public:
 	Environment environment;
 	std::vector<Organism> organisms;
+
 	int currentStep;
 
     explicit SimulationController(Environment && environment);
 
     auto step() -> void;
+
+	auto serialize() -> json;
 };
 
 #endif //ALIFE_SIMULATIONCONTROLLER_H
