@@ -19,7 +19,9 @@ class SetupEnvironment:
     def __init__(self):
         global CLOCK
         pygame.init()
-        Global_access.set_screen(pygame.display.set_mode((Global_access.WINDOW_WIDTH, Global_access.WINDOW_HEIGHT)))
+        Global_access.set_screen(pygame.display.set_mode(
+            (Global_access.WINDOW_WIDTH, Global_access.WINDOW_HEIGHT), pygame.DOUBLEBUF)
+        )
         CLOCK = pygame.time.Clock()
         Global_access.SCREEN.fill(Global_access.BLACK)
 
@@ -36,6 +38,9 @@ class SetupEnvironment:
             self.createButtons()
             Global_access.size_changed = False
             Global_access.new_frame = False
+            Global_access.SCREEN.blit(Global_access.second_surface, (0, 0))
+            Global_access.second_surface.fill(Global_access.BLACK)
+
 
     def createButtons(self):
         # The three buttons that are on the environment screen
