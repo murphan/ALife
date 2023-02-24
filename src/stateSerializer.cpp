@@ -19,7 +19,7 @@ inline auto push32Bit(std::string & stream, T value) {
 	stream.push_back((char)(value & 0xff));
 }
 
-auto StateSerializer::serialize(i32 tick, Environment & environment, std::vector<Organism> & organisms) -> json {
+auto StateSerializer::environmentBody(i32 tick, Environment & environment, std::vector<Organism> & organisms) -> json {
 	auto byteEncodedGrid = std::string();
 	byteEncodedGrid.reserve(environment.mapSize());
 
@@ -79,11 +79,15 @@ auto StateSerializer::serialize(i32 tick, Environment & environment, std::vector
 	}
 
 	return json {
-		{ "type", "environment_frame" },
 		{ "width", environment.getWidth() },
 		{ "height", environment.getHeight() },
 		{ "tick", tick },
 		{ "grid", Util::base64Encode(byteEncodedGrid) },
 		{ "organisms", organismsArray },
 	};
+}
+
+auto StateSerializer::environmentFrameMessage(json && body) -> json {
+	body.push_back({ "type", "environment_frame"});
+	return body;
 }

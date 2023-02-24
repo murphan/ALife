@@ -52,7 +52,7 @@ auto main () -> int {
 		simulationController.step();
 
 		if (Socket::isConnected()) {
-			auto stateJson = StateSerializer::serialize(simulationController.currentStep, simulationController.environment, simulationController.organisms);
+			auto stateJson = StateSerializer::environmentFrameMessage(StateSerializer::environmentBody(simulationController.currentStep, simulationController.environment, simulationController.organisms));
 
 			#ifdef DEBUG
 			std::cout << stateJson << std::endl;

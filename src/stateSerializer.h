@@ -20,7 +20,9 @@ class StateSerializer {
 private:
 
 public:
-	static auto serialize(i32 tick, Environment & environment, std::vector<Organism> & organisms) -> json;
+	static auto environmentBody(i32 tick, Environment & environment, std::vector<Organism> & organisms) -> json;
+
+	static auto environmentFrameMessage(json && body) -> json;
 };
 
 #endif //ALIFE_SERIALIZER_H
