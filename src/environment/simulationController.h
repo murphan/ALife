@@ -32,7 +32,8 @@ public:
 	int currentStep;
 
     explicit SimulationController(Environment && environment);
-    auto addFood(i32 foodX, i32 foodY, Food::Type type) -> void;
+    auto addFood(i32 foodX, i32 foodY, Food::Type type, i32 energy) -> void;
+    auto scatterFood(Food::Type type, i32 numFood, i32 energyDefault) -> void;
     auto tick() -> void;
 };
 

@@ -19,8 +19,6 @@ auto SimulationController::tick() -> void {
 
 	organismsAgeAndDie();
 
-
-
 	++currentStep;
 }
 
@@ -79,7 +77,17 @@ auto SimulationController::replaceOrganismWithFood(const Organism & organism) ->
 	}
 }
 
-auto SimulationController::addFood(i32 foodX, i32 foodY, Food::Type type) -> void {
-    environment.getCell(foodX, foodY).setFood(Food(type, 1));
+auto SimulationController::addFood(i32 foodX, i32 foodY, Food::Type type, i32 energy) -> void {
+    environment.getCell(foodX, foodY).setFood(Food(type, energy));
+}
+
+auto SimulationController::scatterFood(Food::Type type, i32 numFood, i32 energyDefault) -> void {
+    for (int i = 0; i < numFood; ++i) {
+        auto x = std::uniform_int_distribution(0, organismGrid.getWidth()-1)(random);
+        auto y = std::uniform_int_distribution(0, organismGrid.getHight()-1)(random);
+
+        if (!organismGrid.organismInSpace(x, y))
+            addFood(x, y, type, energyDefault);
+    }
 }
 

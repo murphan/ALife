@@ -20,6 +20,12 @@ auto main () -> int {
 
 	auto simulationController = SimulationController(Environment(150, 72));
 
+    simulationController.addFood(12,12, Food::FOOD0, 10);
+    simulationController.addFood(1,1, Food::FOOD0, 10);
+    simulationController.addFood(0,0, Food::FOOD0, 10);
+
+    simulationController.scatterFood(Food::FOOD0, 50, 10);
+
 	auto baseGenome = Genome();
 
 	BodyGene::create(Direction::RIGHT, BodyPart::BASIC).write(baseGenome);
@@ -49,7 +55,7 @@ auto main () -> int {
 			#endif
 		}
 
-		simulationController.step();
+        simulationController.tick();
 
 		if (Socket::isConnected()) {
 			auto stateJson = StateSerializer::serialize(simulationController.currentStep, simulationController.environment, simulationController.organisms);
