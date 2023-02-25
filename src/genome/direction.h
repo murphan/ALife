@@ -49,6 +49,10 @@ public:
 
 	auto rotate(i32) const -> Direction;
 	auto rotate(Direction) const -> Direction;
+
+	auto isDiagonal() const -> bool;
+
+	auto opposite() const -> Direction;
 };
 
 #endif //ALIFE_DIRECTION_H

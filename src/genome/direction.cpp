@@ -57,7 +57,7 @@ auto Direction::y() const -> i32 {
  * @return a new direction relative many ticks away, either positive or negative
  */
 auto Direction::rotate(i32 relative) const -> Direction {
-	return Direction(Util::positiveMod(direction + relative, 8));
+	return { Util::positiveMod(direction + relative, 8) };
 }
 
 /**
@@ -66,7 +66,7 @@ auto Direction::rotate(i32 relative) const -> Direction {
  */
 auto Direction::rotate(Direction relative) const -> Direction {
 	auto amount = normalizedTable[relative.direction];
-	return Direction(Util::positiveMod(direction + amount, 8));
+	return { Util::positiveMod(direction + amount, 8) };
 }
 
 auto Direction::value() const -> i32 {
@@ -75,4 +75,12 @@ auto Direction::value() const -> i32 {
 
 auto Direction::normalized() const -> i32 {
 	return normalizedTable[direction];
+}
+
+auto Direction::isDiagonal() const -> bool {
+	return direction == RIGHT_UP || direction == LEFT_UP || direction == LEFT_DOWN || direction == RIGHT_DOWN;
+}
+
+auto Direction::opposite() const -> Direction {
+	return { (direction + 4) % 8 };
 }

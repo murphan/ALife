@@ -38,6 +38,7 @@ SCREEN = None
 CLICK_TYPE = "Organism"
 ENVIRONMENT_GRID = []
 new_frame = False
+second_surface = pygame.Surface([1500, 730])
 
 TILE_TYPE = {-2: "Empty",
              -1: "Wall",

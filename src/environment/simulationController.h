@@ -13,11 +13,13 @@ class SimulationController {
 private:
 	std::default_random_engine random;
 
+	OrganismGrid organismGrid;
+
 	auto tempId(i32 index) -> i32;
 
 	/* substep functions */
 
-	auto moveOrganisms(OrganismGrid & organismGrid) -> void;
+	auto moveOrganisms() -> void;
 
 	auto organismsAgeAndDie() -> void;
 

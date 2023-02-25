@@ -11,6 +11,7 @@
 #include "util.h"
 #include "genome/direction.h"
 #include "bodyPart.h"
+#include "direction.h"
 
 /**
  * additional context needed to build a body from instructions
@@ -35,6 +36,9 @@ private:
 
 	i32 numCells;
 
+	/** bounds of the organism in the canvas, inclusive on both ends */
+	i32 left, right, down, up;
+
 	auto expand(i32, i32) -> void;
 	auto indexOf(i32, i32) const -> i32;
 
@@ -43,10 +47,9 @@ private:
     auto canvasDown() const -> i32;
     auto canvasUp() const -> i32;
 
-public:
-    /** bounds of the organism in the canvas, inclusive on both ends */
-	i32 left, right, down, up;
+	auto safeAccess(i32 x, i32 y) const -> BodyPart;
 
+public:
 	Body(const Body & other) = default;
 	Body(Body && other) = default;
 	Body(i32 edge, BodyPart center);
@@ -54,7 +57,7 @@ public:
 	auto operator=(Body && other) noexcept -> Body & = default;
 
     auto accessExpand(i32, i32, i32) -> i32;
-    auto access(i32, i32) const -> BodyPart;
+    auto access(i32, i32, Direction rotation) const -> BodyPart;
 
 	auto addPart(BodyBuilder &, Direction, BodyPart part, i32 jumpAnchor) -> void;
 
@@ -64,6 +67,11 @@ public:
 
 	auto getWidth() const -> i32;
 	auto getHeight() const -> i32;
+
+	auto getLeft(Direction rotation) const -> i32;
+	auto getRight(Direction rotation) const -> i32;
+	auto getDown(Direction rotation) const -> i32;
+	auto getUp(Direction rotation) const -> i32;
 };
 
 #endif //ALIFE_BODY_H

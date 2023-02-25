@@ -3,6 +3,7 @@
 //
 
 #include "body.h"
+#include "rotation.h"
 
 BodyBuilder::BodyBuilder() :
     currentX(0), currentY(0), currentDirection(Direction::RIGHT), anchors() {}
@@ -96,7 +97,7 @@ auto Body::addPart(BodyBuilder & builder, Direction direction, BodyPart part, i3
 
 	if (jumpAnchor > -1) {
 		baseX = builder.anchors[jumpAnchor].x;
-		baseY = builder.anchors[jumpAnchor].x;
+		baseY = builder.anchors[jumpAnchor].y;
 	}
 
     /* keep moving in direction until finding an empty space */
@@ -144,8 +145,14 @@ auto Body::accessExpand(i32 x, i32 y, i32 expandBy) -> i32 {
     return canvas[indexOf(x, y)];
 }
 
-auto Body::access(i32 x, i32 y) const -> BodyPart {
-    return canvas[indexOf(x, y)];
+auto Body::safeAccess(i32 x, i32 y) const -> BodyPart {
+	if (x < canvasLeft() || x > canvasRight() || y < canvasDown() || y > canvasUp()) return BodyPart::NONE;
+	return canvas[indexOf(x, y)];
+}
+
+auto Body::access(i32 x, i32 y, Direction rotation) const -> BodyPart {
+	auto [accessX, accessY] = Rotation::rotate({ x, y }, rotation);
+	return safeAccess(accessX, accessY);
 }
 
 auto Body::debugToString() const -> std::string {
@@ -172,4 +179,60 @@ auto Body::getWidth() const -> i32 {
 
 auto Body::getHeight() const -> i32 {
 	return up - down + 1;
+}
+
+inline auto diagonalLength(i32 length0, i32 length1) {
+	return Util::outer(sqrtf((f32)(length0 * length0 + length1 * length1)));
+}
+
+auto Body::getRight(Direction rotation) const -> i32 {
+	switch (rotation.value()) {
+		case Direction::RIGHT: return right;
+		case Direction::RIGHT_UP: return diagonalLength(right, down);
+		case Direction::UP: return -down;
+		case Direction::LEFT_UP: return diagonalLength(down, left);
+		case Direction::LEFT: return -left;
+		case Direction::LEFT_DOWN: return diagonalLength(left, up);
+		case Direction::DOWN: return up;
+		case Direction::RIGHT_DOWN: return diagonalLength(up, right);
+	}
+}
+
+auto Body::getUp(Direction rotation) const -> i32 {
+	switch (rotation.value()) {
+		case Direction::RIGHT: return up;
+		case Direction::RIGHT_UP: return diagonalLength(up, right);
+		case Direction::UP: return right;
+		case Direction::LEFT_UP: return diagonalLength(right, down);
+		case Direction::LEFT: return -down;
+		case Direction::LEFT_DOWN: return diagonalLength(down, left);
+		case Direction::DOWN: return -left;
+		case Direction::RIGHT_DOWN: return diagonalLength(left, up);
+	}
+}
+
+auto Body::getLeft(Direction rotation) const -> i32 {
+	switch (rotation.value()) {
+		case Direction::RIGHT: return left;
+		case Direction::RIGHT_UP: return -diagonalLength(left, up);
+		case Direction::UP: return -up;
+		case Direction::LEFT_UP: return -diagonalLength(up, right);
+		case Direction::LEFT: return -right;
+		case Direction::LEFT_DOWN: return -diagonalLength(right, down);
+		case Direction::DOWN: return down;
+		case Direction::RIGHT_DOWN: return -diagonalLength(down, left);
+	}
+}
+
+auto Body::getDown(Direction rotation) const -> i32 {
+	switch (rotation.value()) {
+		case Direction::RIGHT: return down;
+		case Direction::RIGHT_UP: return -diagonalLength(down, left);
+		case Direction::UP: return left;
+		case Direction::LEFT_UP: return -diagonalLength(left, up);
+		case Direction::LEFT: return -up;
+		case Direction::LEFT_DOWN: return -diagonalLength(up, right);
+		case Direction::DOWN: return -right;
+		case Direction::RIGHT_DOWN: return -diagonalLength(right, down);
+	}
 }

@@ -16,8 +16,8 @@ auto OrganismSeeder::insertInitialOrganisms(
 	auto bodyWidth = body.getWidth();
 	auto bodyHeight = body.getHeight();
 
-	auto offsetX = bodyWidth / 2 - body.left;
-	auto offsetY = bodyHeight / 2 - body.down;
+	auto offsetX = bodyWidth / 2 - body.getLeft(Direction::RIGHT);
+	auto offsetY = bodyHeight / 2 - body.getDown(Direction::RIGHT);
 
 	auto centerX = environment.getWidth() / 2;
 	auto centerY = environment.getHeight() / 2;
@@ -33,7 +33,8 @@ auto OrganismSeeder::insertInitialOrganisms(
 			std::move(newPhenome),
 			UUID::generateRandom(),
 			centerX + gridX * bodyWidth - offsetX,
-			centerY + gridY * bodyHeight - offsetY
+			centerY + gridY * bodyHeight - offsetY,
+			Direction::RIGHT
 		);
 	}
 }

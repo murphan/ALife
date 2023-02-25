@@ -167,7 +167,10 @@ class EnvironmentControl:
         y = int(Global_access.environment_size[1] - y - 1)
         rect = pygame.Rect(x * 10, y * 10,
                            10, 10)
-        pygame.draw.rect(Global_access.SCREEN, color, rect)
+        temp_surface = pygame.Surface([10, 10])
+        pygame.draw.rect(temp_surface, color, (0, 0, 10, 10))
+        Global_access.second_surface.blit(temp_surface, (x * 10, y * 10))
+        # pygame.draw.rect(Global_access.SCREEN, color, rect)
 
     def click_type(self, clicked_type):
         """
