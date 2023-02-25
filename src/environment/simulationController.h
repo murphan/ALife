@@ -23,14 +23,15 @@ private:
 
 	auto replaceOrganismWithFood(const Organism & organism) -> void;
 
+
 public:
 	Environment environment;
 	std::vector<Organism> organisms;
 	int currentStep;
 
     explicit SimulationController(Environment && environment);
-
-    auto step() -> void;
+    auto addFood(i32 foodX, i32 foodY, Food::Type type) -> void;
+    auto tick() -> void;
 };
 
 #endif //ALIFE_SIMULATIONCONTROLLER_H

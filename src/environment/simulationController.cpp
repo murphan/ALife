@@ -11,7 +11,7 @@ auto SimulationController::tempId(i32 index) -> i32 {
 	return index + 1;
 }
 
-auto SimulationController::step() -> void {
+auto SimulationController::tick() -> void {
 	std::shuffle(organisms.begin(), organisms.end(), random);
 
 	auto organismGrid = OrganismGrid(environment.getWidth(), environment.getHeight());
@@ -19,6 +19,8 @@ auto SimulationController::step() -> void {
 	moveOrganisms(organismGrid);
 
 	organismsAgeAndDie();
+
+
 
 	++currentStep;
 }
@@ -71,3 +73,8 @@ auto SimulationController::replaceOrganismWithFood(const Organism & organism) ->
 		}
 	}
 }
+
+auto SimulationController::addFood(i32 foodX, i32 foodY, Food::Type type) -> void {
+    environment.getCell(foodX, foodY).setFood(Food(type, 1));
+}
+
