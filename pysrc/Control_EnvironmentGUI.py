@@ -290,14 +290,10 @@ class EnvironmentControl:
         :param data: Optional argument for passing data that may be needed in c++
         :param type: Any
         """
-        # TODO: Check the message type and create a message that is different based on the type that is given
         message = EnvironmentControl.create_message(self, message_type, data)
         length = len(message)
-        if len(str(length)) < 4:
-            length = str(length).zfill(4)
-            message = str(length).encode("utf-8") + message.encode("utf-8")
-        else:
-            message = str(length).encode("utf-8") + message.encode("utf-8")
+        length = length.to_bytes(4, "big")
+        message = str(length).encode("utf-8") + message.encode("utf-8")
 
         conn.send(message)
 
@@ -311,38 +307,41 @@ class EnvironmentControl:
         :param type: Any
         """
         if message_type == "request" or message_type == "request_all":
-            return "{type:" + message_type + ",data:" + str(data) + "}"
+            new_data = {"data": str(data)}
+            formatted = {message_type: new_data}
+            return json.dumps(formatted)
         elif message_type == "control":
-            formatted_data = "{playing:" + str(Global_access.running) + \
-                             ",fps:" + str(Global_access.fps) + \
-                             ",updateDisplay:" + str(Global_access.updateDisplay) + "}"
+            new_data = {"playing": str(Global_access.running),
+                        "fps": str(Global_access.fps),
+                        "updateDisplay": str(Global_access.updateDisplay)}
+            formatted = {message_type: new_data}
+            return json.dumps(formatted)
         elif message_type == "new_filled":
-            formatted_data = "{x:" + str(data[0]) + \
-                             ",y:" + str(data[1]) + \
-                             ",type:" + str(data[2]) + "}"
+            new_data = {"x": str(data[0]),
+                        "y": str(data[1]),
+                        "type": str(data[2])}
+            formatted_data = {"data": new_data}
+            formatted = {message_type: formatted_data}
+            return json.dumps(formatted)
         elif message_type == "settings":
-            formatted_data = "{factors:" \
-                             "[temperature" \
-                             "{noise:" + str(bool(Global_access.temp_noise)) + \
-                             ",value:" + str(Global_access.temperature) + \
-                             ",scale:" + str(Global_access.temp_scale) + \
-                             ",depth:" + str(Global_access.temp_depth) + \
-                             ",speed:" + str(Global_access.temp_speed) + \
-                             "}," \
-                             "light" \
-                             "{noise:" + str(bool(Global_access.light_noise)) + \
-                             ",value:" + str(Global_access.light) + \
-                             ",scale:" + str(Global_access.light_scale) + \
-                             ",depth:" + str(Global_access.light_depth) + \
-                             ",speed:" + str(Global_access.light_speed) + \
-                             "}," \
-                             "oxygen" \
-                             "{noise:" + str(bool(Global_access.oxygen_noise)) + \
-                             ",value:" + str(Global_access.oxygen) + \
-                             ",scale:" + str(Global_access.oxygen_scale) + \
-                             ",depth:" + str(Global_access.oxygen_depth) + \
-                             ",speed:" + str(Global_access.oxygen_speed) + \
-                             "}]}"
-            return "{settings:" + formatted_data + "}"
-
-        return "{type:" + message_type + ",data:" + formatted_data + "}"
+            temp_factors = {"noise": str(bool(Global_access.temp_noise)),
+                            "value": str(Global_access.temperature),
+                            "scale": str(Global_access.temp_scale),
+                            "depth": str(Global_access.temp_depth),
+                            "speed": str(Global_access.temp_speed)}
+            temp_final = {"temperature": temp_factors}
+            light_factors = {"noise": str(bool(Global_access.light_noise)),
+                             "value": str(Global_access.light),
+                             "scale": str(Global_access.light_scale),
+                             "depth": str(Global_access.light_depth),
+                             "speed": str(Global_access.light_speed)}
+            light_final = {"light": light_factors}
+            oxygen_factors = {"noise": str(bool(Global_access.oxygen_noise)),
+                              "value": str(Global_access.oxygen),
+                              "scale": str(Global_access.oxygen_scale),
+                              "depth": str(Global_access.oxygen_depth),
+                              "speed": str(Global_access.oxygen_speed)}
+            oxygen_final = {"oxygen": oxygen_factors}
+            factors = {"factors": [temp_final, light_final, oxygen_final]}
+            formatted = {"settings": factors}
+            return json.dumps(formatted)
