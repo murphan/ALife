@@ -20,7 +20,7 @@
 auto main () -> int {
 	Socket::init("51679");
 
-	auto controls = Controls { .running=false, .fps=60, .updateDisplay=true };
+	auto controls = Controls { .playing=false, .fps=60, .updateDisplay=true };
 
 	auto simulationController = SimulationController(Environment(150, 72));
 
@@ -52,8 +52,17 @@ auto main () -> int {
 			if (!parsedMessage.has_value()) continue;
 
 			if (parsedMessage->type == "info") {
-				auto infoJson = MessageCreator::initMessage(simulationController.serialize(), controls.serialize()).dump();
+				auto infoJson = MessageCreator::initMessage(simulationController.serialize(),
+				                                            controls.serialize()).dump();
 				Socket::send(infoJson.begin(), infoJson.end());
+
+			} else if (parsedMessage->type == "controls") {
+				if (!parsedMessage->body.contains("controls")) continue;
+
+				controls.updateFromSerialized(parsedMessage->body["controls"]);
+
+				auto response = MessageCreator::controlsMessage(controls.serialize()).dump();
+				Socket::send(response.begin(), response.end());
 
 			} else {
 				std::cout << "unknown message of type" << parsedMessage->type << std::endl;

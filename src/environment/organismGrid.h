@@ -42,6 +42,8 @@ public:
 	auto moveOrganism(Organism & organism, i32 tempId, i32 deltaX, i32 deltaY, i32 deltaRotation) -> void;
 
 	auto isSpaceAvailable(const Body & body, i32 x, i32 y, Direction rotation) -> bool;
+
+	auto organismInSpace(i32 x, i32 y) const -> bool;
 };
 
 #endif //ALIFE_ORGANISMGRID_H

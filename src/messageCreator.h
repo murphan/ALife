@@ -22,6 +22,8 @@ public:
 	static auto frameMessage(json && environmentBody) -> json;
 
 	static auto initMessage(json && environmentBody, json && controlsBody) -> json;
+
+	static auto controlsMessage(json && controlsBody) -> json;
 };
 
 #endif //ALIFE_SERIALIZER_H

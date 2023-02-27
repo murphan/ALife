@@ -115,6 +115,10 @@ auto OrganismGrid::isSpaceAvailable(const Body & body, i32 x, i32 y, Direction r
 	return internalSpaceAvailable(body, -1, x, y, rotation);
 }
 
+auto OrganismGrid::organismInSpace(i32 x, i32 y) const -> bool {
+	return OrganismGridSpace::getFilled(grid[indexOf(x, y)]);
+}
+
 auto OrganismGridSpace::makeEmpty() -> u32 {
 	return 0;
 }
