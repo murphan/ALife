@@ -5,6 +5,8 @@ It requires access to the mutex in order to update as there are threads in the a
 
 from threading import Thread, Lock
 import pygame.display
+import tkinter
+from tkinter import *
 
 # This is only set to be 1 when the program is exiting. Do not use unless ending execution
 EXIT = 0
@@ -19,11 +21,27 @@ RED = '#d10a0a'
 PINK = '#f00ce1'
 
 # Environment factors
-speed = 1
-temperature = 0
-oxygen = 0
-light = 0
+fps = 1
+temperature = 0  # If noise isn't used, this will be set
+temp_noise = 0  # value for if temp noise is used or not
+temp_scale = 0.0
+temp_depth = 0.0
+temp_speed = 0.0
+
+oxygen = 0  # If noise isn't used, this will be set
+oxygen_noise = 0  # value for if oxygen noise is used or not
+oxygen_scale = 0.0
+oxygen_depth = 0.0
+oxygen_speed = 0.0
+
+light = 0  # If noise isn't used, this will be set
+light_noise = 0  # value for if light noise is used or not
+light_scale = 0.0
+light_depth = 0.0
+light_speed = 0.0
+
 running = False
+updateDisplay = True
 
 # Used for environment sizing
 WINDOW_HEIGHT = 770
@@ -38,6 +56,7 @@ SCREEN = None
 CLICK_TYPE = "Organism"
 ENVIRONMENT_GRID = []
 new_frame = False
+second_surface = pygame.Surface([1500, 730])
 
 TILE_TYPE = {-2: "Empty",
              -1: "Wall",
@@ -123,10 +142,10 @@ def update_grid(x, y):
     mutex.release()
 
 
-def change_speed(new_speed):
+def change_fps(new_fps):
     mutex.acquire()
-    global speed
-    speed = new_speed
+    global fps
+    fps = new_fps
     mutex.release()
 
 

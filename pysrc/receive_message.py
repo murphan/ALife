@@ -51,7 +51,7 @@ def decode_message(self, conn):
                     message = conn.recv(1024).decode(errors="ignore")
             print("message received")
 
-            Global_access.new_frame = True
+
             data_map = ast.literal_eval(message_buf[:length_same])
             message_type = data_map["type"]
             if message_type == "environment_frame":
@@ -62,6 +62,7 @@ def decode_message(self, conn):
                 data_map["grid"] = [data_map["grid"][i: i + 11] for i in range(0, len(data_map["grid"]), 11)]
                 decode_grid(self, data_map["grid"], width, height)
                 decode_organisms(self, data_map["organisms"])
+                Global_access.new_frame = True
             elif message_type == "organism_data":
                 pass
 
