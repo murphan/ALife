@@ -56,10 +56,10 @@ auto main () -> int {
 				                                            controls.serialize()).dump();
 				Socket::send(infoJson.begin(), infoJson.end());
 
-			} else if (parsedMessage->type == "controls") {
-				if (!parsedMessage->body.contains("controls")) continue;
+			} else if (parsedMessage->type == "control") {
+				if (!parsedMessage->body.contains("control")) continue;
 
-				controls.updateFromSerialized(parsedMessage->body["controls"]);
+				controls.updateFromSerialized(parsedMessage->body["control"]);
 
 				auto response = MessageCreator::controlsMessage(controls.serialize()).dump();
 				Socket::send(response.begin(), response.end());
@@ -69,9 +69,11 @@ auto main () -> int {
 			}
 		}
 
-		simulationController.step();
+		if (controls.playing) {
+			simulationController.step();
+		}
 
-		if (Socket::isConnected()) {
+		if (Socket::isConnected() && controls.updateDisplay) {
 			auto stateJson = MessageCreator::frameMessage(simulationController.serialize());
 
 			auto jsonData = stateJson.dump();

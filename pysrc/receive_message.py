@@ -1,6 +1,7 @@
 import base64
 import ast
 import random
+import json
 
 import Global_access
 import Control_EnvironmentGUI
@@ -51,20 +52,23 @@ def decode_message(self, conn):
                     message = conn.recv(1024).decode(errors="ignore")
             print("message received")
 
+            data_map = json.loads(message_buf[:length_same])
 
-            data_map = ast.literal_eval(message_buf[:length_same])
             message_type = data_map["type"]
-            if message_type == "environment_frame":
-                height = data_map["height"]
-                width = data_map["width"]
+            if message_type == "frame":
+                environment = data_map["environment"]
+
+                height = environment["height"]
+                width = environment["width"]
                 # Global_access.define_grid(width, height)   Uncomment when making grid dynamically sized
-                data_map["grid"] = base64.b64decode(data_map["grid"])
-                data_map["grid"] = [data_map["grid"][i: i + 11] for i in range(0, len(data_map["grid"]), 11)]
-                decode_grid(self, data_map["grid"], width, height)
-                decode_organisms(self, data_map["organisms"])
+                environment["grid"] = base64.b64decode(environment["grid"])
+                environment["grid"] = [environment["grid"][i: i + 11] for i in range(0, len(environment["grid"]), 11)]
+                decode_grid(self, environment["grid"], width, height)
+                decode_organisms(self, environment["organisms"])
                 Global_access.new_frame = True
             elif message_type == "organism_data":
                 pass
+            # TODO handle the response message_type == "control" if necessary
 
 
 def decode_grid(self, grid_data, width, height):

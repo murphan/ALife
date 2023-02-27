@@ -290,10 +290,8 @@ class EnvironmentControl:
         :param data: Optional argument for passing data that may be needed in c++
         :param type: Any
         """
-        message = EnvironmentControl.create_message(self, message_type, data)
-        length = len(message)
-        length = length.to_bytes(4, "big")
-        message = str(length).encode("utf-8") + message.encode("utf-8")
+        jsonPart = EnvironmentControl.create_message(self, message_type, data)
+        message = len(jsonPart).to_bytes(4, "big") + jsonPart.encode("utf-8")
 
         conn.send(message)
 
@@ -311,11 +309,14 @@ class EnvironmentControl:
             formatted = {message_type: new_data}
             return json.dumps(formatted)
         elif message_type == "control":
-            new_data = {"playing": str(Global_access.running),
-                        "fps": str(Global_access.fps),
-                        "updateDisplay": str(Global_access.updateDisplay)}
-            formatted = {message_type: new_data}
-            return json.dumps(formatted)
+            return json.dumps({
+                "type": "control",
+                "control": {
+                    "playing": Global_access.running,
+                    "fps": Global_access.fps,
+                    "updateDisplay": Global_access.updateDisplay
+                }
+            })
         elif message_type == "new_filled":
             new_data = {"x": str(data[0]),
                         "y": str(data[1]),

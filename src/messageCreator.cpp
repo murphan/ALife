@@ -15,13 +15,13 @@ auto MessageCreator::initMessage(json && environmentBody, json && controlsBody) 
 	return json {
 		{ "type", "init" },
 		{ "environment", std::move(environmentBody) },
-		{ "controls", std::move(controlsBody) },
+		{ "control", std::move(controlsBody) },
 	};
 }
 
 auto MessageCreator::controlsMessage(json && controlsBody) -> json {
 	return json {
-		{ "type", "controls" },
-		{ "controls", std::move(controlsBody) },
+		{ "type", "control" },
+		{ "control", std::move(controlsBody) },
 	};
 }
