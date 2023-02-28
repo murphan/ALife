@@ -9,6 +9,8 @@
 
 #include "socket.h"
 
+#include "util.h"
+
 auto Socket::wsaData = WSAData {0,};
 
 auto Socket::listenSocket = INVALID_SOCKET;
@@ -153,7 +155,7 @@ auto Socket::readerLoop() -> void {
 			/* client disconnected */
 			if (bytesReceived == -1) clientSocket = INVALID_SOCKET;
 
-		} else {
+		} else if (bytesReceived > 0) {
 			std::cout << "received " << bytesReceived << " bytes" << std::endl;
 
 			inQueueMutex.lock();
@@ -193,7 +195,7 @@ auto Socket::writerLoop() -> void {
 	}
 }
 
-inline auto writePartIntoBuffer(std::span<char> buffer, i32 & bufferIndex, std::span<const char> data) {
+inline auto writePartIntoBuffer(std::span<char> buffer, i32 & bufferIndex, std::span<const char> data) -> i32 {
 	auto leftInBuffer = buffer.size() - bufferIndex;
 	auto writeSize = (i32)min(data.size(), leftInBuffer);
 
@@ -203,33 +205,32 @@ inline auto writePartIntoBuffer(std::span<char> buffer, i32 & bufferIndex, std::
 	return writeSize;
 }
 
-template<typename T>
-concept BufferConsumer = requires(T functionLike, std::span<const char> param) {
-	([](bool) {})(functionLike(param));
+enum SendResult {
+	GOOD = false,
+	BAD = true,
 };
 
-template<BufferConsumer T>
-inline auto shipIntoBuffer(std::span<char> buffer, i32 & bufferIndex, std::span<const char> data, T onBufferFilled) {
+template<Util::Function<std::span<const char>, SendResult> T>
+inline auto shipIntoBuffer(std::span<char> buffer, i32 & bufferIndex, std::span<const char> data, T onBufferFilled) -> SendResult {
 	auto dataIndex = 0;
 
 	while (dataIndex < data.size()) {
 		dataIndex += writePartIntoBuffer(buffer, bufferIndex, data.subspan(dataIndex, data.size() - dataIndex));
 
 		if (bufferIndex == buffer.size()) {
-			if (onBufferFilled(buffer.subspan(0, buffer.size()))) return true;
+			if (onBufferFilled(buffer.subspan(0, buffer.size()))) return SendResult::BAD;
 
 			bufferIndex = 0;
 		}
 	}
 
-	return false;
+	return SendResult::GOOD;
 }
 
-template<BufferConsumer T>
+template<Util::Function<std::span<const char>, SendResult> T>
 inline auto shipRemainingInBuffer(std::span<char> buffer, i32 bufferIndex, T onBufferFilled) {
-	if (bufferIndex == 0) return false;
-
-	return onBufferFilled(buffer.subspan(0, bufferIndex));
+	if (bufferIndex == 0) return;
+	onBufferFilled(buffer.subspan(0, bufferIndex));
 }
 
 auto Socket::writeMessage(char * buffer, const std::vector<char> & data) -> void {
@@ -239,9 +240,9 @@ auto Socket::writeMessage(char * buffer, const std::vector<char> & data) -> void
 	auto send = [&](std::span<const char> buffer) {
 		if (::send(clientSocket, buffer.data(), buffer.size(), 0) == SOCKET_ERROR) {
 			std::cerr << "socket send error " << std::endl;
-			return true;
+			return SendResult::BAD;
 		}
-		return false;
+		return SendResult::GOOD;
 	};
 
 	char header[4] = {
@@ -255,5 +256,5 @@ auto Socket::writeMessage(char * buffer, const std::vector<char> & data) -> void
 
 	if (shipIntoBuffer(bufferView, bufferIndex, { data.data(), data.size() }, send)) return;
 
-	if (shipRemainingInBuffer(bufferView, bufferIndex, send)) return;
+	shipRemainingInBuffer(bufferView, bufferIndex, send);
 }

@@ -31,6 +31,13 @@ namespace Util {
 
 	auto base64Encode(const std::string & in) -> std::string;
 	auto base64Decode(const std::string & in) -> std::string;
+
+	template<typename T, typename In, typename Out>
+	concept Function = (std::same_as<In, void> && requires(T functionLike) {
+		{functionLike()} -> std::same_as<Out>;
+	}) || requires(T functionLike, In param) {
+		{functionLike(param)} -> std::same_as<Out>;
+	};
 }
 
 #endif //ALIFE_UTIL_H

@@ -4,6 +4,8 @@
 
 #include "controls.h"
 
+#include "util.h"
+
 auto Controls::serialize() const -> json {
 	return {
 		{ "playing",       playing },
@@ -12,13 +14,13 @@ auto Controls::serialize() const -> json {
 	};
 }
 
-template<typename T>
+template<Util::Function<bool, void> T>
 inline auto withBoolField(json & jsonObject, const char * fieldName, T func) -> void {
 	if (jsonObject.contains(fieldName) && jsonObject[fieldName].is_boolean())
 		func(jsonObject[fieldName].get<bool>());
 }
 
-template<typename T>
+template<Util::Function<i32, void> T>
 inline auto withIntField(json & jsonObject, const char * fieldName, T func) -> void {
 	if (jsonObject.contains(fieldName) && jsonObject[fieldName].is_number())
 		func(jsonObject[fieldName].get<i32>());

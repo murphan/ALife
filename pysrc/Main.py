@@ -25,11 +25,17 @@ class Management:
         port = self.read_port()
         self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.conn.connect((host, port))
+
+        # todo call whenever new connection is established
+        self.send_init_message()
         # self.temp_func()
 
     def start_receiver(self):
         self.thread = Thread(target=receive_message.decode_message, args=(self, self.conn,))
         self.thread.start()
+
+    def send_init_message(self):
+        self.EnvironmentControl.send_message(self.conn, "init")
 
     def main_loop(self):
         while True:

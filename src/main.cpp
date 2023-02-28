@@ -16,6 +16,7 @@
 #include "messageReceiver.h"
 #include "socket.h"
 #include "environment/organismSeeder.h"
+#include "loop.h"
 
 auto main () -> int {
 	Socket::init("51679");
@@ -41,7 +42,11 @@ auto main () -> int {
 
 	OrganismSeeder::insertInitialOrganisms(simulationController.organisms, simulationController.environment, initialPhenome, 15);
 
-	while (true) {
+	auto loop = Loop(controls.fps);
+
+	auto tick = 0;
+
+	loop.enter([&]() -> bool {
 		while (true) {
 			auto message = Socket::queueMessage();
 			if (!message.has_value()) break;
@@ -50,8 +55,8 @@ auto main () -> int {
 
 			auto parsedMessage = MessageReceiver::receive(messageString);
 			if (!parsedMessage.has_value()) continue;
-
-			if (parsedMessage->type == "info") {
+			
+			if (parsedMessage->type == "init") {
 				auto infoJson = MessageCreator::initMessage(simulationController.serialize(),
 				                                            controls.serialize()).dump();
 				Socket::send(infoJson.begin(), infoJson.end());
@@ -73,13 +78,16 @@ auto main () -> int {
 			simulationController.step();
 		}
 
-		if (Socket::isConnected() && controls.updateDisplay) {
-			auto stateJson = MessageCreator::frameMessage(simulationController.serialize());
+		if (Socket::isConnected() && controls.updateDisplay && controls.playing) {
+			/* display every 6th frame, make this higher to give python an easier time */
+			if (++tick % 6 == 0) {
+				auto stateJson = MessageCreator::frameMessage(simulationController.serialize());
 
-			auto jsonData = stateJson.dump();
-			Socket::send(jsonData.begin(), jsonData.end());
+				auto jsonData = stateJson.dump();
+				Socket::send(jsonData.begin(), jsonData.end());
+			}
 		}
 
-		std::this_thread::sleep_for(std::chrono::milliseconds (100));
-	}
+		return false;
+	});
 }
