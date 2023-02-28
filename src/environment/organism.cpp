@@ -4,12 +4,12 @@
 
 #include "organism.h"
 
-Organism::Organism(Phenome && phenome, UUID uuid, i32 x, i32 y) :
+Organism::Organism(Phenome && phenome, UUID uuid, i32 x, i32 y, Direction rotation) :
 	uuid(uuid),
 	phenome(std::move(phenome)),
 	x(x),
 	y(y),
-	rotation(0),
+	rotation(rotation),
 	energy(0),
 	age(0) {}
 

@@ -11,16 +11,19 @@
 
 #include "types.h"
 
+#include "environment/controls.h"
 #include "environment/environment.h"
 #include "environment/organism.h"
 
 using json = nlohmann::json;
 
-class StateSerializer {
-private:
-
+class MessageCreator {
 public:
-	static auto serialize(i32 tick, Environment & environment, std::vector<Organism> & organisms) -> json;
+	static auto frameMessage(json && environmentBody) -> json;
+
+	static auto initMessage(json && environmentBody, json && controlsBody) -> json;
+
+	static auto controlsMessage(json && controlsBody) -> json;
 };
 
 #endif //ALIFE_SERIALIZER_H

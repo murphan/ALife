@@ -11,13 +11,16 @@
 
 namespace Util {
 	auto ceilDiv(u32 x, u32 y) -> u32;
+	auto floorDiv(i32 x, u32 y) -> i32;
+
+	auto outer(f32 x) -> i32;
 
 	struct Coord {
 		i32 x;
 		i32 y;
 
         Coord();
-        Coord(i32, i32);
+		Coord(i32, i32);
 	};
 
 	auto positiveMod(i32 i, i32 n) -> i32;

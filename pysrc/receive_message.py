@@ -1,6 +1,7 @@
 import base64
 import ast
 import random
+import json
 
 import Global_access
 import Control_EnvironmentGUI
@@ -51,19 +52,23 @@ def decode_message(self, conn):
                     message = conn.recv(1024).decode(errors="ignore")
             print("message received")
 
-            Global_access.new_frame = True
-            data_map = ast.literal_eval(message_buf[:length_same])
+            data_map = json.loads(message_buf[:length_same])
+
             message_type = data_map["type"]
-            if message_type == "environment_frame":
-                height = data_map["height"]
-                width = data_map["width"]
+            if message_type == "frame":
+                environment = data_map["environment"]
+
+                height = environment["height"]
+                width = environment["width"]
                 # Global_access.define_grid(width, height)   Uncomment when making grid dynamically sized
-                data_map["grid"] = base64.b64decode(data_map["grid"])
-                data_map["grid"] = [data_map["grid"][i: i + 11] for i in range(0, len(data_map["grid"]), 11)]
-                decode_grid(self, data_map["grid"], width, height)
-                decode_organisms(self, data_map["organisms"])
+                environment["grid"] = base64.b64decode(environment["grid"])
+                environment["grid"] = [environment["grid"][i: i + 11] for i in range(0, len(environment["grid"]), 11)]
+                decode_grid(self, environment["grid"], width, height)
+                decode_organisms(self, environment["organisms"])
+                Global_access.new_frame = True
             elif message_type == "organism_data":
                 pass
+            # TODO handle the response message_type == "control" if necessary
 
 
 def decode_grid(self, grid_data, width, height):
@@ -140,16 +145,16 @@ def display_organism(self, organism):
     """
     index = 0  # Index of the body string that we are at
     body = base64.b64decode(organism.body)
-    top_left = organism.x + organism.up, organism.y + organism.left
-    width = organism.right - organism.left + 1
-    height = organism.up - organism.down + 1
-    for x in range(width):
-        for y in range(height):
-            x_pos = organism.x + x
-            y_pos = organism.y + y
+
+    for j in range(organism.down, organism.up + 1):
+        for i in range(organism.left, organism.right + 1):
+            y_pos = organism.y + j
+            x_pos = organism.x + i
+
             body_cell_num = body[index]
-            Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x_pos, y_pos,
+            if body_cell_num > 0:
+                Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x_pos, y_pos,
                                                                 Global_access.org_colors[body_cell_num])
-            Global_access.ENVIRONMENT_GRID[x_pos][y_pos]["organism"] = organism
+                Global_access.ENVIRONMENT_GRID[x_pos][y_pos]["organism"] = organism
             index += 1
 

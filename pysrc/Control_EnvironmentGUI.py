@@ -16,18 +16,135 @@ class EnvironmentControl:
         """
         pass
 
-    def set_speed(self, speed):
+    def set_fps(self, fps):
         """
-        This is where the speed of the environment is set from the settings window
+        This is where the fps of the environment is set from the settings window
 
-        :param speed: The speed of the environment. Ex. "2x" or ".5x"
-        :param type: string
+        :param fps: The fps of the environment.
+        :param type: int
         """
-        if Global_access.speed == float(speed[:-1]):
+        if Global_access.fps == fps:
             return
         else:
-            Global_access.change_speed(float(speed[:-1]))
+            Global_access.change_fps(fps)
             EnvironmentControl.send_message(self, self.env_settings.conn, "control")
+
+    def set_temp_noise(self, noise):
+        """
+        This will set if there is noise or not
+
+        :param noise: Value of if there is noise or not. Either 0 or 1
+        :param noise: Int
+        """
+        Global_access.temp_noise = noise
+        EnvironmentControl.send_message(self, self.env_settings.conn, "settings")
+
+    def set_temp_noise_levels(self, noise_type, value):
+        """
+        This will set the noise levels of the temp variable
+
+        :param noise_type: temp noise type (ex. scale, depth, speed)
+        :type noise_type: String
+
+        :param value: temp noise value
+        :type value: float
+        """
+        if noise_type == 'scale':
+            Global_access.temp_scale = value
+        elif noise_type == 'depth':
+            Global_access.temp_depth = value
+        elif noise_type == 'speed':
+            Global_access.temp_speed = value
+        EnvironmentControl.send_message(self, self.env_settings.conn, "settings")
+
+    def set_temp_value(self, value):
+        """
+        if the temperature variable isn't using noise levels, it will
+        use the noise value which is set here
+
+        :param value: Value to set the temperature variable to
+        :type value: float
+        """
+        Global_access.temperature = value
+        EnvironmentControl.send_message(self, self.env_settings.conn, "settings")
+
+    def set_light_noise(self, noise):
+        """
+        This will set if there is noise or not
+
+        :param noise: Value of if there is noise or not. Either 0 or 1
+        :param noise: Int
+        """
+        Global_access.light_noise = noise
+        EnvironmentControl.send_message(self, self.env_settings.conn, "settings")
+
+    def set_light_noise_levels(self, noise_type, value):
+        """
+        This will set the noise levels of the light variable
+
+        :param noise_type: light noise type (ex. scale, depth, speed)
+        :type noise_type: String
+
+        :param value: light noise value
+        :type value: float
+        """
+        if noise_type == 'scale':
+            Global_access.light_scale = value
+        elif noise_type == 'depth':
+            Global_access.light_depth = value
+        elif noise_type == 'speed':
+            Global_access.light_speed = value
+        EnvironmentControl.send_message(self, self.env_settings.conn, "settings")
+
+    def set_light_value(self, value):
+        """
+        if the light variable isn't using noise levels, it will
+        use the noise value which is set here
+
+        :param value: Value to set the light variable to
+        :type value: float
+        """
+        Global_access.light = value
+        EnvironmentControl.send_message(self, self.env_settings.conn, "settings")
+
+    def set_oxygen_noise(self, noise):
+        """
+        This will set if there is noise or not
+
+        :param noise: Value of if there is noise or not. Either 0 or 1
+        :param noise: Int
+        """
+        Global_access.oxygen_noise = noise
+        EnvironmentControl.send_message(self, self.env_settings.conn, "settings")
+
+    def set_oxygen_noise_levels(self, noise_type, value):
+        """
+        This will set the noise levels of the oxygen variable
+
+        :param noise_type: oxygen noise type (ex. scale, depth, speed)
+        :type noise_type: String
+
+        :param value: oxygen noise value
+        :type value: float
+        """
+        if noise_type == 'scale':
+            Global_access.oxygen_scale = value
+        elif noise_type == 'depth':
+            Global_access.oxygen_depth = value
+        elif noise_type == 'speed':
+            Global_access.oxygen_speed = value
+        EnvironmentControl.send_message(self, self.env_settings.conn, "settings")
+
+    def set_oxygen_value(self, value):
+        """
+        if the oxygen variable isn't using noise levels, it will
+        use the noise value which is set here
+
+        :param value: Value to set the oxygen variable to
+        :type value: float
+        """
+        Global_access.oxygen = value
+        EnvironmentControl.send_message(self, self.env_settings.conn, "settings")
 
     def set_size(self, width, height):
         """
@@ -82,29 +199,6 @@ class EnvironmentControl:
         """
         # print(f"height: {height}")
         self.height = height
-
-    def set_env_vars(self, temperature, light, oxygen):
-        """
-        This will set each of the three environment variables
-
-        :param temperature: The temperature of the environment in degrees Celsius
-        :param type: int
-
-        :param light: The brightness of the environment in percentage
-        :param type: int
-
-        :param oxygen: The oxygen level of the environment in percentage
-        :param type: int
-        """
-        settings = self.env_settings
-        if Global_access.temperature == temperature and Global_access.light == light and Global_access.oxygen == oxygen:
-            return
-        else:
-            Global_access.change_temperature(int(temperature) if temperature != "" else 0)
-            Global_access.change_light(int(light) if light != "" else 0)
-            Global_access.change_oxygen(int(oxygen) if oxygen != "" else 0)
-            data = Global_access.temperature, Global_access.light, Global_access.oxygen
-            EnvironmentControl.send_message(self, settings.conn, "environment_variables", data)
 
     def square_clicked(self, event, envVars, conn):
         """
@@ -167,7 +261,9 @@ class EnvironmentControl:
         y = int(Global_access.environment_size[1] - y - 1)
         rect = pygame.Rect(x * 10, y * 10,
                            10, 10)
-        pygame.draw.rect(Global_access.SCREEN, color, rect)
+        temp_surface = pygame.Surface([10, 10])
+        pygame.draw.rect(temp_surface, color, (0, 0, 10, 10))
+        Global_access.second_surface.blit(temp_surface, (x * 10, y * 10))
 
     def click_type(self, clicked_type):
         """
@@ -194,14 +290,8 @@ class EnvironmentControl:
         :param data: Optional argument for passing data that may be needed in c++
         :param type: Any
         """
-        # TODO: Check the message type and create a message that is different based on the type that is given
-        message = EnvironmentControl.create_message(self, message_type, data)
-        length = len(message)
-        if len(str(length)) < 4:
-            length = str(length).zfill(4)
-            message = str(length).encode("utf-8") + message.encode("utf-8")
-        else:
-            message = str(length).encode("utf-8") + message.encode("utf-8")
+        jsonPart = EnvironmentControl.create_message(self, message_type, data)
+        message = len(jsonPart).to_bytes(4, "big") + jsonPart.encode("utf-8")
 
         conn.send(message)
 
@@ -215,17 +305,44 @@ class EnvironmentControl:
         :param type: Any
         """
         if message_type == "request" or message_type == "request_all":
-            return "{type:" + message_type + ",data:" + str(data) + "}"
+            new_data = {"data": str(data)}
+            formatted = {message_type: new_data}
+            return json.dumps(formatted)
         elif message_type == "control":
-            formatted_data = "{playing:" + str(Global_access.running) + \
-                             ",speed:" + str(Global_access.speed) + "}"
-        elif message_type == "environment_variables":
-            formatted_data = "{temperature:" + str(data[0]) + \
-                             ",light:" + str(data[1]) + \
-                             ",oxygen:" + str(data[2]) + "}"
+            return json.dumps({
+                "type": "control",
+                "control": {
+                    "playing": Global_access.running,
+                    "fps": Global_access.fps,
+                    "updateDisplay": Global_access.updateDisplay
+                }
+            })
         elif message_type == "new_filled":
-            formatted_data = "{x:" + str(data[0]) + \
-                             ",y:" + str(data[1]) + \
-                             ",type:" + str(data[2]) + "}"
-
-        return "{type:" + message_type + ",data:" + formatted_data + "}"
+            new_data = {"x": str(data[0]),
+                        "y": str(data[1]),
+                        "type": str(data[2])}
+            formatted_data = {"data": new_data}
+            formatted = {message_type: formatted_data}
+            return json.dumps(formatted)
+        elif message_type == "settings":
+            temp_factors = {"noise": str(bool(Global_access.temp_noise)),
+                            "value": str(Global_access.temperature),
+                            "scale": str(Global_access.temp_scale),
+                            "depth": str(Global_access.temp_depth),
+                            "speed": str(Global_access.temp_speed)}
+            temp_final = {"temperature": temp_factors}
+            light_factors = {"noise": str(bool(Global_access.light_noise)),
+                             "value": str(Global_access.light),
+                             "scale": str(Global_access.light_scale),
+                             "depth": str(Global_access.light_depth),
+                             "speed": str(Global_access.light_speed)}
+            light_final = {"light": light_factors}
+            oxygen_factors = {"noise": str(bool(Global_access.oxygen_noise)),
+                              "value": str(Global_access.oxygen),
+                              "scale": str(Global_access.oxygen_scale),
+                              "depth": str(Global_access.oxygen_depth),
+                              "speed": str(Global_access.oxygen_speed)}
+            oxygen_final = {"oxygen": oxygen_factors}
+            factors = {"factors": [temp_final, light_final, oxygen_final]}
+            formatted = {"settings": factors}
+            return json.dumps(formatted)
