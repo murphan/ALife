@@ -46,10 +46,14 @@ class Management:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if self.EnvironmentGui.settings_button.mouse_click(event):  # Show the settings window
                         self.open_settings()
-                    elif self.EnvironmentGui.play_button.mouse_click(event):  # start button was clicked
+                    elif self.EnvironmentGui.play_button is not None and \
+                            self.EnvironmentGui.play_button.mouse_click(event):  # start button was clicked
                         self.EnvironmentControl.start(self.conn)
-                    elif self.EnvironmentGui.pause_button.mouse_click(event):  # pause button was clicked
+                        self.EnvironmentGui.createButtons()
+                    elif self.EnvironmentGui.pause_button is not None and \
+                            self.EnvironmentGui.pause_button.mouse_click(event):  # pause button was clicked
                         self.EnvironmentControl.stop(self.conn)
+                        self.EnvironmentGui.createButtons()
                     else:  # Display on the environment that a square was clicked
                         self.EnvironmentControl.square_clicked(event, self.EnvironmentGui, self.conn)
 
