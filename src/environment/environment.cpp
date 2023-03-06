@@ -23,3 +23,11 @@ auto Environment::getWidth() const -> i32 {
 auto Environment::getHeight() const -> i32 {
 	return height;
 }
+
+auto Environment::tick() -> void {
+    for (auto & cell : map) {
+        if (cell.getHasFood()){
+            cell.getFood().tick();
+        }
+    }
+}

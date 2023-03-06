@@ -31,3 +31,10 @@ auto Organism::body() const -> const Body & {
 auto Organism::tick() -> i32 {
 	return ++age;
 }
+/**
+ * @param food peice of food on the map
+ * Adds food energy to the organism
+ */
+auto Organism::eatFood(Food &food) -> void {
+    energy += food.getEnergy();
+}

@@ -44,6 +44,10 @@ public:
 	auto isSpaceAvailable(const Body & body, i32 x, i32 y, Direction rotation) -> bool;
 
 	auto organismInSpace(i32 x, i32 y) const -> bool;
+
+    auto getWidth() const -> i32;
+
+    auto getHight() const -> i32;
 };
 
 #endif //ALIFE_ORGANISMGRID_H

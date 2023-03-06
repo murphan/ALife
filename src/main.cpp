@@ -26,6 +26,8 @@ auto main () -> int {
 
 	OrganismSeeder::insertInitialOrganisms(simulationController.organisms, simulationController.environment, initialPhenome, 15);
 
+	simulationController.scatterFood(Food::FOOD0, 50, 1);
+
 	auto simulationMutex = std::mutex();
 
 	auto socket = Socket();
@@ -72,7 +74,7 @@ auto main () -> int {
 		auto lock = std::unique_lock(simulationMutex);
 
 		if (controls.playing) {
-			simulationController.step();
+			simulationController.tick();
 		}
 
 		if (socket.isConnected() && controls.updateDisplay && controls.playing && (now - lastSendTime) >= minSendTime) {

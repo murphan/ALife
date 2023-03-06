@@ -32,3 +32,10 @@ auto MapCell::getHasFood() const -> bool {
 auto MapCell::getFood() -> Food & {
 	return food.value();
 }
+
+/**
+ * Removes food from mapCell
+ */
+auto MapCell::removeFood() -> void {
+    food.reset();
+}
