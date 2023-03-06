@@ -25,6 +25,8 @@ private:
 
 	auto replaceOrganismWithFood(const Organism & organism) -> void;
 
+    auto organismsEat() -> void;
+
 
 public:
 	Environment environment;
@@ -35,6 +37,7 @@ public:
     auto addFood(i32 foodX, i32 foodY, Food::Type type, i32 energy) -> void;
     auto scatterFood(Food::Type type, i32 numFood, i32 energyDefault) -> void;
     auto tick() -> void;
+    auto howMuchFood() -> i32;
 };
 
 #endif //ALIFE_SIMULATIONCONTROLLER_H

@@ -19,6 +19,8 @@ auto SimulationController::tick() -> void {
 
 	organismsAgeAndDie();
 
+    organismsEat();
+
 	++currentStep;
 }
 
@@ -89,5 +91,43 @@ auto SimulationController::scatterFood(Food::Type type, i32 numFood, i32 energyD
         if (!organismGrid.organismInSpace(x, y))
             addFood(x, y, type, energyDefault);
     }
+}
+/**
+ *
+ * For each Organism checks each body part looking for overlapping food cells
+ * If found, eats food by adding the energy to the organism and destroying the food
+ *
+ */
+auto SimulationController::organismsEat() -> void {
+    for (int i = 0; i < organisms.size(); ++i) {
+        auto && organism = organisms[i];
+        auto && body = organism.body();
+        auto rotation = organism.rotation;
+
+        for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
+            for (auto k = body.getLeft(rotation); k <= body.getRight(rotation); ++k) {
+                auto y = organism.y + j;
+                auto x = organism.x + k;
+
+                auto && environmentCell = environment.getCell(x, y);
+                if (environmentCell.getHasFood()) {
+                    organism.eatFood(environmentCell.getFood());
+                    environmentCell.popFood();
+                }
+            }
+        }
+    }
+}
+
+auto SimulationController::howMuchFood() -> i32 {
+    auto numFood = 0;
+    for (int i = 0; i < environment.getWidth(); ++i) {
+        for (int j = 0; j < environment.getHeight(); ++j) {
+            auto cell = environment.getCell(i,j);
+            if (cell.getHasFood())
+                numFood++;
+        }
+    }
+    return numFood;
 }
 
