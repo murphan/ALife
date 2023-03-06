@@ -6,7 +6,7 @@
 #define ALIFE_UTIL_H
 
 #include <vector>
-
+#include <functional>
 #include "types.h"
 
 namespace Util {
@@ -32,12 +32,13 @@ namespace Util {
 	auto base64Encode(const std::string & in) -> std::string;
 	auto base64Decode(const std::string & in) -> std::string;
 
-	template<typename T, typename In, typename Out>
-	concept Function = (std::same_as<In, void> && requires(T functionLike) {
-		{functionLike()} -> std::same_as<Out>;
-	}) || requires(T functionLike, In param) {
-		{functionLike(param)} -> std::same_as<Out>;
+	template<typename T, typename Out, typename ...In>
+	concept Function = requires(T functionLike, In ...param) {
+		{functionLike(param...)} -> std::same_as<Out>;
 	};
+
+	template<typename Iterator, typename ValueType>
+	concept IsIterator = std::same_as<typename std::iterator_traits<Iterator>::value_type, ValueType>;
 }
 
 #endif //ALIFE_UTIL_H

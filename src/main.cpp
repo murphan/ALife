@@ -6,88 +6,86 @@
 #include "genome/genome.h"
 #include "types.h"
 
-#include <tuple>
 #include <thread>
 #include <iostream>
 
-#include "genome/gene/bodyGene.h"
 #include "environment/simulationController.h"
 #include "messageCreator.h"
 #include "messageReceiver.h"
 #include "socket.h"
 #include "environment/organismSeeder.h"
 #include "loop.h"
+#include "genome/initialGenome.h"
 
 auto main () -> int {
-	Socket::init("51679");
-
-	auto controls = Controls { .playing=false, .fps=60, .updateDisplay=true };
+	auto controls = Controls { .playing=false, .fps=20, .updateDisplay=true };
 
 	auto simulationController = SimulationController(Environment(150, 72));
 
-	auto baseGenome = Genome();
-
-	BodyGene::create(Direction::RIGHT, BodyPart::BASIC).write(baseGenome);
-	baseGenome.writeGarbage(4, Genome::A);
-	BodyGene::create(Direction::RIGHT, BodyPart::BASIC).write(baseGenome);
-	baseGenome.writeGarbage(4, Genome::A);
-	BodyGene::createUseAnchor(Direction::UP, BodyPart::UNKNOWN03, 0).write(baseGenome);
-	baseGenome.writeGarbage(4, Genome::A);
-	BodyGene::create(Direction::UP, BodyPart::UNKNOWN03).write(baseGenome);
-	baseGenome.writeGarbage(4, Genome::A);
-	BodyGene::create(Direction::RIGHT_UP, BodyPart::UNKNOWN03).write(baseGenome);
-	baseGenome.writeGarbage(4, Genome::A);
-
-	auto initialPhenome = Phenome(std::move(baseGenome), Body(2, BodyPart::MOUTH));
+	auto initialPhenome = Phenome(InitialGenome::create(), Body(2, BodyPart::MOUTH));
 
 	OrganismSeeder::insertInitialOrganisms(simulationController.organisms, simulationController.environment, initialPhenome, 15);
 
-	auto loop = Loop(controls.fps);
+	auto simulationMutex = std::mutex();
 
-	auto tick = 0;
+	auto socket = Socket();
 
-	loop.enter([&]() -> bool {
-		while (true) {
-			auto message = Socket::queueMessage();
-			if (!message.has_value()) break;
+	socket.init("51679", [&](const std::vector<char> & message) -> void {
+		auto messageString = std::string(message.begin(), message.end());
 
-			auto messageString = std::string(message.value().begin(), message.value().end());
+		auto parsedMessage = MessageReceiver::receive(messageString);
+		if (!parsedMessage.has_value()) return;
 
-			auto parsedMessage = MessageReceiver::receive(messageString);
-			if (!parsedMessage.has_value()) continue;
-			
-			if (parsedMessage->type == "init") {
-				auto infoJson = MessageCreator::initMessage(simulationController.serialize(),
-				                                            controls.serialize()).dump();
-				Socket::send(infoJson.begin(), infoJson.end());
+		if (parsedMessage->type == "init") {
+			auto lock = std::unique_lock(simulationMutex);
 
-			} else if (parsedMessage->type == "control") {
-				if (!parsedMessage->body.contains("control")) continue;
+			auto json = MessageCreator::initMessage(
+				simulationController.serialize(),
+				controls.serialize()
+			).dump();
 
-				controls.updateFromSerialized(parsedMessage->body["control"]);
+			socket.send(json.begin(), json.end());
 
-				auto response = MessageCreator::controlsMessage(controls.serialize()).dump();
-				Socket::send(response.begin(), response.end());
+		} else if (parsedMessage->type == "control") {
+			if (!parsedMessage->body.contains("control")) return;
 
-			} else {
-				std::cout << "unknown message of type" << parsedMessage->type << std::endl;
+			auto lock = std::unique_lock(simulationMutex);
+			controls.updateFromSerialized(parsedMessage->body["control"]);
+
+			auto json = MessageCreator::controlsMessage(controls.serialize()).dump();
+
+			socket.send(json.begin(), json.end());
+
+		} else {
+			std::cout << "unknown message of type" << parsedMessage->type << std::endl;
+		}
+	});
+
+	std::thread([&]() {
+		/* don't send more than 25 fps */
+		auto minSendTime = Loop::resolution((u64)((1._f64 / 25._f64) * Loop::resolution(Loop::seconds(1)).count()));
+
+		auto lastSendTime = Loop::timePoint();
+
+		auto loop = Loop();
+
+		loop.enter([&](Loop::timePoint now) -> Fps {
+			auto lock = std::unique_lock(simulationMutex);
+
+			if (controls.playing) {
+				simulationController.step();
 			}
-		}
 
-		if (controls.playing) {
-			simulationController.step();
-		}
-
-		if (Socket::isConnected() && controls.updateDisplay && controls.playing) {
-			/* display every 6th frame, make this higher to give python an easier time */
-			if (++tick % 6 == 0) {
+			if (socket.isConnected() && controls.updateDisplay && controls.playing && (now - lastSendTime) >= minSendTime) {
 				auto stateJson = MessageCreator::frameMessage(simulationController.serialize());
 
 				auto jsonData = stateJson.dump();
-				Socket::send(jsonData.begin(), jsonData.end());
-			}
-		}
+				socket.send(jsonData.begin(), jsonData.end());
 
-		return false;
-	});
+				lastSendTime = now;
+			}
+
+			return controls.unlimitedFPS() ? Fps::unlimited() : Fps(controls.fps);
+		});
+	}).join();
 }

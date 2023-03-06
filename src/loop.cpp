@@ -4,8 +4,12 @@
 
 #include "loop.h"
 
-Loop::Loop(i32 fps) : fps(fps) {}
+Fps::Fps(i32 value): value(value) {}
 
-auto Loop::setFps(i32 fps) -> void {
-	this->fps = fps;
+auto Fps::isUnlimited() const -> bool {
+	return value == -1;
+}
+
+auto Fps::unlimited() -> Fps {
+	return Fps(-1);
 }

@@ -20,69 +20,262 @@
 #include <deque>
 #include <mutex>
 #include <condition_variable>
+#include <span>
+#include <iostream>
 
+#include "util.h"
 #include "types.h"
+
+struct BackSocket {
+	static WSAData wsaData;
+
+	static SOCKET listenSocket;
+	static SOCKET clientSocket;
+};
 
 class Socket {
 private:
 	constexpr static usize BUFFER_LENGTH = 1024;
 
-	static WSAData wsaData;
+	std::deque<std::vector<char>> outQueue;
 
-	static SOCKET listenSocket;
-	static SOCKET clientSocket;
-
-	static std::deque<std::vector<char>> inQueue;
-	static std::deque<std::vector<char>> outQueue;
-
-	static i32 messageLengthIndex;
-	static u32 currentMessageLength;
-	static std::vector<char> currentMessage;
+	i32 messageLengthIndex;
+	u32 currentMessageLength;
+	std::vector<char> currentMessage;
 
 	/* multithreading */
 
-	static bool running;
+	bool running;
 
-	static std::thread readerThread;
-	static std::thread writerThread;
+	std::thread readerThread;
+	std::thread writerThread;
 
-	static std::mutex inQueueMutex;
-	static std::mutex outQueueMutex;
-	static std::condition_variable outQueueSignal;
+	std::mutex outQueueMutex;
+	std::condition_variable outQueueSignal;
 
 	/* internal utility */
 
-	static auto errorCleanup(addrinfo *& addressInfo) -> void;
+	auto errorCleanup(addrinfo *& addressInfo) -> void {
+		if (addressInfo != nullptr) freeaddrinfo(addressInfo);
+		addressInfo = nullptr;
 
-	static auto resetCurrentMessage() -> void;
+		if (BackSocket::listenSocket != INVALID_SOCKET) closesocket(BackSocket::listenSocket);
+		BackSocket::listenSocket = INVALID_SOCKET;
 
-	static auto readIntoMessage(char * buffer, i32 bytesReceived, i32 & start) -> void;
+		WSACleanup();
+	}
 
-	static auto writeMessage(char * buffer, const std::vector<char> & data) -> void;
+	auto resetCurrentMessage() -> void {
+		messageLengthIndex = 0;
+		currentMessageLength = 0;
+		currentMessage = {};
+	}
 
-	static auto readerLoop() -> void;
-	static auto writerLoop() -> void;
+	template<Util::Function<void, std::vector<char> &> OnReadFunction>
+	auto readIntoMessage(char * buffer, i32 bytesReceived, i32 & index, OnReadFunction onRead) -> void {
+		auto headerBytesToRead = min(4 - messageLengthIndex, bytesReceived);
+		auto start = index;
+
+		for (; index < start + headerBytesToRead; ++index) {
+			currentMessageLength |= buffer[index] << ((3 - messageLengthIndex) * 8);
+			++messageLengthIndex;
+		}
+
+		auto bodyBytesToRead = (i32)min(bytesReceived - index, currentMessageLength);
+
+		currentMessage.insert(currentMessage.end(), buffer + index, buffer + bytesReceived);
+		index += bodyBytesToRead;
+
+		if (currentMessage.size() == currentMessageLength) {
+			onRead(currentMessage);
+			//std::optional<std::string> message = this->onRead(currentMessage);
+			//if (message.has_value()) {
+			//	send(message->begin(), message->end());
+			//}
+			resetCurrentMessage();
+		}
+	}
+
+	enum SendResult {
+		GOOD = false,
+		BAD = true,
+	};
+
+	inline auto writePartIntoBuffer(std::span<char> buffer, i32 & bufferIndex, std::span<const char> data) -> i32 {
+		auto leftInBuffer = buffer.size() - bufferIndex;
+		auto writeSize = (i32)min(data.size(), leftInBuffer);
+
+		memcpy_s(buffer.data() + bufferIndex, leftInBuffer, data.data(), writeSize);
+
+		bufferIndex += writeSize;
+		return writeSize;
+	}
+
+	template<Util::Function<SendResult, std::span<const char>> T>
+	inline auto shipIntoBuffer(std::span<char> buffer, i32 & bufferIndex, std::span<const char> data, T onBufferFilled) -> SendResult {
+		auto dataIndex = 0;
+
+		while (dataIndex < data.size()) {
+			dataIndex += writePartIntoBuffer(buffer, bufferIndex, data.subspan(dataIndex, data.size() - dataIndex));
+
+			if (bufferIndex == buffer.size()) {
+				if (onBufferFilled(buffer.subspan(0, buffer.size()))) return SendResult::BAD;
+
+				bufferIndex = 0;
+			}
+		}
+
+		return SendResult::GOOD;
+	}
+
+	template<Util::Function<SendResult, std::span<const char>> T>
+	inline auto shipRemainingInBuffer(std::span<char> buffer, i32 bufferIndex, T onBufferFilled) {
+		if (bufferIndex == 0) return;
+		onBufferFilled(buffer.subspan(0, bufferIndex));
+	}
+
+	auto writeMessage(char * buffer, const std::vector<char> & data) -> void {
+		auto bufferIndex = 0;
+		auto bufferView = std::span { buffer, BUFFER_LENGTH };
+
+		auto send = [&](std::span<const char> buffer) {
+			if (::send(BackSocket::clientSocket, buffer.data(), buffer.size(), 0) == SOCKET_ERROR) {
+				std::cerr << "socket send error " << std::endl;
+				return SendResult::BAD;
+			}
+			return SendResult::GOOD;
+		};
+
+		char header[4] = {
+			(char)(data.size() >> 24),
+			(char)((data.size() >> 16) & 0xff),
+			(char)((data.size() >> 8) & 0xff),
+			(char)(data.size() & 0xff),
+		};
+
+		if (shipIntoBuffer(bufferView, bufferIndex, { header, 4 }, send)) return;
+
+		if (shipIntoBuffer(bufferView, bufferIndex, { data.data(), data.size() }, send)) return;
+
+		shipRemainingInBuffer(bufferView, bufferIndex, send);
+	}
 
 public:
-	/**
-	 * winsock is global for the entire program
-	 * do not create instances of this class
-	 */
-	Socket() = delete;
+	explicit Socket() :
+		messageLengthIndex(0),
+		currentMessageLength(0_u32),
+		outQueue(),
+		currentMessage(),
+		running(false),
+		readerThread(),
+		writerThread(),
+		outQueueMutex(),
+		outQueueSignal()
+	{}
 
-	static auto init(const char * port) -> void;
+	template<Util::Function<void, std::vector<char> &> OnReadFunction>
+	auto init(const char * port, OnReadFunction onRead) -> void {
+		if (WSAStartup(MAKEWORD(2, 2), &BackSocket::wsaData) != 0)
+			throw std::exception("Could not start socket service");
 
-	static auto isConnected() -> bool;
+		BackSocket::listenSocket = INVALID_SOCKET;
 
-	static auto close() -> void;
+		addrinfo * addressInfo = nullptr;
 
-	/**
-	 * keep calling to grab new messages until empty is returned
-	 */
-	static auto queueMessage() -> std::optional<std::vector<char>>;
+		auto hints = addrinfo {
+			.ai_flags = AI_PASSIVE,
+			.ai_family = AF_INET,
+			.ai_socktype = SOCK_STREAM,
+			.ai_protocol = IPPROTO_TCP,
+		};
 
-	template<typename T, std::enable_if_t<std::_Is_iterator_v<T>, int> = 0>
-	static auto send(T begin, T end) -> void {
+		if(getaddrinfo(nullptr, port, &hints, &addressInfo)) {
+			errorCleanup(addressInfo);
+			throw std::exception("Could not resolve address");
+		}
+
+		BackSocket::listenSocket = socket(addressInfo->ai_family, addressInfo->ai_socktype, addressInfo->ai_protocol);
+
+		if (BackSocket::listenSocket == INVALID_SOCKET) {
+			errorCleanup(addressInfo);
+			throw std::exception("could not initialize socket");
+		}
+
+		if (bind(BackSocket::listenSocket, addressInfo->ai_addr, addressInfo->ai_addrlen) == SOCKET_ERROR) {
+			errorCleanup(addressInfo);
+			throw std::exception("could not initialize socket");
+		}
+
+		freeaddrinfo(addressInfo);
+
+		if (listen(BackSocket::listenSocket, SOMAXCONN) == SOCKET_ERROR) {
+			errorCleanup(addressInfo);
+			throw std::exception("could not listen on socket");
+		}
+
+		running = true;
+
+		readerThread = std::thread([&, this]() {
+			while (running) {
+				if (BackSocket::clientSocket == INVALID_SOCKET) {
+					BackSocket::clientSocket = accept(BackSocket::listenSocket, nullptr, nullptr);
+				}
+
+				if (BackSocket::clientSocket == INVALID_SOCKET) {
+					std::cout << WSAGetLastError() << std::endl;
+					return;
+				}
+
+				char tempBuffer[BUFFER_LENGTH];
+
+				auto bytesReceived = recv(BackSocket::clientSocket, tempBuffer, BUFFER_LENGTH, 0);
+
+				/* negative numbers are error codes */
+				if (bytesReceived < 0) {
+					resetCurrentMessage();
+					std::cerr << "socket receive error code " << bytesReceived << std::endl;
+
+					/* client disconnected */
+					if (bytesReceived == -1) BackSocket::clientSocket = INVALID_SOCKET;
+
+				} else if (bytesReceived > 0) {
+					std::cout << "received " << bytesReceived << " bytes" << std::endl;
+
+					for (auto i = 0; i < bytesReceived; readIntoMessage(tempBuffer, bytesReceived, i, onRead));
+				}
+			}
+		});
+		writerThread = std::thread([this]() {
+			char tempBuffer[BUFFER_LENGTH];
+
+			while (running) {
+				auto lock = std::unique_lock(outQueueMutex);
+				outQueueSignal.wait(lock, [this] { return !outQueue.empty(); });
+
+				while (!outQueue.empty()) {
+					writeMessage(tempBuffer, outQueue.front());
+					outQueue.pop_front();
+				}
+			}
+		});
+	}
+
+	auto isConnected() -> bool {
+		return BackSocket::clientSocket != INVALID_SOCKET;
+	}
+
+	auto close() -> void {
+		running = false;
+
+		readerThread.join();
+		writerThread.join();
+
+		closesocket(BackSocket::listenSocket);
+	}
+
+
+	template<Util::IsIterator<char> Iterator>
+	auto send(Iterator begin, Iterator end) -> void {
 		auto lockGuard = std::lock_guard(outQueueMutex);
 
 		outQueue.emplace_back();
