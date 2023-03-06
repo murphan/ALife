@@ -21,6 +21,8 @@ class Environment {
 
         auto getCell(i32 x, i32 y) -> MapCell &;
 
+        auto tick() -> void;
+
 		auto mapSize() const -> i32;
 		auto getWidth() const -> i32;
 		auto getHeight() const -> i32;

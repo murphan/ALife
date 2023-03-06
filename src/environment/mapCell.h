@@ -34,6 +34,8 @@ public:
 	auto getHasFood() const -> bool;
 
 	auto getFood() -> Food &;
+
+    auto removeFood() -> void;
 };
 
 #endif //ALIFE_MAPCELL_H

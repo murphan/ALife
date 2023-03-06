@@ -56,19 +56,38 @@ def decode_message(self, conn):
 
             message_type = data_map["type"]
             if message_type == "frame":
-                environment = data_map["environment"]
+                handle_environment_data(self, data_map["environment"])
 
-                height = environment["height"]
-                width = environment["width"]
-                # Global_access.define_grid(width, height)   Uncomment when making grid dynamically sized
-                environment["grid"] = base64.b64decode(environment["grid"])
-                environment["grid"] = [environment["grid"][i: i + 11] for i in range(0, len(environment["grid"]), 11)]
-                decode_grid(self, environment["grid"], width, height)
-                decode_organisms(self, environment["organisms"])
-                Global_access.new_frame = True
+            elif message_type == "init":
+                handle_environment_data(self, data_map["environment"])
+                handle_control_data(self, data_map["control"])
+
             elif message_type == "organism_data":
                 pass
-            # TODO handle the response message_type == "control" if necessary
+
+            elif message_type == "control":
+                handle_control_data(self, data_map["control"])
+
+
+def handle_environment_data(self, environment):
+    height = environment["height"]
+    width = environment["width"]
+    # Global_access.define_grid(width, height)   Uncomment when making grid dynamically sized
+    environment["grid"] = base64.b64decode(environment["grid"])
+    environment["grid"] = [environment["grid"][i: i + 11] for i in range(0, len(environment["grid"]), 11)]
+    decode_grid(self, environment["grid"], width, height)
+    decode_organisms(self, environment["organisms"])
+    Global_access.new_frame = True
+
+
+def handle_control_data(self, control):
+    """
+    update internal control values to match what the backend says is correct
+    do not send a message back
+    """
+    Global_access.change_fps(control["fps"])
+    Global_access.updateDisplay = control["updateDisplay"]
+    Global_access.running = control["playing"]
 
 
 def decode_grid(self, grid_data, width, height):

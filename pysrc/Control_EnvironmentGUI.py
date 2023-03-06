@@ -346,3 +346,7 @@ class EnvironmentControl:
             factors = {"factors": [temp_final, light_final, oxygen_final]}
             formatted = {"settings": factors}
             return json.dumps(formatted)
+        elif message_type == "init":
+            return json.dumps({
+                "type": "init"
+            })

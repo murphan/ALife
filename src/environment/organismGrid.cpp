@@ -138,3 +138,11 @@ auto OrganismGridSpace::getTempId(u32 space) -> i32 {
 auto OrganismGridSpace::getBodyPart(u32 space) -> BodyPart {
 	return (BodyPart)((space >> 29) + 1);
 }
+
+auto OrganismGrid::getWidth() const -> i32 {
+    return width;
+}
+
+auto OrganismGrid::getHight() const -> i32 {
+    return height;
+}

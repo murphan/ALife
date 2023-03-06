@@ -10,6 +10,7 @@
 #include "genome/genome.h"
 #include "genome/phenome.h"
 #include "genome/body.h"
+#include "environment/food.h"
 #include "uuid.h"
 
 class Organism {
@@ -33,6 +34,7 @@ public:
 	auto getPhenome() const -> const Phenome &;
 	auto getGenome() const -> const Genome &;
 	auto body() const -> const Body &;
+    auto eatFood(Food & food) -> void;
 
 	auto tick() -> i32;
 };
