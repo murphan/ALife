@@ -35,7 +35,7 @@ public:
 
 	auto getFood() -> Food &;
 
-    auto popFood() -> void;
+    auto removeFood() -> void;
 };
 
 #endif //ALIFE_MAPCELL_H

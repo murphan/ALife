@@ -92,6 +92,7 @@ auto SimulationController::scatterFood(Food::Type type, i32 numFood, i32 energyD
             addFood(x, y, type, energyDefault);
     }
 }
+
 /**
  *
  * For each Organism checks each body part looking for overlapping food cells
@@ -99,24 +100,24 @@ auto SimulationController::scatterFood(Food::Type type, i32 numFood, i32 energyD
  *
  */
 auto SimulationController::organismsEat() -> void {
-    for (int i = 0; i < organisms.size(); ++i) {
-        auto && organism = organisms[i];
-        auto && body = organism.body();
-        auto rotation = organism.rotation;
+	for (auto && organism : organisms) {
+		auto && body = organism.body();
+		auto rotation = organism.rotation;
 
-        for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
-            for (auto k = body.getLeft(rotation); k <= body.getRight(rotation); ++k) {
-                auto y = organism.y + j;
-                auto x = organism.x + k;
+		for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
+			for (auto i = body.getLeft(rotation); i <= body.getRight(rotation); ++i) {
+				auto y = organism.y + j;
+				auto x = organism.x + i;
 
-                auto && environmentCell = environment.getCell(x, y);
-                if (environmentCell.getHasFood()) {
-                    organism.eatFood(environmentCell.getFood());
-                    environmentCell.popFood();
-                }
-            }
-        }
-    }
+				auto && environmentCell = environment.getCell(x, y);
+
+				if (environmentCell.getHasFood() && body.access(i, j, rotation) != BodyPart::NONE) {
+					organism.eatFood(environmentCell.getFood());
+					environmentCell.removeFood();
+				}
+			}
+		}
+	}
 }
 
 auto SimulationController::howMuchFood() -> i32 {
