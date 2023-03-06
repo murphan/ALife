@@ -61,31 +61,29 @@ auto main () -> int {
 		}
 	});
 
-	std::thread([&]() {
-		/* don't send more than 25 fps */
-		auto minSendTime = Loop::resolution((u64)((1._f64 / 25._f64) * Loop::resolution(Loop::seconds(1)).count()));
+	/* don't send more than 25 fps */
+	auto minSendTime = Loop::resolution((u64)((1._f64 / 25._f64) * Loop::resolution(Loop::seconds(1)).count()));
 
-		auto lastSendTime = Loop::timePoint();
+	auto lastSendTime = Loop::timePoint();
 
-		auto loop = Loop();
+	auto loop = Loop();
 
-		loop.enter([&](Loop::timePoint now) -> Fps {
-			auto lock = std::unique_lock(simulationMutex);
+	loop.enter([&](Loop::timePoint now) -> Fps {
+		auto lock = std::unique_lock(simulationMutex);
 
-			if (controls.playing) {
-				simulationController.step();
-			}
+		if (controls.playing) {
+			simulationController.step();
+		}
 
-			if (socket.isConnected() && controls.updateDisplay && controls.playing && (now - lastSendTime) >= minSendTime) {
-				auto stateJson = MessageCreator::frameMessage(simulationController.serialize());
+		if (socket.isConnected() && controls.updateDisplay && controls.playing && (now - lastSendTime) >= minSendTime) {
+			auto stateJson = MessageCreator::frameMessage(simulationController.serialize());
 
-				auto jsonData = stateJson.dump();
-				socket.send(jsonData.begin(), jsonData.end());
+			auto jsonData = stateJson.dump();
+			socket.send(jsonData.begin(), jsonData.end());
 
-				lastSendTime = now;
-			}
+			lastSendTime = now;
+		}
 
-			return controls.unlimitedFPS() ? Fps::unlimited() : Fps(controls.fps);
-		});
-	}).join();
+		return controls.unlimitedFPS() ? Fps::unlimited() : Fps(controls.fps);
+	});
 }

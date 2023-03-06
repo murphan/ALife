@@ -50,8 +50,12 @@ public:
 
 			Fps fpsReturn = stepFunction(now);
 
-			if (fpsReturn.isUnlimited()) unlimited = true;
-			else fps = fpsReturn.value;
+			if (fpsReturn.isUnlimited()) {
+				unlimited = true;
+			} else {
+				fps = fpsReturn.value;
+				unlimited = false;
+			}
 
 			if (unlimited) continue;
 
