@@ -98,7 +98,7 @@ class SetupSettings:
         speed_text_label.config(font=("Arial", 12))
         speed_text_label.pack()
 
-        self.fps_slider = tkinter.Scale(speed_frame, from_=1, to=200, orient=HORIZONTAL,
+        self.fps_slider = tkinter.Scale(speed_frame, from_=1, to=21, orient=HORIZONTAL,
                                         background=LIGHT_GREEN, command=lambda event:
                                         Control_Environment.EnvironmentControl.set_fps(self, self.fps_slider.get()))
         self.fps_slider.set(Global_access.fps)

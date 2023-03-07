@@ -259,10 +259,11 @@ class EnvironmentControl:
         :type color: Global_access.color
         """
         y = int(Global_access.environment_size[1] - y - 1)
-        rect = pygame.Rect(x * 10, y * 10,
-                           10, 10)
         temp_surface = pygame.Surface([10, 10])
-        pygame.draw.rect(temp_surface, color, (0, 0, 10, 10))
+        if color in [Global_access.RED, Global_access.ORANGE, Global_access.YELLOW, Global_access.PINK]:
+            pygame.draw.circle(temp_surface, color, (5, 5), 5)
+        else:
+            pygame.draw.rect(temp_surface, color, (0, 0, 10, 10))
         Global_access.second_surface.blit(temp_surface, (x * 10, y * 10))
 
     def click_type(self, clicked_type):

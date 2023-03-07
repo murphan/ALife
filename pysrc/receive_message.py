@@ -50,7 +50,6 @@ def decode_message(self, conn):
                     message = conn.recv(length).decode(errors="ignore")
                 else:
                     message = conn.recv(1024).decode(errors="ignore")
-            print("message received")
 
             data_map = json.loads(message_buf[:length_same])
 
