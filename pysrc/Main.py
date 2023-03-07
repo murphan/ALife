@@ -20,15 +20,24 @@ class Management:
         self.EnvironmentGui = Setup_EnvironmentGUI.SetupEnvironment()
         self.EnvironmentControl = Control_EnvironmentGUI.EnvironmentControl()
 
-        # Set up the socket connection to the c++ application
-        host = socket.gethostname()
-        port = self.read_port()
-        self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.conn.connect((host, port))
+        self.create_connection()
 
         # todo call whenever new connection is established
         self.send_init_message()
         # self.temp_func()
+
+    def create_connection(self):
+        # Set up the socket connection to the c++ application
+        connected = False
+        while not connected:
+            try:
+                host = socket.gethostname()
+                port = self.read_port()
+                self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.conn.connect((host, port))
+                connected = True
+            except socket.error:
+                continue
 
     def start_receiver(self):
         self.thread = Thread(target=receive_message.decode_message, args=(self, self.conn,))
@@ -40,12 +49,18 @@ class Management:
     def main_loop(self):
         while True:
             self.EnvironmentGui.clear_screen()
+            if Global_access.EXIT == 1:
+                self.conn.close()
+                pygame.quit()
+                sys.exit()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.exiting()
+                    thread = Thread(target=self.exiting)
+                    thread.start()
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if self.EnvironmentGui.settings_button.mouse_click(event):  # Show the settings window
-                        self.open_settings()
+                        thread = Thread(target=self.open_settings)
+                        thread.start()
                     elif self.EnvironmentGui.play_button is not None and \
                             self.EnvironmentGui.play_button.mouse_click(event):  # start button was clicked
                         self.EnvironmentControl.start(self.conn)
@@ -62,10 +77,7 @@ class Management:
     def exiting(self):
         confirm = messagebox.askokcancel(title="Quit?", message="Are you sure that you want to Quit?")
         if confirm:
-            pygame.quit()
-            Global_access.STOPPED = 1
-            self.conn.close()
-            sys.exit()
+            Global_access.EXIT = 1
         else:
             return
 
