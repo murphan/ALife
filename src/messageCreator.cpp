@@ -25,3 +25,17 @@ auto MessageCreator::controlsMessage(json && controlsBody) -> json {
 		{ "control", std::move(controlsBody) },
 	};
 }
+
+auto MessageCreator::emptyOrganismRequestMessage() -> json {
+	return json {
+		{ "type", "request" },
+		{ "organism", nullptr },
+	};
+}
+
+auto MessageCreator::organismRequestMessage(json && organismBody) -> json {
+	return json {
+		{ "type", "request" },
+		{ "organism", organismBody },
+	};
+}

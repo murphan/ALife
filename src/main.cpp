@@ -35,10 +35,11 @@ auto main () -> int {
 	socket.init("51679", [&](const std::vector<char> & message) -> void {
 		auto messageString = std::string(message.begin(), message.end());
 
-		auto parsedMessage = MessageReceiver::receive(messageString);
-		if (!parsedMessage.has_value()) return;
+		auto messageResult = MessageReceiver::receive(messageString);
+		if (!messageResult.has_value()) return;
+		auto && parsedMessage = messageResult.value();
 
-		if (parsedMessage->type == "init") {
+		if (parsedMessage.type == "init") {
 			auto lock = std::unique_lock(simulationMutex);
 
 			auto json = MessageCreator::initMessage(
@@ -48,18 +49,38 @@ auto main () -> int {
 
 			socket.send(json.begin(), json.end());
 
-		} else if (parsedMessage->type == "control") {
-			if (!parsedMessage->body.contains("control")) return;
+		} else if (parsedMessage.type == "control") {
+			if (!parsedMessage.body.contains("control")) return;
 
 			auto lock = std::unique_lock(simulationMutex);
-			controls.updateFromSerialized(parsedMessage->body["control"]);
+			controls.updateFromSerialized(parsedMessage.body["control"]);
 
 			auto json = MessageCreator::controlsMessage(controls.serialize()).dump();
 
 			socket.send(json.begin(), json.end());
 
+		} else if (parsedMessage.type == "request") {
+			if (!parsedMessage.body.contains("id")) return;
+			auto id = parsedMessage.body["id"];
+			if (!id.is_string()) return;
+
+			auto idString = id.get<std::string>();
+			auto uuid = UUID::fromString(idString);
+			if (!uuid.has_value()) return;
+
+			auto * organism = simulationController.getOrganism(uuid.value());
+			if (organism == nullptr) {
+				auto json = MessageCreator::emptyOrganismRequestMessage().dump();
+				socket.send(json.begin(), json.end());
+				return;
+			}
+
+			auto json = MessageCreator::organismRequestMessage(organism->serialize(true)).dump();
+			socket.send(json.begin(), json.end());
+
 		} else {
-			std::cout << "unknown message of type" << parsedMessage->type << std::endl;
+			std::cout << "unknown message of type" << parsedMessage.type << std::endl;
+			std::cout << parsedMessage.body << std::endl;
 		}
 	});
 

@@ -46,6 +46,8 @@ public:
     auto addFood(i32 foodX, i32 foodY, Food::Type type, i32 energy) -> void;
     auto scatterFood(Food::Type type, i32 numFood, i32 energyDefault) -> void;
     auto howMuchFood() -> i32;
+
+	auto getOrganism(UUID & id) -> Organism *;
 };
 
 #endif //ALIFE_SIMULATIONCONTROLLER_H

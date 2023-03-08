@@ -43,3 +43,31 @@ auto UUID::getHigh() const -> u64 {
 auto UUID::getLow() const -> u64 {
 	return low;
 }
+
+inline auto parseU64(std::string_view input) -> std::optional<u64> {
+	auto value = 0_u64;
+
+	for (auto && digit : input) {
+		if (digit >= '0' && digit <= '9') {
+			value = (value << 4) | (digit - '0');
+		} else if (digit >= 'a' && digit <= 'f') {
+			value = (value << 4) | (digit - 'a' + 10);
+		} else {
+			return std::nullopt;
+		}
+	}
+
+	return std::make_optional(value);
+}
+
+auto UUID::fromString(std::string & input) -> std::optional<UUID> {
+	if (input.length() != 32) return std::nullopt;
+
+	auto highValue = parseU64(std::string_view(input.begin(), input.begin() + 16));
+	if (!highValue.has_value()) return std::nullopt;
+
+	auto lowValue = parseU64(std::string_view(input.begin() + 16, input.end()));
+	if (!lowValue.has_value()) return std::nullopt;
+
+	return UUID(highValue.value(), lowValue.value());
+}

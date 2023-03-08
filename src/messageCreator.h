@@ -24,6 +24,9 @@ public:
 	static auto initMessage(json && environmentBody, json && controlsBody) -> json;
 
 	static auto controlsMessage(json && controlsBody) -> json;
+
+	static auto emptyOrganismRequestMessage() -> json;
+	static auto organismRequestMessage(json && organismBody) -> json;
 };
 
 #endif //ALIFE_SERIALIZER_H

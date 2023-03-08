@@ -305,10 +305,14 @@ class EnvironmentControl:
         :param data: Optional argument for passing data that may be needed in c++
         :param type: Any
         """
-        if message_type == "request" or message_type == "request_all":
-            new_data = {"data": str(data)}
-            formatted = {message_type: new_data}
-            return json.dumps(formatted)
+        if message_type == "request":
+            return json.dumps({
+                "type": "request",
+                "id": data,
+            })
+        elif message_type == "request_all":
+            # unused
+            return json.dumps({})
         elif message_type == "control":
             return json.dumps({
                 "type": "control",
