@@ -23,35 +23,28 @@ def decode_message(self, conn):
 
     NOTE: Self was passed from setup_environment and so this will be a setup_environment instance of self
     """
+
     while True and not Global_access.EXIT:
         message_buf = ''  # The buffer to append message information to
-        first_time = True  # Flag for if this is the first of the message received
 
-        message = conn.recv(1024)
-        if message:
-            length = int.from_bytes(message[:4], "big")
+        length = conn.recv(4)
+        if length:
+            length = int.from_bytes(length, "big")
             length_same = length
-            message = message[4:]
-            message = message.decode(errors="ignore")
-            while length:
-                if length < 1020:
+            while length > 0:
+                if length < 1024:
+                    message = conn.recv(length).decode(errors="ignore")
                     message_buf += message
                     length = 0
-                    break
-                elif first_time:
-                    message_buf += message
-                    length -= 1020
-                    first_time = False
-                else:
-                    message_buf += message
-                    length -= 1024
-
-                if length < 1020:
-                    message = conn.recv(length).decode(errors="ignore")
                 else:
                     message = conn.recv(1024).decode(errors="ignore")
+                    message_buf += message
+                    length -= len(message)
 
-            data_map = json.loads(message_buf[:length_same])
+            sub_string = message_buf[:length_same]
+            print(sub_string[-1])
+            data_map = json.loads(sub_string)
+            message_buf = message_buf[length_same:]
 
             message_type = data_map["type"]
             if message_type == "frame":
@@ -123,14 +116,9 @@ def decode_grid(self, grid_data, width, height):
             Global_access.ENVIRONMENT_GRID[x][y]["organism"] = None
             if cell.tile_type == -1:
                 Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x, y, Global_access.WHITE)
-            if cell.tile_type == 0:
-                Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x, y, Global_access.YELLOW)
-            if cell.tile_type == 1:
-                Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x, y, Global_access.ORANGE)
-            if cell.tile_type == 2:
-                Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x, y, Global_access.RED)
-            if cell.tile_type == 3:
-                Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x, y, Global_access.PINK)
+            if cell.tile_type in Global_access.food_colors:
+                Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x, y,
+                                                                    Global_access.food_colors[cell.tile_type])
             index += 1
 
 

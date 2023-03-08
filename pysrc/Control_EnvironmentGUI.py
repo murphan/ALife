@@ -260,7 +260,7 @@ class EnvironmentControl:
         """
         y = int(Global_access.environment_size[1] - y - 1)
         temp_surface = pygame.Surface([10, 10])
-        if color in [Global_access.RED, Global_access.ORANGE, Global_access.YELLOW, Global_access.PINK]:
+        if color in Global_access.food_colors.values():
             pygame.draw.circle(temp_surface, color, (5, 5), 5)
         else:
             pygame.draw.rect(temp_surface, color, (0, 0, 10, 10))

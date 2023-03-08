@@ -65,6 +65,11 @@ TILE_TYPE = {-2: "Empty",
              2: "Food 2",
              3: "Food 3"}
 
+food_colors = {0: '#fafa16',  # Yellow
+               1: '#fa6c07',  # Orange
+               2: '#d10a0a',  # Red
+               3: '#f00ce1', }  # Pink
+
 # Organism Colors, they are labeled but can also be found in bodyPart.h
 org_colors = {1: '#5573a3',   # Mouth
               2: '#23aac2',   # Basic
