@@ -5,10 +5,12 @@
 #include "environment/environment.h"
 
 #include <vector>
+#include <span>
 
 #include "controls.h"
 #include "organism.h"
 #include "organismGrid.h"
+#include "settings.h"
 
 using json = nlohmann::json;
 
@@ -24,12 +26,13 @@ private:
 
 	auto moveOrganisms() -> void;
 
-	auto organismsAgeAndDie() -> void;
+	auto organismsAgeAndDie(i32 ageFactor) -> void;
 
 	auto replaceOrganismWithFood(const Organism & organism) -> void;
 
     auto organismsEat() -> void;
 
+	auto updateFactors(std::span<Noise> noises) -> void;
 
 public:
 	Environment environment;
@@ -39,7 +42,7 @@ public:
 
     explicit SimulationController(Environment && environment);
 
-	auto tick() -> void;
+	auto tick(Settings & settings) -> void;
 
 	auto serialize() -> json;
 

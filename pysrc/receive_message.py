@@ -2,6 +2,7 @@ import base64
 import ast
 import random
 import json
+import pygame.display
 
 import Global_access
 import Control_EnvironmentGUI
@@ -66,8 +67,12 @@ def handle_environment_data(self, environment):
     width = environment["width"]
     # Global_access.define_grid(width, height)   Uncomment when making grid dynamically sized
     environment["grid"] = base64.b64decode(environment["grid"])
-    environment["grid"] = [environment["grid"][i: i + 11] for i in range(0, len(environment["grid"]), 11)]
+    environment["grid"] = [environment["grid"][i: i + 10] for i in range(0, len(environment["grid"]), 10)]
     decode_grid(self, environment["grid"], width, height)
+
+    draw_factors_grid(self, width, height)
+    draw_food_walls(self, width, height)
+
     decode_organisms(self, environment["organisms"])
     Global_access.new_frame = True
 
@@ -98,28 +103,47 @@ def decode_grid(self, grid_data, width, height):
     :param height: height of the grid
     :type height: int
     """
-    index = 0
     for y in range(height):
         for x in range(width):
-            data = grid_data[index]
-            factor_0 = int.from_bytes(data[:1], "big", signed=True)
-            factor_1 = int.from_bytes(data[1:2], "big", signed=True)
-            factor_2 = int.from_bytes(data[2:3], "big", signed=True)
-            factor_3 = int.from_bytes(data[3:4], "big", signed=True)
-            tile_type = int.from_bytes(data[4:5], "big", signed=True)
-            food_energy = int.from_bytes(data[5:6], "big")
-            food_age = int.from_bytes(data[6:9], "big")
-            pressure = int.from_bytes(data[9:], "big", signed=True)
-            cell = Environment_cell.EnvironmentCell(factor_0, factor_1, factor_2, factor_3,
-                                                    tile_type, food_energy, food_age, pressure)
+            data = grid_data[y * width + x]
+
+            factor_0    = int.from_bytes(data[:1], "big", signed=True)
+            factor_1    = int.from_bytes(data[1:2], "big", signed=True)
+            factor_2    = int.from_bytes(data[2:3], "big", signed=True)
+            tile_type   = int.from_bytes(data[3:4], "big", signed=True)
+            food_energy = int.from_bytes(data[4:5], "big", signed=True)
+            food_age    = int.from_bytes(data[5:9], "big", signed=True)
+            pressure    = int.from_bytes(data[9:], "big", signed=True)
+
+            cell = Environment_cell.EnvironmentCell(factor_0, factor_1, factor_2, tile_type, food_energy, food_age, pressure)
+
             Global_access.ENVIRONMENT_GRID[x][y]["environment"] = cell
             Global_access.ENVIRONMENT_GRID[x][y]["organism"] = None
+
+
+def draw_factors_grid(self, width, height):
+    pixel_array = pygame.PixelArray(Global_access.factors_surface)
+
+    for y in range(height):
+        for x in range(width):
+            cell = Global_access.ENVIRONMENT_GRID[x][y]["environment"]
+
+            pixel_array[x, y] = (cell.factor_0 + 128, cell.factor_1 + 128, cell.factor_2 + 128)
+
+    pixel_array.close()
+
+    Global_access.second_surface.blit(pygame.transform.smoothscale(Global_access.factors_surface, (width * 10, height * 10)), (0, 0))
+
+
+def draw_food_walls(self, width, height):
+    for y in range(height):
+        for x in range(width):
+            cell = Global_access.ENVIRONMENT_GRID[x][y]["environment"]
+
             if cell.tile_type == -1:
                 Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x, y, Global_access.WHITE)
-            if cell.tile_type in Global_access.food_colors:
-                Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x, y,
-                                                                    Global_access.food_colors[cell.tile_type])
-            index += 1
+            elif cell.tile_type in Global_access.food_colors:
+                Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x, y, Global_access.food_colors[cell.tile_type], True)
 
 
 def decode_organisms(self, organisms):

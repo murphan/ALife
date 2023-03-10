@@ -58,6 +58,8 @@ ENVIRONMENT_GRID = []
 new_frame = False
 second_surface = pygame.Surface([1500, 730])
 
+factors_surface = pygame.Surface(environment_size)
+
 TILE_TYPE = {-2: "Empty",
              -1: "Wall",
              0: "Food 0",

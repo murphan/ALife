@@ -19,6 +19,11 @@
 
 auto main () -> int {
 	auto controls = Controls { .playing=false, .fps=20, .updateDisplay=true };
+	auto settings = Settings { .ageFactor = 1000, .factorNoises = {
+		Noise(0,true, 0.0_f32, 0.01_f32, 100.0_f32, 1.0_f32),
+		Noise(1,true, 0.0_f32, 0.1_f32, 50.0_f32, 1.0_f32),
+		Noise(2,true, 0.0_f32, 0.2_f32, 35.0_f32, 1.0_f32),
+	} };
 
 	auto simulationController = SimulationController(Environment(150, 72));
 
@@ -95,7 +100,7 @@ auto main () -> int {
 		auto lock = std::unique_lock(simulationMutex);
 
 		if (controls.playing) {
-			simulationController.tick();
+			simulationController.tick(settings);
 		}
 
 		if (socket.isConnected() && controls.updateDisplay && controls.playing && (now - lastSendTime) >= minSendTime) {

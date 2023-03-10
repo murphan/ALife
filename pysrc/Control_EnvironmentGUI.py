@@ -243,7 +243,7 @@ class EnvironmentControl:
                 Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["environment"] = new_cell
                 self.send_message(conn, "new_filled", (coord[0], coord[1], "wall"))
 
-    def fill_cell(self, x, y, color):
+    def fill_cell(self, x, y, color, circle = False):
         """
         This will fill in a cell when the information is passed from c++
         Grid coords are different in python than they are in c++.
@@ -259,12 +259,13 @@ class EnvironmentControl:
         :type color: Global_access.color
         """
         y = int(Global_access.environment_size[1] - y - 1)
-        temp_surface = pygame.Surface([10, 10])
-        if color in Global_access.food_colors.values():
-            pygame.draw.circle(temp_surface, color, (5, 5), 5)
+        #temp_surface = pygame.Surface([10, 10])
+        #Global_access.second_surface.blit(temp_surface, (x * 10, y * 10))
+
+        if circle:
+            pygame.draw.circle(Global_access.second_surface, color, (x * 10 + 5, y * 10 + 5), 5)
         else:
-            pygame.draw.rect(temp_surface, color, (0, 0, 10, 10))
-        Global_access.second_surface.blit(temp_surface, (x * 10, y * 10))
+            pygame.draw.rect(Global_access.second_surface, color, (x * 10, y * 10, 10, 10))
 
     def click_type(self, clicked_type):
         """

@@ -12,12 +12,14 @@ auto SimulationController::tempId(i32 index) -> i32 {
 	return index + 1;
 }
 
-auto SimulationController::tick() -> void {
+auto SimulationController::tick(Settings & settings) -> void {
 	std::shuffle(organisms.begin(), organisms.end(), random);
+
+	updateFactors(std::span(settings.factorNoises, settings.factorNoises + 3));
 
 	moveOrganisms();
 
-	organismsAgeAndDie();
+	organismsAgeAndDie(settings.ageFactor);
 
     organismsEat();
 
@@ -47,14 +49,11 @@ auto SimulationController::moveOrganisms() -> void {
 	}
 }
 
-auto SimulationController::organismsAgeAndDie() -> void {
-	std::erase_if(organisms, [this](auto && organism) {
+auto SimulationController::organismsAgeAndDie(i32 ageFactor) -> void {
+	std::erase_if(organisms, [&, this](auto && organism) {
 		auto newAge = organism.tick();
 
-		//TODO put in settings
-		constexpr auto AGE_FACTOR = 1600;
-
-		if (newAge > organism.getPhenome().maxAge(AGE_FACTOR)) {
+		if (newAge > organism.getPhenome().maxAge(ageFactor)) {
 			replaceOrganismWithFood(organism);
 			return true;
 		} else {
@@ -80,11 +79,6 @@ auto SimulationController::replaceOrganismWithFood(const Organism & organism) ->
 }
 
 template<typename T>
-concept Is32Bit = requires(T a) {
-	sizeof(T) == 4;
-};
-
-template<Is32Bit T>
 inline auto push32Bit(std::string & stream, T value) {
 	stream.push_back((char)(value >> 24));
 	stream.push_back((char)((value >> 16) & 0xff));
@@ -103,14 +97,13 @@ auto SimulationController::serialize() -> json {
 			byteEncodedGrid.push_back(cell.getFactor((Factor)0));
 			byteEncodedGrid.push_back(cell.getFactor((Factor)1));
 			byteEncodedGrid.push_back(cell.getFactor((Factor)2));
-			byteEncodedGrid.push_back(cell.getFactor((Factor)3));
 
 			if (cell.getHasFood()) {
 				auto & food = cell.getFood();
 
 				byteEncodedGrid.push_back(food.getType());
 				byteEncodedGrid.push_back((char)food.getEnergy());
-				push32Bit(byteEncodedGrid, food.getAge());
+				push32Bit(byteEncodedGrid, (i8)food.getAge());
 
 			} else {
 				byteEncodedGrid.push_back(cell.getHasWall() ? -1 : -2);
@@ -198,4 +191,20 @@ auto SimulationController::getOrganism(UUID & id) -> Organism * {
 		if (organism.uuid == id) return &organism;
 	}
 	return nullptr;
+}
+
+auto SimulationController::updateFactors(std::span<Noise> noises) -> void {
+	for (auto & noise : noises) {
+		noise.tick();
+	}
+
+	for (auto y = 0; y < environment.getHeight(); ++y) {
+		for (auto x = 0; x < environment.getWidth(); ++x) {
+			auto && cell = environment.getCell(x, y);
+
+			cell.setFactor(Factor::TEMPERATURE, noises[Factor::TEMPERATURE].getValue(x, y));
+			cell.setFactor(Factor::LIGHT, noises[Factor::LIGHT].getValue(x, y));
+			cell.setFactor(Factor::OXYGEN, noises[Factor::OXYGEN].getValue(x, y));
+		}
+	}
 }
