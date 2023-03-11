@@ -331,27 +331,34 @@ class EnvironmentControl:
             formatted = {message_type: formatted_data}
             return json.dumps(formatted)
         elif message_type == "settings":
-            temp_factors = {"noise": str(bool(Global_access.temp_noise)),
-                            "value": str(Global_access.temperature),
-                            "scale": str(Global_access.temp_scale),
-                            "depth": str(Global_access.temp_depth),
-                            "speed": str(Global_access.temp_speed)}
-            temp_final = {"temperature": temp_factors}
-            light_factors = {"noise": str(bool(Global_access.light_noise)),
-                             "value": str(Global_access.light),
-                             "scale": str(Global_access.light_scale),
-                             "depth": str(Global_access.light_depth),
-                             "speed": str(Global_access.light_speed)}
-            light_final = {"light": light_factors}
-            oxygen_factors = {"noise": str(bool(Global_access.oxygen_noise)),
-                              "value": str(Global_access.oxygen),
-                              "scale": str(Global_access.oxygen_scale),
-                              "depth": str(Global_access.oxygen_depth),
-                              "speed": str(Global_access.oxygen_speed)}
-            oxygen_final = {"oxygen": oxygen_factors}
-            factors = {"factors": [temp_final, light_final, oxygen_final]}
-            formatted = {"settings": factors}
-            return json.dumps(formatted)
+            return json.dumps({
+                "type": "settings",
+                "settings": {
+                    "factors": [
+                        {
+                            "useNoise": bool(Global_access.temp_noise),
+                            "center": Global_access.temperature,
+                            "speed": Global_access.temp_speed,
+                            "scale": Global_access.temp_scale,
+                            "amplitude": Global_access.temp_depth,
+                        },
+                        {
+                            "useNoise": bool(Global_access.light_noise),
+                            "center": Global_access.light,
+                            "speed": Global_access.light_speed,
+                            "scale": Global_access.light_scale,
+                            "amplitude": Global_access.light_depth,
+                        },
+                        {
+                            "useNoise": bool(Global_access.oxygen_noise),
+                            "center": Global_access.oxygen,
+                            "speed": Global_access.oxygen_speed,
+                            "scale": Global_access.oxygen_scale,
+                            "amplitude": Global_access.oxygen_depth,
+                        }
+                    ]
+                }
+            })
         elif message_type == "init":
             return json.dumps({
                 "type": "init"

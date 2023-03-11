@@ -83,6 +83,12 @@ auto main () -> int {
 			auto json = MessageCreator::organismRequestMessage(organism->serialize(true)).dump();
 			socket.send(json.begin(), json.end());
 
+		} else if (parsedMessage.type == "settings") {
+			try {
+				settings.handleSettingsMessage(parsedMessage.body);
+			} catch (...) {
+				std::cout << "bad settings message" << std::endl;
+			}
 		} else {
 			std::cout << "unknown message of type" << parsedMessage.type << std::endl;
 			std::cout << parsedMessage.body << std::endl;
