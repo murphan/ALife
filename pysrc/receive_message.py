@@ -42,10 +42,7 @@ def decode_message(self, conn):
                     message_buf += message
                     length -= len(message)
 
-            sub_string = message_buf[:length_same]
-            print(sub_string[-1])
-            data_map = json.loads(sub_string)
-            message_buf = message_buf[length_same:]
+            data_map = json.loads(message_buf[:length_same])
 
             message_type = data_map["type"]
             if message_type == "frame":
@@ -56,7 +53,7 @@ def decode_message(self, conn):
                 handle_control_data(self, data_map["control"])
 
             elif message_type == "organism_data":
-                pass
+                print("organism data received")
 
             elif message_type == "control":
                 handle_control_data(self, data_map["control"])

@@ -226,7 +226,8 @@ class EnvironmentControl:
             org_id = Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["organism"].organism_id
             self.send_message(conn, "request", org_id)
         # If the cell wasn't filled with an organism we check if it is empty (not food or a wall cell but empty)
-        elif Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["environment"].tile_type == -2:
+        elif Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["environment"] is not None and \
+            Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["environment"].tile_type == -2:
             if Global_access.CLICK_TYPE == 'Organism':
                 self.fill_cell(coord[0], coord[1], Global_access.org_colors[1])
                 new_cell = Organism_cell.OrganismCell(0, 0, 0, 0, 0, 0, 0, 0, 0, coord[0], coord[1])
@@ -259,8 +260,6 @@ class EnvironmentControl:
         :type color: Global_access.color
         """
         y = int(Global_access.environment_size[1] - y - 1)
-        #temp_surface = pygame.Surface([10, 10])
-        #Global_access.second_surface.blit(temp_surface, (x * 10, y * 10))
 
         if circle:
             pygame.draw.circle(Global_access.second_surface, color, (x * 10 + 5, y * 10 + 5), 5)
