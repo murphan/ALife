@@ -18,6 +18,8 @@ public:
 	Noise factorNoises[3];
 
 	auto handleSettingsMessage(json & body) -> void;
+
+	auto serialize() const -> json;
 };
 
 #endif //ALIFE_SETTINGS_H

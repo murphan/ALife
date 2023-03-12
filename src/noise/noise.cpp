@@ -43,3 +43,12 @@ auto Noise::getValue(i32 x, i32 y) const -> i8 {
 	);
 }
 
+auto Noise::serialize() const -> json {
+	return {
+		{ "useNoise", useNoise },
+		{ "center", center },
+		{ "speed", speed },
+		{ "scale", scale },
+		{ "amplitude", amplitude },
+	};
+}

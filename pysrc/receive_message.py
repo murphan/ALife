@@ -51,12 +51,16 @@ def decode_message(self, conn):
             elif message_type == "init":
                 handle_environment_data(self, data_map["environment"])
                 handle_control_data(self, data_map["control"])
+                handle_settings_data(data_map["settings"])
 
             elif message_type == "organism_data":
                 print("organism data received")
 
             elif message_type == "control":
                 handle_control_data(self, data_map["control"])
+
+            elif message_type == "settings":
+                handle_settings_data(data_map["settings"])
 
 
 def handle_environment_data(self, environment):
@@ -82,6 +86,37 @@ def handle_control_data(self, control):
     Global_access.change_fps(control["fps"])
     Global_access.updateDisplay = control["updateDisplay"]
     Global_access.running = control["playing"]
+
+
+def handle_settings_data(settings):
+    factors = settings["factors"]
+
+    # ok this is just a massive pain, like
+    # this data should be reallllly be grouped into a struct and then into an array (like how it is in the message)
+    # to avoid this stupid code duplication
+    # also why the hell is using noise internally stored as an int when it is always used like a boolean
+    noise =factors[0]
+    Global_access.temp_noise = int(noise["useNoise"])
+    Global_access.temperature = noise["center"]
+    Global_access.temp_speed = noise["speed"]
+    Global_access.temp_scale = noise["scale"]
+    Global_access.temp_depth = noise["amplitude"]
+
+    # in general, if you find yourself making a set of identical variables that are all prefixed by something
+    # then you should put them into a dictionary (or whatever you python people call it) named that prefix
+    noise = factors[1]
+    Global_access.light_noise = int(noise["useNoise"])
+    Global_access.light = noise["center"]
+    Global_access.light_speed = noise["speed"]
+    Global_access.light_scale = noise["scale"]
+    Global_access.light_depth = noise["amplitude"]
+
+    noise = factors[2]
+    Global_access.oxygen_noise = int(noise["useNoise"])
+    Global_access.oxygen = noise["center"]
+    Global_access.oxygen_speed = noise["speed"]
+    Global_access.oxygen_scale = noise["scale"]
+    Global_access.oxygen_depth = noise["amplitude"]
 
 
 def decode_grid(self, grid_data, width, height):

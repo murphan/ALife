@@ -49,7 +49,8 @@ auto main () -> int {
 
 			auto json = MessageCreator::initMessage(
 				simulationController.serialize(),
-				controls.serialize()
+				controls.serialize(),
+				settings.serialize()
 			).dump();
 
 			socket.send(json.begin(), json.end());
@@ -86,6 +87,10 @@ auto main () -> int {
 		} else if (parsedMessage.type == "settings") {
 			try {
 				settings.handleSettingsMessage(parsedMessage.body);
+
+				auto json = MessageCreator::settingsMessage(settings.serialize()).dump();
+				socket.send(json.begin(), json.end());
+
 			} catch (...) {
 				std::cout << "bad settings message" << std::endl;
 			}

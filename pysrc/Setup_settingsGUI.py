@@ -185,7 +185,7 @@ class SetupSettings:
         temp_scale_label = Label(temp_scale_frame, text="Temp Noise Scale", background=LIGHT_GREEN)
         temp_scale_label.config(font=("Arial", 10))
         temp_scale_label.pack(side=LEFT)
-        self.temp_scale = tkinter.Scale(temp_scale_frame, from_=1, to=50, orient=HORIZONTAL,
+        self.temp_scale = tkinter.Scale(temp_scale_frame, from_=10, to=100, orient=HORIZONTAL,
                                         background=LIGHT_GREEN, resolution=.1,
                                         state=ACTIVE if temp_noise.get() else DISABLED, command=lambda event:
                                         Control_Environment.EnvironmentControl.set_temp_noise_levels(self,
@@ -211,7 +211,7 @@ class SetupSettings:
         temp_speed_label = Label(temp_speed_frame, text="Temp Noise Speed", background=LIGHT_GREEN)
         temp_speed_label.config(font=("Arial", 10))
         temp_speed_label.pack(side=LEFT)
-        self.temp_speed = tkinter.Scale(temp_speed_frame, from_=0, to=2, orient=HORIZONTAL,
+        self.temp_speed = tkinter.Scale(temp_speed_frame, from_=0, to=1, orient=HORIZONTAL,
                                         background=LIGHT_GREEN, resolution=.1,
                                         state=ACTIVE if temp_noise.get() else DISABLED, command=lambda event:
                                         Control_Environment.EnvironmentControl.set_temp_noise_levels(self,
@@ -256,7 +256,7 @@ class SetupSettings:
         light_scale_label = Label(light_scale_frame, text="Light Noise Scale", background=LIGHT_GREEN)
         light_scale_label.config(font=("Arial", 10))
         light_scale_label.pack(side=LEFT)
-        self.light_scale = tkinter.Scale(light_scale_frame, from_=1, to=50, orient=HORIZONTAL,
+        self.light_scale = tkinter.Scale(light_scale_frame, from_=10, to=100, orient=HORIZONTAL,
                                          background=LIGHT_GREEN, resolution=.1,
                                          state=ACTIVE if light_noise.get() else DISABLED, command=lambda event:
                                          Control_Environment.EnvironmentControl.set_light_noise_levels(self,
@@ -282,7 +282,7 @@ class SetupSettings:
         light_speed_label = Label(light_speed_frame, text="Light Noise Speed", background=LIGHT_GREEN)
         light_speed_label.config(font=("Arial", 10))
         light_speed_label.pack(side=LEFT)
-        self.light_speed = tkinter.Scale(light_speed_frame, from_=0, to=2, orient=HORIZONTAL,
+        self.light_speed = tkinter.Scale(light_speed_frame, from_=0, to=1, orient=HORIZONTAL,
                                          background=LIGHT_GREEN, resolution=.1,
                                          state=ACTIVE if light_noise.get() else DISABLED, command=lambda event:
                                          Control_Environment.EnvironmentControl.set_light_noise_levels(self,
@@ -327,7 +327,7 @@ class SetupSettings:
         oxygen_scale_label = Label(oxygen_scale_frame, text="Oxygen Noise Scale", background=LIGHT_GREEN)
         oxygen_scale_label.config(font=("Arial", 10))
         oxygen_scale_label.pack(side=LEFT)
-        self.oxygen_scale = tkinter.Scale(oxygen_scale_frame, from_=1, to=50, orient=HORIZONTAL,
+        self.oxygen_scale = tkinter.Scale(oxygen_scale_frame, from_=10, to=100, orient=HORIZONTAL,
                                           background=LIGHT_GREEN, resolution=.1,
                                           state=ACTIVE if oxygen_noise.get() else DISABLED, command=lambda event:
                                           Control_Environment.EnvironmentControl.set_oxygen_noise_levels(self,
@@ -353,7 +353,7 @@ class SetupSettings:
         oxygen_speed_label = Label(oxygen_speed_frame, text="Osygen Noise Speed", background=LIGHT_GREEN)
         oxygen_speed_label.config(font=("Arial", 10))
         oxygen_speed_label.pack(side=LEFT)
-        self.oxygen_speed = tkinter.Scale(oxygen_speed_frame, from_=0, to=2, orient=HORIZONTAL,
+        self.oxygen_speed = tkinter.Scale(oxygen_speed_frame, from_=0, to=1, orient=HORIZONTAL,
                                           background=LIGHT_GREEN, resolution=.1,
                                           state=ACTIVE if oxygen_noise.get() else DISABLED, command=lambda event:
                                           Control_Environment.EnvironmentControl.set_oxygen_noise_levels(self,

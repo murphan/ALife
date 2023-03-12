@@ -4,6 +4,8 @@
 
 #include "settings.h"
 
+#include "factor.h"
+
 inline auto parseNoise(Settings::json & body, Noise & noise) -> void {
 	noise.useNoise = body["useNoise"].get<bool>();
 	noise.center = body["center"].get<f32>();
@@ -23,4 +25,14 @@ auto Settings::handleSettingsMessage(Settings::json & body) -> void {
 			parseNoise(*it, this->factorNoises[index]);
 		}
 	}
+}
+
+auto Settings::serialize() const -> json {
+	return {
+		{ "factors", {
+			factorNoises[Factor::TEMPERATURE].serialize(),
+			factorNoises[Factor::LIGHT].serialize(),
+			factorNoises[Factor::OXYGEN].serialize(),
+		} }
+	};
 }
