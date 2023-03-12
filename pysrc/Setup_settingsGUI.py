@@ -174,7 +174,7 @@ class SetupSettings:
         temp_value_label.pack(side=LEFT)
         self.temp_value = tkinter.Scale(temp_value_frame, from_=-1, to=1, orient=HORIZONTAL,
                                         background=LIGHT_GREEN, resolution=.01,
-                                        state=DISABLED if temp_noise.get() else ACTIVE, command=lambda event:
+                                        state=ACTIVE, command=lambda event:
                                         Control_Environment.EnvironmentControl.set_temp_value(self,
                                                                                               self.temp_value.get()))
         self.temp_value.set(Global_access.temperature)
@@ -245,9 +245,9 @@ class SetupSettings:
         light_value_label.pack(side=LEFT)
         self.light_value = tkinter.Scale(light_value_frame, from_=-1, to=1, orient=HORIZONTAL,
                                          background=LIGHT_GREEN, resolution=.01,
-                                         state=DISABLED if light_noise.get() else ACTIVE, command=lambda event:
-                                         Control_Environment.EnvironmentControl.set_light_value(self,
-                                                                                                self.light_value.get()))
+                                         state=ACTIVE, command=lambda event:
+                                        Control_Environment.EnvironmentControl.set_light_value(self,
+                                                                                               self.light_value.get()))
         self.light_value.set(Global_access.light)
         self.light_value.pack(side=LEFT)
 
@@ -316,7 +316,7 @@ class SetupSettings:
         oxygen_value_label.pack(side=LEFT)
         self.oxygen_value = tkinter.Scale(oxygen_value_frame, from_=-1, to=1, orient=HORIZONTAL,
                                           background=LIGHT_GREEN, resolution=.01,
-                                          state=DISABLED if oxygen_noise.get() else ACTIVE, command=lambda event:
+                                          state=ACTIVE, command=lambda event:
                                           Control_Environment.EnvironmentControl.set_oxygen_value(self,
                                                                                                   self.oxygen_value.get()))
         self.oxygen_value.set(Global_access.oxygen)
@@ -407,7 +407,6 @@ class SetupSettings:
             self.oxygen_speed.config(state=ACTIVE)
             self.oxygen_depth.config(state=ACTIVE)
             self.oxygen_scale.config(state=ACTIVE)
-            self.oxygen_value.config(state=DISABLED, takefocus=0)
             self.oxygen_speed.set(Global_access.oxygen_speed)
             self.oxygen_depth.set(Global_access.oxygen_depth)
             self.oxygen_scale.set(Global_access.oxygen_scale)
@@ -415,7 +414,6 @@ class SetupSettings:
             self.oxygen_speed.config(state=DISABLED, takefocus=0)
             self.oxygen_depth.config(state=DISABLED, takefocus=0)
             self.oxygen_scale.config(state=DISABLED, takefocus=0)
-            self.oxygen_value.config(state=ACTIVE)
             self.oxygen_value.set(Global_access.oxygen)
 
     def set_light_noise(self, light_noise):
@@ -427,7 +425,6 @@ class SetupSettings:
             self.light_speed.config(state=ACTIVE)
             self.light_depth.config(state=ACTIVE)
             self.light_scale.config(state=ACTIVE)
-            self.light_value.config(state=DISABLED, takefocus=0)
             self.light_speed.set(Global_access.light_speed)
             self.light_depth.set(Global_access.light_depth)
             self.light_scale.set(Global_access.light_scale)
@@ -435,7 +432,6 @@ class SetupSettings:
             self.light_speed.config(state=DISABLED, takefocus=0)
             self.light_depth.config(state=DISABLED, takefocus=0)
             self.light_scale.config(state=DISABLED, takefocus=0)
-            self.light_value.config(state=ACTIVE)
             self.light_value.set(Global_access.light)
 
     def set_temp_noise(self, temp_noise):
@@ -447,7 +443,6 @@ class SetupSettings:
             self.temp_speed.config(state=ACTIVE)
             self.temp_depth.config(state=ACTIVE)
             self.temp_scale.config(state=ACTIVE)
-            self.temp_value.config(state=DISABLED, takefocus=0)
             self.temp_speed.set(Global_access.temp_speed)
             self.temp_depth.set(Global_access.temp_depth)
             self.temp_scale.set(Global_access.temp_scale)
@@ -455,5 +450,4 @@ class SetupSettings:
             self.temp_speed.config(state=DISABLED, takefocus=0)
             self.temp_depth.config(state=DISABLED, takefocus=0)
             self.temp_scale.config(state=DISABLED, takefocus=0)
-            self.temp_value.config(state=ACTIVE)
             self.temp_value.set(Global_access.temperature)
