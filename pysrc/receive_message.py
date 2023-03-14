@@ -2,6 +2,7 @@ import base64
 import ast
 import random
 import json
+import pygame.display
 
 import Global_access
 import Control_EnvironmentGUI
@@ -23,33 +24,23 @@ def decode_message(self, conn):
 
     NOTE: Self was passed from setup_environment and so this will be a setup_environment instance of self
     """
+
     while True and not Global_access.EXIT:
         message_buf = ''  # The buffer to append message information to
-        first_time = True  # Flag for if this is the first of the message received
 
-        message = conn.recv(1024)
-        if message:
-            length = int.from_bytes(message[:4], "big")
+        length = conn.recv(4)
+        if length:
+            length = int.from_bytes(length, "big")
             length_same = length
-            message = message[4:]
-            message = message.decode(errors="ignore")
-            while length:
-                if length < 1020:
+            while length > 0:
+                if length < 1024:
+                    message = conn.recv(length).decode(errors="ignore")
                     message_buf += message
                     length = 0
-                    break
-                elif first_time:
-                    message_buf += message
-                    length -= 1020
-                    first_time = False
-                else:
-                    message_buf += message
-                    length -= 1024
-
-                if length < 1020:
-                    message = conn.recv(length).decode(errors="ignore")
                 else:
                     message = conn.recv(1024).decode(errors="ignore")
+                    message_buf += message
+                    length -= len(message)
 
             data_map = json.loads(message_buf[:length_same])
 
@@ -60,12 +51,16 @@ def decode_message(self, conn):
             elif message_type == "init":
                 handle_environment_data(self, data_map["environment"])
                 handle_control_data(self, data_map["control"])
+                handle_settings_data(data_map["settings"])
 
             elif message_type == "organism_data":
-                pass
+                print("organism data received")
 
             elif message_type == "control":
                 handle_control_data(self, data_map["control"])
+
+            elif message_type == "settings":
+                handle_settings_data(data_map["settings"])
 
 
 def handle_environment_data(self, environment):
@@ -73,8 +68,12 @@ def handle_environment_data(self, environment):
     width = environment["width"]
     # Global_access.define_grid(width, height)   Uncomment when making grid dynamically sized
     environment["grid"] = base64.b64decode(environment["grid"])
-    environment["grid"] = [environment["grid"][i: i + 11] for i in range(0, len(environment["grid"]), 11)]
+    environment["grid"] = [environment["grid"][i: i + 10] for i in range(0, len(environment["grid"]), 10)]
     decode_grid(self, environment["grid"], width, height)
+
+    draw_factors_grid(self, width, height)
+    draw_food_walls(self, width, height)
+
     decode_organisms(self, environment["organisms"])
     Global_access.new_frame = True
 
@@ -87,6 +86,37 @@ def handle_control_data(self, control):
     Global_access.change_fps(control["fps"])
     Global_access.updateDisplay = control["updateDisplay"]
     Global_access.running = control["playing"]
+
+
+def handle_settings_data(settings):
+    factors = settings["factors"]
+
+    # ok this is just a massive pain, like
+    # this data should be reallllly be grouped into a struct and then into an array (like how it is in the message)
+    # to avoid this stupid code duplication
+    # also why the hell is using noise internally stored as an int when it is always used like a boolean
+    noise =factors[0]
+    Global_access.temp_noise = int(noise["useNoise"])
+    Global_access.temperature = noise["center"]
+    Global_access.temp_speed = noise["speed"]
+    Global_access.temp_scale = noise["scale"]
+    Global_access.temp_depth = noise["amplitude"]
+
+    # in general, if you find yourself making a set of identical variables that are all prefixed by something
+    # then you should put them into a dictionary (or whatever you python people call it) named that prefix
+    noise = factors[1]
+    Global_access.light_noise = int(noise["useNoise"])
+    Global_access.light = noise["center"]
+    Global_access.light_speed = noise["speed"]
+    Global_access.light_scale = noise["scale"]
+    Global_access.light_depth = noise["amplitude"]
+
+    noise = factors[2]
+    Global_access.oxygen_noise = int(noise["useNoise"])
+    Global_access.oxygen = noise["center"]
+    Global_access.oxygen_speed = noise["speed"]
+    Global_access.oxygen_scale = noise["scale"]
+    Global_access.oxygen_depth = noise["amplitude"]
 
 
 def decode_grid(self, grid_data, width, height):
@@ -105,33 +135,47 @@ def decode_grid(self, grid_data, width, height):
     :param height: height of the grid
     :type height: int
     """
-    index = 0
     for y in range(height):
         for x in range(width):
-            data = grid_data[index]
-            factor_0 = int.from_bytes(data[:1], "big", signed=True)
-            factor_1 = int.from_bytes(data[1:2], "big", signed=True)
-            factor_2 = int.from_bytes(data[2:3], "big", signed=True)
-            factor_3 = int.from_bytes(data[3:4], "big", signed=True)
-            tile_type = int.from_bytes(data[4:5], "big", signed=True)
-            food_energy = int.from_bytes(data[5:6], "big")
-            food_age = int.from_bytes(data[6:9], "big")
-            pressure = int.from_bytes(data[9:], "big", signed=True)
-            cell = Environment_cell.EnvironmentCell(factor_0, factor_1, factor_2, factor_3,
-                                                    tile_type, food_energy, food_age, pressure)
+            data = grid_data[y * width + x]
+
+            factor_0    = int.from_bytes(data[:1], "big", signed=True)
+            factor_1    = int.from_bytes(data[1:2], "big", signed=True)
+            factor_2    = int.from_bytes(data[2:3], "big", signed=True)
+            tile_type   = int.from_bytes(data[3:4], "big", signed=True)
+            food_energy = int.from_bytes(data[4:5], "big", signed=True)
+            food_age    = int.from_bytes(data[5:9], "big", signed=True)
+            pressure    = int.from_bytes(data[9:], "big", signed=True)
+
+            cell = Environment_cell.EnvironmentCell(factor_0, factor_1, factor_2, tile_type, food_energy, food_age, pressure)
+
             Global_access.ENVIRONMENT_GRID[x][y]["environment"] = cell
             Global_access.ENVIRONMENT_GRID[x][y]["organism"] = None
+
+
+def draw_factors_grid(self, width, height):
+    pixel_array = pygame.PixelArray(Global_access.factors_surface)
+
+    for y in range(height):
+        for x in range(width):
+            cell = Global_access.ENVIRONMENT_GRID[x][y]["environment"]
+
+            pixel_array[x, y] = (cell.factor_0 + 128, cell.factor_1 + 128, cell.factor_2 + 128)
+
+    pixel_array.close()
+
+    Global_access.second_surface.blit(pygame.transform.smoothscale(Global_access.factors_surface, (width * 10, height * 10)), (0, 0))
+
+
+def draw_food_walls(self, width, height):
+    for y in range(height):
+        for x in range(width):
+            cell = Global_access.ENVIRONMENT_GRID[x][y]["environment"]
+
             if cell.tile_type == -1:
                 Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x, y, Global_access.WHITE)
-            if cell.tile_type == 0:
-                Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x, y, Global_access.YELLOW)
-            if cell.tile_type == 1:
-                Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x, y, Global_access.ORANGE)
-            if cell.tile_type == 2:
-                Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x, y, Global_access.RED)
-            if cell.tile_type == 3:
-                Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x, y, Global_access.PINK)
-            index += 1
+            elif cell.tile_type in Global_access.food_colors:
+                Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x, y, Global_access.food_colors[cell.tile_type], True)
 
 
 def decode_organisms(self, organisms):

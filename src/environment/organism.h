@@ -12,9 +12,12 @@
 #include "genome/body.h"
 #include "environment/food.h"
 #include "uuid.h"
+#include "json.hpp"
 
 class Organism {
 private:
+	using json = nlohmann::json;
+
 	Phenome phenome;
 
 public:
@@ -37,6 +40,8 @@ public:
     auto eatFood(Food & food) -> void;
 
 	auto tick() -> i32;
+
+	auto serialize(bool detailed) const -> json;
 };
 
 #endif //ALIFE_ORGANISM_H

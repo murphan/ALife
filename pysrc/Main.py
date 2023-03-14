@@ -72,7 +72,7 @@ class Management:
                     else:  # Display on the environment that a square was clicked
                         self.EnvironmentControl.square_clicked(event, self.EnvironmentGui, self.conn)
 
-            pygame.display.flip()
+            pygame.display.update()
 
     def exiting(self):
         confirm = messagebox.askokcancel(title="Quit?", message="Are you sure that you want to Quit?")

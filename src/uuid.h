@@ -6,6 +6,7 @@
 #define ALIFE_UUID_H
 
 #include <random>
+#include <optional>
 
 #include "types.h"
 
@@ -23,6 +24,7 @@ public:
 	UUID(u64 high, u64 low);
 
 	static auto generateRandom() -> UUID;
+	static auto fromString(std::string & input) -> std::optional<UUID>;
 
 	auto operator==(const UUID & other) const -> bool;
 
