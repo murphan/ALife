@@ -15,3 +15,7 @@ auto Food::getEnergy() const -> u8 {
 auto Food::addEnergy(i32 energy) -> void {
 	this->energy += energy;
 }
+
+auto Food::addEnergy(i32 energy) -> void {
+	this->energy += energy;
+}
