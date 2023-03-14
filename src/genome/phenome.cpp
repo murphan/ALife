@@ -52,6 +52,7 @@ Phenome::Phenome(Genome && inGenome, Body && inBody):
 	genome(std::move(inGenome)),
 	body(std::move(inBody)),
 	foodStats(),
+	moveTries(0),
 	senses(),
 	eyeReactions(),
 	environmentReactions()
@@ -65,7 +66,7 @@ Phenome::Phenome(Genome && inGenome, Body && inBody):
 		auto geneType = seekDoubles(genome, i);
 
         if (geneType == Genome::A) {
-	        auto gene = readNBases(genome, i, 7);
+	        auto gene = readNBases(genome, i, 6);
 	        if (gene.empty()) break;
 
 	        auto bodyGene = BodyGene(gene);
@@ -78,7 +79,7 @@ Phenome::Phenome(Genome && inGenome, Body && inBody):
 		        bodyBuilder.anchors[bodyGene.setAnchor] = { bodyBuilder.currentX, bodyBuilder.currentY };
 	        }
 
-			//TODO populate senses once we figure out which body parts are sense cells
+			if (bodyGene.bodyPart == BodyPart::MOVER) ++moveTries;
 
 		} else if (geneType == Genome::B) {
 	        auto gene = readNBases(genome, i, 12);

@@ -29,7 +29,7 @@ auto main () -> int {
 
 	auto initialPhenome = Phenome(InitialGenome::create(), Body(2, BodyPart::MOUTH));
 
-	OrganismSeeder::insertInitialOrganisms(simulationController.organisms, simulationController.environment, initialPhenome, 15);
+	OrganismSeeder::insertInitialOrganisms(simulationController.organisms, simulationController.environment, initialPhenome, 35);
 
 	simulationController.scatterFood(Food::FOOD0, 50, 1);
 

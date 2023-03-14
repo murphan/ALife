@@ -31,6 +31,8 @@ public:
     auto getType() const -> Type;
 	auto getEnergy() const -> u8;
 	auto getAge() const -> u32;
+
+	auto addEnergy(i32 energy) -> void;
 };
 
 #endif //ALIFE_FOOD_H

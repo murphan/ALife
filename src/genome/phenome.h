@@ -45,6 +45,12 @@ public:
 	FoodStats foodStats[4];
 
 	/**
+	 * how many mover cells this organism has,
+	 * determines how many tries it gets in a turn to find a valid move
+	 */
+	i32 moveTries;
+
+	/**
 	 * indices of the sense cells within the body for quick lookup
 	 */
 	std::vector<Sense> senses;

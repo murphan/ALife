@@ -17,7 +17,9 @@ auto SimulationController::tick(Settings & settings) -> void {
 
 	updateFactors(std::span(settings.factorNoises, settings.factorNoises + 3));
 
-	moveOrganisms();
+	auto damages = moveOrganisms();
+
+	doDamageAndKill(damages);
 
 	organismsAgeAndDie(settings.ageFactor);
 
@@ -28,25 +30,57 @@ auto SimulationController::tick(Settings & settings) -> void {
 
 auto symmetricRange = std::uniform_int_distribution<i32>(-1, 1);
 
-auto SimulationController::moveOrganisms() -> void {
+auto SimulationController::moveOrganisms() -> std::vector<i32> {
 	organismGrid.clear();
+
+	auto damages = std::vector<i32>(organisms.size());
 
 	for (auto i = 0; i < organisms.size(); ++i) {
 		organismGrid.placeOrganism(organisms.at(i), tempId(i));
 	}
 
 	for (auto i = 0; i < organisms.size(); ++i) {
-		auto deltaX = symmetricRange(random);
-		auto deltaY = symmetricRange(random);
-		auto deltaRotation = symmetricRange(random);
-
 		auto && organism = organisms.at(i);
-		auto id = tempId(i);
 
-		if (organismGrid.canMoveOrganism(organism, id, deltaX, deltaY, deltaRotation)) {
-			organismGrid.moveOrganism(organism, id, deltaX, deltaY, deltaRotation);
+		for (auto j = 0; j < organism.getPhenome().moveTries; ++j) {
+			auto deltaX = symmetricRange(random);
+			auto deltaY = symmetricRange(random);
+			auto deltaRotation = symmetricRange(random);
+
+			auto id = tempId(i);
+
+			if (organismGrid.canMoveOrganism(organism, id, deltaX, deltaY, deltaRotation, [&](BodyPart bodyPart, u32 gridSpace) {
+				/* attacking another organism */
+				if (bodyPart == BodyPart::WEAPON && OrganismGridSpace::getBodyPart(gridSpace) != BodyPart::ARMOR) {
+					damages[OrganismGridSpace::getTempId(gridSpace) - 1] += 1;
+
+				/* moving into another organism's weapon and getting hurt */
+				} else if (bodyPart != BodyPart::ARMOR && OrganismGridSpace::getBodyPart(gridSpace) == BodyPart::WEAPON) {
+					damages[i] += 1;
+				}
+
+			})) {
+				organismGrid.moveOrganism(organism, id, deltaX, deltaY, deltaRotation);
+				break;
+			}
 		}
 	}
+
+	return damages;
+}
+
+auto SimulationController::doDamageAndKill(std::vector<i32> & damages) -> void {
+	for (auto i = 0; i < organisms.size(); ++i) {
+		organisms[i].energy -= damages[i];
+	}
+
+	std::erase_if(organisms, [this](Organism & organism) {
+		if (organism.energy <= 0) {
+			replaceOrganismWithFood(organism);
+			return true;
+		}
+		return false;
+	});
 }
 
 auto SimulationController::organismsAgeAndDie(i32 ageFactor) -> void {
@@ -72,7 +106,13 @@ auto SimulationController::replaceOrganismWithFood(const Organism & organism) ->
 			auto cell = body.access(i, j, rotation);
 
 			if (cell != BodyPart::NONE) {
-				environment.getCell(x, y).setFood(Food(Food::FOOD0, 1));
+				auto && environmentCell = environment.getCell(x, y);
+
+				if (environmentCell.getHasFood()) {
+					environmentCell.getFood().addEnergy(1);
+				} else {
+					environmentCell.setFood(Food(Food::FOOD0, 1));
+				}
 			}
 		}
 	}
@@ -135,7 +175,7 @@ auto SimulationController::addFood(i32 foodX, i32 foodY, Food::Type type, i32 en
 auto SimulationController::scatterFood(Food::Type type, i32 numFood, i32 energyDefault) -> void {
     for (int i = 0; i < numFood; ++i) {
         auto x = std::uniform_int_distribution(0, organismGrid.getWidth() - 1)(random);
-        auto y = std::uniform_int_distribution(0, organismGrid.getHight() - 1)(random);
+        auto y = std::uniform_int_distribution(0, organismGrid.getHeight() - 1)(random);
 
         if (!organismGrid.organismInSpace(x, y))
             addFood(x, y, type, energyDefault);
@@ -160,7 +200,7 @@ auto SimulationController::organismsEat() -> void {
 
 				auto && environmentCell = environment.getCell(x, y);
 
-				if (environmentCell.getHasFood() && body.access(i, j, rotation) != BodyPart::NONE) {
+				if (environmentCell.getHasFood() && body.access(i, j, rotation) == BodyPart::MOUTH) {
 					organism.eatFood(environmentCell.getFood());
 					environmentCell.removeFood();
 				}

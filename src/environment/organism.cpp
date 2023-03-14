@@ -10,7 +10,7 @@ Organism::Organism(Phenome && phenome, UUID uuid, i32 x, i32 y, Direction rotati
 	x(x),
 	y(y),
 	rotation(rotation),
-	energy(0),
+	energy(phenome.body.getNumCells()),
 	age(0) {}
 
 auto Organism::getPhenome() const -> const Phenome & {
@@ -35,7 +35,7 @@ auto Organism::tick() -> i32 {
  * @param food peice of food on the map
  * Adds food energy to the organism
  */
-auto Organism::eatFood(Food &food) -> void {
+auto Organism::eatFood(Food & food) -> void {
     energy += food.getEnergy();
 }
 

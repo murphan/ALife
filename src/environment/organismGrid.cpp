@@ -62,15 +62,6 @@ auto OrganismGrid::placeOrganism(const Organism & organism, i32 tempId) -> void 
 	}
 }
 
-auto OrganismGrid::canMoveOrganism(const Organism & organism, i32 tempId, i32 deltaX, i32 deltaY, i32 deltaRotation) -> bool {
-	return internalSpaceAvailable(
-		organism.body(),
-		tempId, organism.x + deltaX,
-		organism.y + deltaY,
-		organism.rotation.rotate(deltaRotation)
-		);
-}
-
 /**
  * modifies the passed organism's position and rotation
  */
@@ -119,6 +110,14 @@ auto OrganismGrid::organismInSpace(i32 x, i32 y) const -> bool {
 	return OrganismGridSpace::getFilled(grid[indexOf(x, y)]);
 }
 
+auto OrganismGrid::getWidth() const -> i32 {
+	return width;
+}
+
+auto OrganismGrid::getHeight() const -> i32 {
+	return height;
+}
+
 auto OrganismGridSpace::makeEmpty() -> u32 {
 	return 0;
 }
@@ -137,12 +136,4 @@ auto OrganismGridSpace::getTempId(u32 space) -> i32 {
 
 auto OrganismGridSpace::getBodyPart(u32 space) -> BodyPart {
 	return (BodyPart)((space >> 29) + 1);
-}
-
-auto OrganismGrid::getWidth() const -> i32 {
-    return width;
-}
-
-auto OrganismGrid::getHight() const -> i32 {
-    return height;
 }

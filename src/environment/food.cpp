@@ -19,3 +19,7 @@ auto Food::getEnergy() const -> u8 {
 auto Food::getAge() const -> u32 {
 	return age;
 }
+
+auto Food::addEnergy(i32 energy) -> void {
+	this->energy += energy;
+}
