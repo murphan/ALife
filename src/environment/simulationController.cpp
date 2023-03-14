@@ -15,11 +15,17 @@ auto SimulationController::tempId(i32 index) -> i32 {
 auto SimulationController::tick() -> void {
 	std::shuffle(organisms.begin(), organisms.end(), random);
 
+    for (auto && organism : organisms) {
+        organism.tick();
+    }
+
 	moveOrganisms();
 
 	organismsAgeAndDie();
 
     organismsEat();
+
+    organismsReproduce();
 
 	++currentTick;
 }
@@ -49,7 +55,7 @@ auto SimulationController::moveOrganisms() -> void {
 
 auto SimulationController::organismsAgeAndDie() -> void {
 	std::erase_if(organisms, [this](auto && organism) {
-		auto newAge = organism.tick();
+		auto newAge = organism.age;
 
 		//TODO put in settings
 		constexpr auto AGE_FACTOR = 1600;
@@ -199,6 +205,18 @@ auto SimulationController::organismsEat() -> void {
 			}
 		}
 	}
+}
+
+auto SimulationController::organismsReproduce() -> void {
+    for (auto && organism : organisms) {
+        if (organism.energy > organism.getPhenome().repoductionThreshold)
+            addChild(organism);
+    }
+}
+
+auto SimulationController::addChild(auto && organism) -> void {
+
+    return;
 }
 
 auto SimulationController::howMuchFood() -> i32 {

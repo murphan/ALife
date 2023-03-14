@@ -30,6 +30,10 @@ private:
 
     auto organismsEat() -> void;
 
+    auto organismsReproduce() ->void;
+
+    auto addChild(auto && organism) -> void;
+
 
 public:
 	Environment environment;

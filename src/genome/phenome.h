@@ -52,6 +52,8 @@ public:
 	std::vector<EyeGene> eyeReactions;
 	std::vector<EnvironmentGene> environmentReactions;
 
+    i32 repoductionThreshold = 150;
+
 	explicit Phenome(Genome && inGenome, Body && inBody);
 
 	Phenome(const Phenome & other) = default;
