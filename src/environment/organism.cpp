@@ -32,7 +32,7 @@ auto Organism::tick() -> i32 {
     auto organismSize = phenome.body.getNumCells();
 
     //energy spent to keep the organism alive
-    energy -= organismSize;
+    //energy -= organismSize;
 
 	return ++age;
 }

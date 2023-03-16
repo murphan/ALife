@@ -1,5 +1,6 @@
 
 #include "environment/simulationController.h"
+#include <iostream>
 
 SimulationController::SimulationController(Environment && environment) :
 	random(std::random_device()()),
@@ -200,6 +201,7 @@ auto SimulationController::organismsEat() -> void {
 
 				if (environmentCell.getHasFood() && body.access(i, j, rotation) != BodyPart::NONE) {
 					organism.eatFood(environmentCell.getFood());
+                    std::cout << "Food eaten " << organism.energy <<std::endl;
 					environmentCell.removeFood();
 				}
 			}
@@ -215,7 +217,8 @@ auto SimulationController::organismsReproduce() -> void {
 }
 
 auto SimulationController::addChild(auto && organism) -> void {
-
+    std::cout << "Added Child" << std::endl;
+    organism.energy -=75;
     return;
 }
 
