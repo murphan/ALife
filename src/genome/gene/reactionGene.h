@@ -47,6 +47,12 @@ public:
 		CREATURE,
 	};
 
+	constexpr static const char * SEEING_THING_NAMES[4] = {
+		"Wall",
+		"Food",
+		"Creature"
+	};
+
 	SeeingThing seeingThing;
 	bool specific;
 
@@ -73,6 +79,9 @@ public:
 	auto writeBody(Genome & genome) -> void final;
 
 	auto triggers(f32 level) const -> bool;
+
+	auto getAbove() const -> bool;
+	auto getThreshold() const -> f32;
 };
 
 #endif //ALIFE_REACTIONGENE_H

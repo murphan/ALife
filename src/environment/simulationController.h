@@ -5,10 +5,12 @@
 #include "environment/environment.h"
 
 #include <vector>
+#include <span>
 
 #include "controls.h"
 #include "organism.h"
 #include "organismGrid.h"
+#include "settings.h"
 
 using json = nlohmann::json;
 
@@ -24,7 +26,7 @@ private:
 
 	auto moveOrganisms() -> void;
 
-	auto organismsAgeAndDie() -> void;
+	auto organismsAgeAndDie(i32 ageFactor) -> void;
 
 	auto replaceOrganismWithFood(const Organism & organism) -> void;
 
@@ -35,6 +37,9 @@ private:
     auto addChild(auto && organism) -> void;
 
 
+	auto updateFactors(std::span<Noise> noises) -> void;
+
+
 public:
 	Environment environment;
 	std::vector<Organism> organisms;
@@ -43,13 +48,15 @@ public:
 
     explicit SimulationController(Environment && environment);
 
-	auto tick() -> void;
+	auto tick(Settings & settings) -> void;
 
 	auto serialize() -> json;
 
     auto addFood(i32 foodX, i32 foodY, Food::Type type, i32 energy) -> void;
     auto scatterFood(Food::Type type, i32 numFood, i32 energyDefault) -> void;
     auto howMuchFood() -> i32;
+
+	auto getOrganism(UUID & id) -> Organism *;
 };
 
 #endif //ALIFE_SIMULATIONCONTROLLER_H

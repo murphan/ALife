@@ -18,7 +18,13 @@
 #include "genome/initialGenome.h"
 
 auto main () -> int {
-	auto controls = Controls { .playing=true, .fps=20, .updateDisplay=true };
+
+	auto controls = Controls { .playing=false, .fps=20, .updateDisplay=true };
+	auto settings = Settings { .ageFactor = 1000, .factorNoises = {
+		Noise(0,true, 0.0_f32, 0.01_f32, 100.0_f32, 1.0_f32),
+		Noise(1,true, 0.0_f32, 0.1_f32, 50.0_f32, 1.0_f32),
+		Noise(2,true, 0.0_f32, 0.2_f32, 35.0_f32, 1.0_f32),
+	} };
 
 	auto simulationController = SimulationController(Environment(150, 72));
 
@@ -35,31 +41,63 @@ auto main () -> int {
 	socket.init("51679", [&](const std::vector<char> & message) -> void {
 		auto messageString = std::string(message.begin(), message.end());
 
-		auto parsedMessage = MessageReceiver::receive(messageString);
-		if (!parsedMessage.has_value()) return;
+		auto messageResult = MessageReceiver::receive(messageString);
+		if (!messageResult.has_value()) return;
+		auto && parsedMessage = messageResult.value();
 
-		if (parsedMessage->type == "init") {
+		if (parsedMessage.type == "init") {
 			auto lock = std::unique_lock(simulationMutex);
 
 			auto json = MessageCreator::initMessage(
 				simulationController.serialize(),
-				controls.serialize()
+				controls.serialize(),
+				settings.serialize()
 			).dump();
 
 			socket.send(json.begin(), json.end());
 
-		} else if (parsedMessage->type == "control") {
-			if (!parsedMessage->body.contains("control")) return;
+		} else if (parsedMessage.type == "control") {
+			if (!parsedMessage.body.contains("control")) return;
 
 			auto lock = std::unique_lock(simulationMutex);
-			controls.updateFromSerialized(parsedMessage->body["control"]);
+			controls.updateFromSerialized(parsedMessage.body["control"]);
 
 			auto json = MessageCreator::controlsMessage(controls.serialize()).dump();
 
 			socket.send(json.begin(), json.end());
 
+		} else if (parsedMessage.type == "request") {
+			if (!parsedMessage.body.contains("id")) return;
+			auto id = parsedMessage.body["id"];
+			if (!id.is_string()) return;
+
+			auto idString = id.get<std::string>();
+			auto uuid = UUID::fromString(idString);
+			if (!uuid.has_value()) return;
+
+			auto * organism = simulationController.getOrganism(uuid.value());
+			if (organism == nullptr) {
+				auto json = MessageCreator::emptyOrganismRequestMessage().dump();
+				socket.send(json.begin(), json.end());
+				return;
+			}
+
+			auto json = MessageCreator::organismRequestMessage(organism->serialize(true)).dump();
+			socket.send(json.begin(), json.end());
+
+		} else if (parsedMessage.type == "settings") {
+			try {
+				settings.handleSettingsMessage(parsedMessage.body);
+
+				auto json = MessageCreator::settingsMessage(settings.serialize()).dump();
+				socket.send(json.begin(), json.end());
+
+			} catch (...) {
+				std::cout << "bad settings message" << std::endl;
+			}
 		} else {
-			std::cout << "unknown message of type" << parsedMessage->type << std::endl;
+			std::cout << "unknown message of type" << parsedMessage.type << std::endl;
+			std::cout << parsedMessage.body << std::endl;
 		}
 	});
 
@@ -74,7 +112,7 @@ auto main () -> int {
 		auto lock = std::unique_lock(simulationMutex);
 
 		if (controls.playing) {
-			simulationController.tick();
+			simulationController.tick(settings);
 		}
 
 		if (socket.isConnected() && controls.updateDisplay && controls.playing && (now - lastSendTime) >= minSendTime) {

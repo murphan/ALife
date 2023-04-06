@@ -62,10 +62,7 @@ EnvironmentGene::EnvironmentGene(i32 factor, bool above, i32 threshold, i32 prio
 		factor(factor), above(above), threshold(threshold), ReactionGene(priority, actionType) {}
 
 auto EnvironmentGene::triggers(f32 level) const -> bool {
-	/* convert 0 - 4 to -1.0 - 1.0 */
-	auto thresholdValue = ((f32)threshold * 0.5_f32) - 1.0_f32;
-
-	return above ? level > thresholdValue : level < thresholdValue;
+	return above ? level > getThreshold() : level < getThreshold();
 }
 
 EnvironmentGene::EnvironmentGene(GenomeView & view) :
@@ -82,4 +79,13 @@ auto EnvironmentGene::writeBody(Genome & genome) -> void {
 	write5(genome, threshold);
 
 	ReactionGene::writeBody(genome);
+}
+
+auto EnvironmentGene::getAbove() const -> bool {
+	return above;
+}
+
+auto EnvironmentGene::getThreshold() const -> f32 {
+	/* convert 0 - 4 to -1.0 - 1.0 */
+	return ((f32)threshold * .5_f32) - 1._f32;
 }

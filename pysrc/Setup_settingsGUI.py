@@ -169,12 +169,12 @@ class SetupSettings:
         temp_noise_check.pack(side=LEFT)
 
         temp_value_frame = tkinter.Frame(temp_frame, bg=LIGHT_GREEN)
-        temp_value_label = Label(temp_value_frame, text="Temp Value", background=LIGHT_GREEN)
+        temp_value_label = Label(temp_value_frame, text="Center", background=LIGHT_GREEN)
         temp_value_label.config(font=("Arial", 10))
         temp_value_label.pack(side=LEFT)
         self.temp_value = tkinter.Scale(temp_value_frame, from_=-1, to=1, orient=HORIZONTAL,
                                         background=LIGHT_GREEN, resolution=.01,
-                                        state=DISABLED if temp_noise.get() else ACTIVE, command=lambda event:
+                                        state=ACTIVE, command=lambda event:
                                         Control_Environment.EnvironmentControl.set_temp_value(self,
                                                                                               self.temp_value.get()))
         self.temp_value.set(Global_access.temperature)
@@ -182,10 +182,10 @@ class SetupSettings:
 
         temp_scale_frame = tkinter.Frame(temp_frame, bg=LIGHT_GREEN)
         temp_noise_check.config(font=("Arial", 10))
-        temp_scale_label = Label(temp_scale_frame, text="Temp Noise Scale", background=LIGHT_GREEN)
+        temp_scale_label = Label(temp_scale_frame, text="Noise Scale", background=LIGHT_GREEN)
         temp_scale_label.config(font=("Arial", 10))
         temp_scale_label.pack(side=LEFT)
-        self.temp_scale = tkinter.Scale(temp_scale_frame, from_=1, to=50, orient=HORIZONTAL,
+        self.temp_scale = tkinter.Scale(temp_scale_frame, from_=10, to=100, orient=HORIZONTAL,
                                         background=LIGHT_GREEN, resolution=.1,
                                         state=ACTIVE if temp_noise.get() else DISABLED, command=lambda event:
                                         Control_Environment.EnvironmentControl.set_temp_noise_levels(self,
@@ -195,7 +195,7 @@ class SetupSettings:
         self.temp_scale.pack(side=LEFT)
 
         temp_depth_frame = tkinter.Frame(temp_frame, bg=LIGHT_GREEN)
-        temp_depth_label = Label(temp_depth_frame, text="Temp Noise Depth", background=LIGHT_GREEN)
+        temp_depth_label = Label(temp_depth_frame, text="Noise Depth", background=LIGHT_GREEN)
         temp_depth_label.config(font=("Arial", 10))
         temp_depth_label.pack(side=LEFT)
         self.temp_depth = tkinter.Scale(temp_depth_frame, from_=0, to=2, orient=HORIZONTAL,
@@ -208,10 +208,10 @@ class SetupSettings:
         self.temp_depth.pack(side=LEFT)
 
         temp_speed_frame = tkinter.Frame(temp_frame, bg=LIGHT_GREEN)
-        temp_speed_label = Label(temp_speed_frame, text="Temp Noise Speed", background=LIGHT_GREEN)
+        temp_speed_label = Label(temp_speed_frame, text="Noise Speed", background=LIGHT_GREEN)
         temp_speed_label.config(font=("Arial", 10))
         temp_speed_label.pack(side=LEFT)
-        self.temp_speed = tkinter.Scale(temp_speed_frame, from_=0, to=2, orient=HORIZONTAL,
+        self.temp_speed = tkinter.Scale(temp_speed_frame, from_=0, to=1, orient=HORIZONTAL,
                                         background=LIGHT_GREEN, resolution=.1,
                                         state=ACTIVE if temp_noise.get() else DISABLED, command=lambda event:
                                         Control_Environment.EnvironmentControl.set_temp_noise_levels(self,
@@ -240,12 +240,12 @@ class SetupSettings:
         light_noise_check.pack(side=LEFT)
 
         light_value_frame = tkinter.Frame(light_frame, bg=LIGHT_GREEN)
-        light_value_label = Label(light_value_frame, text="Light Value", background=LIGHT_GREEN)
+        light_value_label = Label(light_value_frame, text="Center", background=LIGHT_GREEN)
         light_value_label.config(font=("Arial", 10))
         light_value_label.pack(side=LEFT)
         self.light_value = tkinter.Scale(light_value_frame, from_=-1, to=1, orient=HORIZONTAL,
                                          background=LIGHT_GREEN, resolution=.01,
-                                         state=DISABLED if light_noise.get() else ACTIVE, command=lambda event:
+                                         state=ACTIVE, command=lambda event:
                                         Control_Environment.EnvironmentControl.set_light_value(self,
                                                                                                self.light_value.get()))
         self.light_value.set(Global_access.light)
@@ -253,10 +253,10 @@ class SetupSettings:
 
         light_scale_frame = tkinter.Frame(light_frame, bg=LIGHT_GREEN)
         light_noise_check.config(font=("Arial", 10))
-        light_scale_label = Label(light_scale_frame, text="Light Noise Scale", background=LIGHT_GREEN)
+        light_scale_label = Label(light_scale_frame, text="Noise Scale", background=LIGHT_GREEN)
         light_scale_label.config(font=("Arial", 10))
         light_scale_label.pack(side=LEFT)
-        self.light_scale = tkinter.Scale(light_scale_frame, from_=1, to=50, orient=HORIZONTAL,
+        self.light_scale = tkinter.Scale(light_scale_frame, from_=10, to=100, orient=HORIZONTAL,
                                          background=LIGHT_GREEN, resolution=.1,
                                          state=ACTIVE if light_noise.get() else DISABLED, command=lambda event:
                                          Control_Environment.EnvironmentControl.set_light_noise_levels(self,
@@ -266,7 +266,7 @@ class SetupSettings:
         self.light_scale.pack(side=LEFT)
 
         light_depth_frame = tkinter.Frame(light_frame, bg=LIGHT_GREEN)
-        light_depth_label = Label(light_depth_frame, text="Light Noise Depth", background=LIGHT_GREEN)
+        light_depth_label = Label(light_depth_frame, text="Noise Depth", background=LIGHT_GREEN)
         light_depth_label.config(font=("Arial", 10))
         light_depth_label.pack(side=LEFT)
         self.light_depth = tkinter.Scale(light_depth_frame, from_=0, to=2, orient=HORIZONTAL,
@@ -279,10 +279,10 @@ class SetupSettings:
         self.light_depth.pack(side=LEFT)
 
         light_speed_frame = tkinter.Frame(light_frame, bg=LIGHT_GREEN)
-        light_speed_label = Label(light_speed_frame, text="Light Noise Speed", background=LIGHT_GREEN)
+        light_speed_label = Label(light_speed_frame, text="Noise Speed", background=LIGHT_GREEN)
         light_speed_label.config(font=("Arial", 10))
         light_speed_label.pack(side=LEFT)
-        self.light_speed = tkinter.Scale(light_speed_frame, from_=0, to=2, orient=HORIZONTAL,
+        self.light_speed = tkinter.Scale(light_speed_frame, from_=0, to=1, orient=HORIZONTAL,
                                          background=LIGHT_GREEN, resolution=.1,
                                          state=ACTIVE if light_noise.get() else DISABLED, command=lambda event:
                                          Control_Environment.EnvironmentControl.set_light_noise_levels(self,
@@ -311,12 +311,12 @@ class SetupSettings:
         oxygen_noise_check.pack(side=LEFT)
 
         oxygen_value_frame = tkinter.Frame(oxygen_frame, bg=LIGHT_GREEN)
-        oxygen_value_label = Label(oxygen_value_frame, text="Oxygen Value", background=LIGHT_GREEN)
+        oxygen_value_label = Label(oxygen_value_frame, text="Center", background=LIGHT_GREEN)
         oxygen_value_label.config(font=("Arial", 10))
         oxygen_value_label.pack(side=LEFT)
         self.oxygen_value = tkinter.Scale(oxygen_value_frame, from_=-1, to=1, orient=HORIZONTAL,
                                           background=LIGHT_GREEN, resolution=.01,
-                                          state=DISABLED if oxygen_noise.get() else ACTIVE, command=lambda event:
+                                          state=ACTIVE, command=lambda event:
                                           Control_Environment.EnvironmentControl.set_oxygen_value(self,
                                                                                                   self.oxygen_value.get()))
         self.oxygen_value.set(Global_access.oxygen)
@@ -324,10 +324,10 @@ class SetupSettings:
 
         oxygen_scale_frame = tkinter.Frame(oxygen_frame, bg=LIGHT_GREEN)
         oxygen_noise_check.config(font=("Arial", 10))
-        oxygen_scale_label = Label(oxygen_scale_frame, text="Oxygen Noise Scale", background=LIGHT_GREEN)
+        oxygen_scale_label = Label(oxygen_scale_frame, text="Noise Scale", background=LIGHT_GREEN)
         oxygen_scale_label.config(font=("Arial", 10))
         oxygen_scale_label.pack(side=LEFT)
-        self.oxygen_scale = tkinter.Scale(oxygen_scale_frame, from_=1, to=50, orient=HORIZONTAL,
+        self.oxygen_scale = tkinter.Scale(oxygen_scale_frame, from_=10, to=100, orient=HORIZONTAL,
                                           background=LIGHT_GREEN, resolution=.1,
                                           state=ACTIVE if oxygen_noise.get() else DISABLED, command=lambda event:
                                           Control_Environment.EnvironmentControl.set_oxygen_noise_levels(self,
@@ -337,7 +337,7 @@ class SetupSettings:
         self.oxygen_scale.pack(side=LEFT)
 
         oxygen_depth_frame = tkinter.Frame(oxygen_frame, bg=LIGHT_GREEN)
-        oxygen_depth_label = Label(oxygen_depth_frame, text="Oxygen Noise Depth", background=LIGHT_GREEN)
+        oxygen_depth_label = Label(oxygen_depth_frame, text="Noise Depth", background=LIGHT_GREEN)
         oxygen_depth_label.config(font=("Arial", 10))
         oxygen_depth_label.pack(side=LEFT)
         self.oxygen_depth = tkinter.Scale(oxygen_depth_frame, from_=0, to=2, orient=HORIZONTAL,
@@ -350,10 +350,10 @@ class SetupSettings:
         self.oxygen_depth.pack(side=LEFT)
 
         oxygen_speed_frame = tkinter.Frame(oxygen_frame, bg=LIGHT_GREEN)
-        oxygen_speed_label = Label(oxygen_speed_frame, text="Osygen Noise Speed", background=LIGHT_GREEN)
+        oxygen_speed_label = Label(oxygen_speed_frame, text="Noise Speed", background=LIGHT_GREEN)
         oxygen_speed_label.config(font=("Arial", 10))
         oxygen_speed_label.pack(side=LEFT)
-        self.oxygen_speed = tkinter.Scale(oxygen_speed_frame, from_=0, to=2, orient=HORIZONTAL,
+        self.oxygen_speed = tkinter.Scale(oxygen_speed_frame, from_=0, to=1, orient=HORIZONTAL,
                                           background=LIGHT_GREEN, resolution=.1,
                                           state=ACTIVE if oxygen_noise.get() else DISABLED, command=lambda event:
                                           Control_Environment.EnvironmentControl.set_oxygen_noise_levels(self,
@@ -407,7 +407,6 @@ class SetupSettings:
             self.oxygen_speed.config(state=ACTIVE)
             self.oxygen_depth.config(state=ACTIVE)
             self.oxygen_scale.config(state=ACTIVE)
-            self.oxygen_value.config(state=DISABLED, takefocus=0)
             self.oxygen_speed.set(Global_access.oxygen_speed)
             self.oxygen_depth.set(Global_access.oxygen_depth)
             self.oxygen_scale.set(Global_access.oxygen_scale)
@@ -415,7 +414,6 @@ class SetupSettings:
             self.oxygen_speed.config(state=DISABLED, takefocus=0)
             self.oxygen_depth.config(state=DISABLED, takefocus=0)
             self.oxygen_scale.config(state=DISABLED, takefocus=0)
-            self.oxygen_value.config(state=ACTIVE)
             self.oxygen_value.set(Global_access.oxygen)
 
     def set_light_noise(self, light_noise):
@@ -427,7 +425,6 @@ class SetupSettings:
             self.light_speed.config(state=ACTIVE)
             self.light_depth.config(state=ACTIVE)
             self.light_scale.config(state=ACTIVE)
-            self.light_value.config(state=DISABLED, takefocus=0)
             self.light_speed.set(Global_access.light_speed)
             self.light_depth.set(Global_access.light_depth)
             self.light_scale.set(Global_access.light_scale)
@@ -435,7 +432,6 @@ class SetupSettings:
             self.light_speed.config(state=DISABLED, takefocus=0)
             self.light_depth.config(state=DISABLED, takefocus=0)
             self.light_scale.config(state=DISABLED, takefocus=0)
-            self.light_value.config(state=ACTIVE)
             self.light_value.set(Global_access.light)
 
     def set_temp_noise(self, temp_noise):
@@ -447,7 +443,6 @@ class SetupSettings:
             self.temp_speed.config(state=ACTIVE)
             self.temp_depth.config(state=ACTIVE)
             self.temp_scale.config(state=ACTIVE)
-            self.temp_value.config(state=DISABLED, takefocus=0)
             self.temp_speed.set(Global_access.temp_speed)
             self.temp_depth.set(Global_access.temp_depth)
             self.temp_scale.set(Global_access.temp_scale)
@@ -455,5 +450,4 @@ class SetupSettings:
             self.temp_speed.config(state=DISABLED, takefocus=0)
             self.temp_depth.config(state=DISABLED, takefocus=0)
             self.temp_scale.config(state=DISABLED, takefocus=0)
-            self.temp_value.config(state=ACTIVE)
             self.temp_value.set(Global_access.temperature)

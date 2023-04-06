@@ -226,7 +226,8 @@ class EnvironmentControl:
             org_id = Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["organism"].organism_id
             self.send_message(conn, "request", org_id)
         # If the cell wasn't filled with an organism we check if it is empty (not food or a wall cell but empty)
-        elif Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["environment"].tile_type == -2:
+        elif Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["environment"] is not None and \
+            Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["environment"].tile_type == -2:
             if Global_access.CLICK_TYPE == 'Organism':
                 self.fill_cell(coord[0], coord[1], Global_access.org_colors[1])
                 new_cell = Organism_cell.OrganismCell(0, 0, 0, 0, 0, 0, 0, 0, 0, coord[0], coord[1])
@@ -243,7 +244,7 @@ class EnvironmentControl:
                 Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["environment"] = new_cell
                 self.send_message(conn, "new_filled", (coord[0], coord[1], "wall"))
 
-    def fill_cell(self, x, y, color):
+    def fill_cell(self, x, y, color, circle = False):
         """
         This will fill in a cell when the information is passed from c++
         Grid coords are different in python than they are in c++.
@@ -259,12 +260,11 @@ class EnvironmentControl:
         :type color: Global_access.color
         """
         y = int(Global_access.environment_size[1] - y - 1)
-        temp_surface = pygame.Surface([10, 10])
-        if color in [Global_access.RED, Global_access.ORANGE, Global_access.YELLOW, Global_access.PINK]:
-            pygame.draw.circle(temp_surface, color, (5, 5), 5)
+
+        if circle:
+            pygame.draw.circle(Global_access.second_surface, color, (x * 10 + 5, y * 10 + 5), 5)
         else:
-            pygame.draw.rect(temp_surface, color, (0, 0, 10, 10))
-        Global_access.second_surface.blit(temp_surface, (x * 10, y * 10))
+            pygame.draw.rect(Global_access.second_surface, color, (x * 10, y * 10, 10, 10))
 
     def click_type(self, clicked_type):
         """
@@ -305,10 +305,14 @@ class EnvironmentControl:
         :param data: Optional argument for passing data that may be needed in c++
         :param type: Any
         """
-        if message_type == "request" or message_type == "request_all":
-            new_data = {"data": str(data)}
-            formatted = {message_type: new_data}
-            return json.dumps(formatted)
+        if message_type == "request":
+            return json.dumps({
+                "type": "request",
+                "id": data,
+            })
+        elif message_type == "request_all":
+            # unused
+            return json.dumps({})
         elif message_type == "control":
             return json.dumps({
                 "type": "control",
@@ -326,27 +330,34 @@ class EnvironmentControl:
             formatted = {message_type: formatted_data}
             return json.dumps(formatted)
         elif message_type == "settings":
-            temp_factors = {"noise": str(bool(Global_access.temp_noise)),
-                            "value": str(Global_access.temperature),
-                            "scale": str(Global_access.temp_scale),
-                            "depth": str(Global_access.temp_depth),
-                            "speed": str(Global_access.temp_speed)}
-            temp_final = {"temperature": temp_factors}
-            light_factors = {"noise": str(bool(Global_access.light_noise)),
-                             "value": str(Global_access.light),
-                             "scale": str(Global_access.light_scale),
-                             "depth": str(Global_access.light_depth),
-                             "speed": str(Global_access.light_speed)}
-            light_final = {"light": light_factors}
-            oxygen_factors = {"noise": str(bool(Global_access.oxygen_noise)),
-                              "value": str(Global_access.oxygen),
-                              "scale": str(Global_access.oxygen_scale),
-                              "depth": str(Global_access.oxygen_depth),
-                              "speed": str(Global_access.oxygen_speed)}
-            oxygen_final = {"oxygen": oxygen_factors}
-            factors = {"factors": [temp_final, light_final, oxygen_final]}
-            formatted = {"settings": factors}
-            return json.dumps(formatted)
+            return json.dumps({
+                "type": "settings",
+                "settings": {
+                    "factors": [
+                        {
+                            "useNoise": bool(Global_access.temp_noise),
+                            "center": Global_access.temperature,
+                            "speed": Global_access.temp_speed,
+                            "scale": Global_access.temp_scale,
+                            "amplitude": Global_access.temp_depth,
+                        },
+                        {
+                            "useNoise": bool(Global_access.light_noise),
+                            "center": Global_access.light,
+                            "speed": Global_access.light_speed,
+                            "scale": Global_access.light_scale,
+                            "amplitude": Global_access.light_depth,
+                        },
+                        {
+                            "useNoise": bool(Global_access.oxygen_noise),
+                            "center": Global_access.oxygen,
+                            "speed": Global_access.oxygen_speed,
+                            "scale": Global_access.oxygen_scale,
+                            "amplitude": Global_access.oxygen_depth,
+                        }
+                    ]
+                }
+            })
         elif message_type == "init":
             return json.dumps({
                 "type": "init"
