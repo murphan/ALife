@@ -18,6 +18,7 @@
 #include "genome/initialGenome.h"
 
 auto main () -> int {
+
 	auto controls = Controls { .playing=false, .fps=20, .updateDisplay=true };
 	auto settings = Settings { .ageFactor = 1000, .factorNoises = {
 		Noise(0,true, 0.0_f32, 0.01_f32, 100.0_f32, 1.0_f32),
@@ -31,7 +32,7 @@ auto main () -> int {
 
 	OrganismSeeder::insertInitialOrganisms(simulationController.organisms, simulationController.environment, initialPhenome, 35);
 
-	simulationController.scatterFood(Food::FOOD0, 50, 1);
+	simulationController.scatterFood(Food::FOOD0, 150, 20);
 
 	auto simulationMutex = std::mutex();
 

@@ -1,5 +1,6 @@
 
 #include "environment/simulationController.h"
+#include <iostream>
 
 SimulationController::SimulationController(Environment && environment) :
 	random(std::random_device()()),
@@ -15,6 +16,10 @@ auto SimulationController::tempId(i32 index) -> i32 {
 auto SimulationController::tick(Settings & settings) -> void {
 	std::shuffle(organisms.begin(), organisms.end(), random);
 
+    for (auto && organism : organisms) {
+        organism.tick();
+    }
+
 	updateFactors(std::span(settings.factorNoises, settings.factorNoises + 3));
 
 	auto damages = moveOrganisms();
@@ -24,6 +29,8 @@ auto SimulationController::tick(Settings & settings) -> void {
 	organismsAgeAndDie(settings.ageFactor);
 
     organismsEat();
+
+    organismsReproduce();
 
 	++currentTick;
 }
@@ -85,7 +92,8 @@ auto SimulationController::doDamageAndKill(std::vector<i32> & damages) -> void {
 
 auto SimulationController::organismsAgeAndDie(i32 ageFactor) -> void {
 	std::erase_if(organisms, [&, this](auto && organism) {
-		auto newAge = organism.tick();
+		auto newAge = organism.age;
+
 
 		if (newAge > organism.getPhenome().maxAge(ageFactor)) {
 			replaceOrganismWithFood(organism);
@@ -202,11 +210,25 @@ auto SimulationController::organismsEat() -> void {
 
 				if (environmentCell.getHasFood() && body.access(i, j, rotation) == BodyPart::MOUTH) {
 					organism.eatFood(environmentCell.getFood());
+                    std::cout << "Food eaten " << organism.energy <<std::endl;
 					environmentCell.removeFood();
 				}
 			}
 		}
 	}
+}
+
+auto SimulationController::organismsReproduce() -> void {
+    for (auto && organism : organisms) {
+        if (organism.energy > organism.getPhenome().repoductionThreshold)
+            addChild(organism);
+    }
+}
+
+auto SimulationController::addChild(auto && organism) -> void {
+    std::cout << "Added Child" << std::endl;
+    organism.energy -=75;
+    return;
 }
 
 auto SimulationController::howMuchFood() -> i32 {
