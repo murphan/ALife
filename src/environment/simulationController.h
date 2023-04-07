@@ -32,7 +32,13 @@ private:
 
     auto organismsEat() -> void;
 
+    auto organismsReproduce() ->void;
+
+    auto addChild(auto && organism) -> void;
+
+
 	auto updateFactors(std::span<Noise> noises) -> void;
+
 
 public:
 	Environment environment;
