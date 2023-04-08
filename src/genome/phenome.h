@@ -14,6 +14,7 @@
 #include "genome/gene/reactionGene.h"
 #include "body.h"
 #include "genome/gene/mutationRateGene.h"
+#include "../environment/settings.h"
 
 class Sense {
 public:
@@ -58,15 +59,15 @@ public:
 	std::vector<EyeGene> eyeReactions;
 	std::vector<EnvironmentGene> environmentReactions;
 
-    i32 repoductionThreshold = 150;
-
 	explicit Phenome(Genome && inGenome, Body && inBody);
 
 	Phenome(const Phenome & other) = default;
 	Phenome(Phenome && other) = default;
 	auto operator=(Phenome && other) noexcept -> Phenome & = default;
 
-	auto maxAge(i32 ageFactor) const -> i32;
+	auto survivalEnergy(const Settings & settings) const -> i32;
+
+	auto maxAge(i32 lifetimeFactor) const -> i32;
 };
 
 #endif //ALIFE_PHENOME_H

@@ -73,23 +73,13 @@ food_colors = {0: '#fafa16',  # Yellow
                3: '#f00ce1', }  # Pink
 
 # Organism Colors, they are labeled but can also be found in bodyPart.h
-org_colors = {1: '#5573a3',   # Mouth
-              2: '#23aac2',   # Basic
-              3: '#700232',   # Mover
-              4: '#9e9403',   # Photosynthesizer
-              5: '#7ee093',   # Weapon
-              6: '#0c871b',   # Armor
-              7: '#03f4fc',   # Eye
-              8: '#b1fc03',   # Sensor
-              9: '#fc95be',   # Stomach
-              10: '#8a05f7',  # Gonad
-              11: '#757171',  # Life Expander
-              12: '#a1641f',  # Mutator
-              13: '#836521',  # UNKNOWN 0
-              14: '#97b09d',  # UNKNOWN 1
-              15: '#61223f',  # UNKNOWN 2
-              16: '#6852f7'   # UNKNOWN 3
-              }
+org_colors = {
+    1: '#f2960c',   # Mouth
+    2: '#11f0e8',   # Mover
+    3: '#086603',   # Photosynthesizer
+    4: '#e31045',   # Weapon
+    5: '#4e2ba6',   # Armor
+ }
 
 # The Mutex needing to be acquired in order to update information
 mutex = Lock()

@@ -13,7 +13,19 @@ class Settings {
 public:
 	using json = nlohmann::json;
 
-	i32 ageFactor;
+	i32 lifetimeFactor;
+	i32 energyFactor;
+	i32 photosynthesisFactor;
+
+	/* percentage of body energy that organism's start with */
+	f32 startingEnergy;
+	/* percentage of body energy additionally expended to reproduce */
+	f32 reproductionCost;
+	/* percentage of body energy that must be left after reproduction */
+	f32 reproductionThreshold;
+
+	/* how much of a body's energy gets converted into food */
+	f32 foodEfficiency;
 
 	Noise factorNoises[3];
 

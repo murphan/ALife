@@ -7,34 +7,39 @@ auto OrganismSeeder::insertInitialOrganisms(
 	std::vector<Organism> & insertList,
 	const Environment & environment,
 	const Phenome & initialPhenome,
+	const Settings & settings,
 	i32 count
 ) -> void {
 	insertList.reserve(count);
 
 	auto && body = initialPhenome.body;
 
-	auto bodyWidth = body.getWidth();
-	auto bodyHeight = body.getHeight();
+	auto spaceWide = body.getWidth() + 1;
+	auto spaceTall = body.getHeight() + 1;
 
-	auto offsetX = bodyWidth / 2 - body.getLeft(Direction::RIGHT);
-	auto offsetY = bodyHeight / 2 - body.getDown(Direction::RIGHT);
+	auto offsetX = spaceWide / 2 - body.getLeft(Direction::RIGHT);
+	auto offsetY = spaceTall / 2 - body.getDown(Direction::RIGHT);
 
 	auto centerX = environment.getWidth() / 2;
 	auto centerY = environment.getHeight() / 2;
 
 	auto sideLength = (i32)ceil(sqrt((f32)count));
 
-	/* fill in count of out sideLength * sideLength spaces in a square */
+	/* fill in `count` spaces out of a square of side length `sideLength` */
 	for (auto c = 0; c < count; ++c) {
 		auto gridY = (c / sideLength) - (sideLength / 2), gridX = (c % sideLength) - (sideLength / 2);
 
-		auto newPhenome = initialPhenome;
+		auto copiedPhenome = initialPhenome;
+		auto initialEnergy = copiedPhenome.survivalEnergy(settings) +
+			(i32)((f32)copiedPhenome.survivalEnergy(settings) * settings.startingEnergy);
+
 		insertList.emplace_back(
-			std::move(newPhenome),
+			std::move(copiedPhenome),
 			UUID::generateRandom(),
-			centerX + gridX * bodyWidth - offsetX,
-			centerY + gridY * bodyHeight - offsetY,
-			Direction::RIGHT
+			centerX + gridX * spaceWide - offsetX,
+			centerY + gridY * spaceTall - offsetY,
+			Direction::RIGHT,
+			initialEnergy
 		);
 	}
 }

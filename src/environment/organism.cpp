@@ -4,13 +4,13 @@
 
 #include "organism.h"
 
-Organism::Organism(Phenome && phenome, UUID uuid, i32 x, i32 y, Direction rotation) :
+Organism::Organism(Phenome && phenome, UUID uuid, i32 x, i32 y, Direction rotation, i32 energy) :
 	uuid(uuid),
 	phenome(std::move(phenome)),
 	x(x),
 	y(y),
 	rotation(rotation),
-	energy(phenome.body.getNumCells()),
+	energy(energy),
 	age(0) {}
 
 auto Organism::getPhenome() const -> const Phenome & {
@@ -29,19 +29,7 @@ auto Organism::body() const -> const Body & {
  * @return the organism's new age after the tick
  */
 auto Organism::tick() -> i32 {
-    auto organismSize = phenome.body.getNumCells();
-
-    //energy spent to keep the organism alive
-    //energy -= organismSize;
-
 	return ++age;
-}
-/**
- * @param food unit of food on the map
- * Adds food energy to the organism
- */
-auto Organism::eatFood(Food & food) -> void {
-    energy += food.getEnergy();
 }
 
 auto Organism::serialize(bool detailed) const -> json {

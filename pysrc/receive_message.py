@@ -160,7 +160,7 @@ def draw_factors_grid(self, width, height):
         for x in range(width):
             cell = Global_access.ENVIRONMENT_GRID[x][y]["environment"]
 
-            pixel_array[x, y] = (cell.factor_0 + 128, cell.factor_1 + 128, cell.factor_2 + 128)
+            pixel_array[x, height - y - 1] = (cell.factor_0 + 128, cell.factor_1 + 128, cell.factor_2 + 128)
 
     pixel_array.close()
 

@@ -16,28 +16,27 @@ auto SimulationController::tempId(i32 index) -> i32 {
 auto SimulationController::tick(Settings & settings) -> void {
 	std::shuffle(organisms.begin(), organisms.end(), random);
 
-    for (auto && organism : organisms) {
+    for (auto && organism : organisms)
         organism.tick();
-    }
 
-	updateFactors(std::span(settings.factorNoises, settings.factorNoises + 3));
+	updateFactors(settings);
 
-	auto damages = moveOrganisms();
+	auto damages = moveOrganisms(settings);
 
-	doDamageAndKill(damages);
+	doDamageAndKill(damages, settings);
 
-	organismsAgeAndDie(settings.ageFactor);
+    organismsEat(settings);
 
-    organismsEat();
+    organismsReproduce(settings);
 
-    organismsReproduce();
+	organismsAgeAndDie(settings);
 
 	++currentTick;
 }
 
 auto symmetricRange = std::uniform_int_distribution<i32>(-1, 1);
 
-auto SimulationController::moveOrganisms() -> std::vector<i32> {
+auto SimulationController::moveOrganisms(Settings & settings) -> std::vector<i32> {
 	organismGrid.clear();
 
 	auto damages = std::vector<i32>(organisms.size());
@@ -59,11 +58,11 @@ auto SimulationController::moveOrganisms() -> std::vector<i32> {
 			if (organismGrid.canMoveOrganism(organism, id, deltaX, deltaY, deltaRotation, [&](BodyPart bodyPart, u32 gridSpace) {
 				/* attacking another organism */
 				if (bodyPart == BodyPart::WEAPON && OrganismGridSpace::getBodyPart(gridSpace) != BodyPart::ARMOR) {
-					damages[OrganismGridSpace::getTempId(gridSpace) - 1] += 1;
+					damages[OrganismGridSpace::getTempId(gridSpace) - 1] +=  1 * settings.energyFactor;
 
 				/* moving into another organism's weapon and getting hurt */
 				} else if (bodyPart != BodyPart::ARMOR && OrganismGridSpace::getBodyPart(gridSpace) == BodyPart::WEAPON) {
-					damages[i] += 1;
+					damages[i] += 1 * settings.energyFactor;
 				}
 
 			})) {
@@ -76,27 +75,26 @@ auto SimulationController::moveOrganisms() -> std::vector<i32> {
 	return damages;
 }
 
-auto SimulationController::doDamageAndKill(std::vector<i32> & damages) -> void {
+auto SimulationController::doDamageAndKill(std::vector<i32> & damages, Settings & settings) -> void {
 	for (auto i = 0; i < organisms.size(); ++i) {
 		organisms[i].energy -= damages[i];
 	}
 
-	std::erase_if(organisms, [this](Organism & organism) {
-		if (organism.energy <= 0) {
-			replaceOrganismWithFood(organism);
+	std::erase_if(organisms, [&, this](Organism & organism) {
+		if (organism.energy < organism.getPhenome().survivalEnergy(settings)) {
+			replaceOrganismWithFood(organism, settings);
 			return true;
 		}
 		return false;
 	});
 }
 
-auto SimulationController::organismsAgeAndDie(i32 ageFactor) -> void {
-	std::erase_if(organisms, [&, this](auto && organism) {
+auto SimulationController::organismsAgeAndDie(Settings & settings) -> void {
+	std::erase_if(organisms, [&, this](Organism & organism) {
 		auto newAge = organism.age;
 
-
-		if (newAge > organism.getPhenome().maxAge(ageFactor)) {
-			replaceOrganismWithFood(organism);
+		if (newAge > organism.getPhenome().maxAge(settings.lifetimeFactor)) {
+			replaceOrganismWithFood(organism, settings);
 			return true;
 		} else {
 			return false;
@@ -104,7 +102,7 @@ auto SimulationController::organismsAgeAndDie(i32 ageFactor) -> void {
 	});
 }
 
-auto SimulationController::replaceOrganismWithFood(const Organism & organism) -> void {
+auto SimulationController::replaceOrganismWithFood(const Organism & organism, Settings & settings) -> void {
 	auto && body = organism.body();
 	auto rotation = organism.rotation;
 
@@ -115,11 +113,10 @@ auto SimulationController::replaceOrganismWithFood(const Organism & organism) ->
 
 			if (cell != BodyPart::NONE) {
 				auto && environmentCell = environment.getCell(x, y);
+				auto energy = (i32)((f32)settings.energyFactor * settings.foodEfficiency);
 
-				if (environmentCell.getHasFood()) {
-					environmentCell.getFood().addEnergy(1);
-				} else {
-					environmentCell.setFood(Food(Food::FOOD0, 1));
+				if (!environmentCell.getHasFood()) {
+					environmentCell.setFood(Food(Food::FOOD0, energy));
 				}
 			}
 		}
@@ -191,12 +188,10 @@ auto SimulationController::scatterFood(Food::Type type, i32 numFood, i32 energyD
 }
 
 /**
- *
  * For each Organism checks each body part looking for overlapping food cells
  * If found, eats food by adding the energy to the organism and destroying the food
- *
  */
-auto SimulationController::organismsEat() -> void {
+auto SimulationController::organismsEat(Settings & settings) -> void {
 	for (auto && organism : organisms) {
 		auto && body = organism.body();
 		auto rotation = organism.rotation;
@@ -206,38 +201,149 @@ auto SimulationController::organismsEat() -> void {
 				auto y = organism.y + j;
 				auto x = organism.x + i;
 
+				auto && bodyCell = body.access(i, j, rotation);
 				auto && environmentCell = environment.getCell(x, y);
 
-				if (environmentCell.getHasFood() && body.access(i, j, rotation) == BodyPart::MOUTH) {
-					organism.eatFood(environmentCell.getFood());
-                    std::cout << "Food eaten " << organism.energy <<std::endl;
-					environmentCell.removeFood();
+				if (bodyCell == BodyPart::PHOTOSYNTHESIZER && organism.getPhenome().moveTries == 0) {
+					auto lightPercentage = (f32)environmentCell.getFactor(Factor::LIGHT) / 127.0_f32;
+
+					if (std::uniform_real_distribution<f32>(0.0_f32, 1.0_f32)(random) < lightPercentage)
+						organism.energy += settings.photosynthesisFactor;
+
+				} else if (bodyCell == BodyPart::MOUTH) {
+					if (environmentCell.getHasFood()) {
+						organism.energy += environmentCell.getFood().getEnergy();
+						environmentCell.removeFood();
+					}
 				}
 			}
 		}
 	}
 }
 
-auto SimulationController::organismsReproduce() -> void {
+auto SimulationController::organismsReproduce(Settings & settings) -> void {
+	auto newOrganisms = std::vector<Organism>();
+
     for (auto && organism : organisms) {
-        if (organism.energy > organism.getPhenome().repoductionThreshold)
-            addChild(organism);
+		auto bodyEnergy = (f32)organism.getPhenome().survivalEnergy(settings);
+
+		auto reproductionEnergy = (i32)(bodyEnergy * settings.reproductionCost);
+		auto childEnergy = (i32)(bodyEnergy * (1.0_f32 + settings.startingEnergy));
+		auto thresholdEnergy = (i32)(bodyEnergy * settings.reproductionThreshold);
+
+        if (organism.energy > (i32)bodyEnergy + reproductionEnergy + childEnergy + thresholdEnergy) {
+	        auto newOrganism = tryReproduce(organism, reproductionEnergy, childEnergy);
+			if (newOrganism.has_value()) {
+				/* make sure another organism can't spawn on top of this one */
+				organismGrid.placeOrganism(newOrganism.value(), tempId(organisms.size() + newOrganisms.size()));
+
+				newOrganisms.emplace_back(std::move(newOrganism.value()));
+			}
+        }
     }
+
+	/* finally put the newly born organisms into the main array */
+	for (auto && newOrganism : newOrganisms) {
+		organisms.emplace_back(std::move(newOrganism));
+	}
 }
 
-auto SimulationController::addChild(auto && organism) -> void {
-    std::cout << "Added Child" << std::endl;
-    organism.energy -=75;
-    return;
+auto SimulationController::findChildSpawnPoint(Organism & organism, Phenome & childPhenome) -> std::optional<Util::Coord> {
+	auto rotation = organism.rotation;
+
+	auto childLeft = childPhenome.body.getLeft(rotation);
+	auto childRight = childPhenome.body.getRight(rotation);
+	auto childUp = childPhenome.body.getUp(rotation);
+	auto childDown = childPhenome.body.getDown(rotation);
+
+	auto range = std::uniform_int_distribution<i32>(0, 7);
+	auto baseDirection = Direction(range(random));
+
+	auto left = organism.body().getLeft(rotation);
+	auto right = organism.body().getRight(rotation);
+	auto up = organism.body().getUp(rotation);
+	auto down = organism.body().getDown(rotation);
+
+	auto spawnRight = organism.x + right + 1 - childLeft + 1;
+	auto spawnLeft = organism.x + left - 1 - childRight - 1;
+	auto spawnUp = organism.y + up + 1 - childDown + 1;
+	auto spawnDown = organism.y + down - 1 - childUp - 1;
+
+	for (auto angle = 0; angle < 8; ++angle) {
+		auto direction = baseDirection.rotate(angle);
+
+		i32 x;
+		i32 y;
+
+		switch (direction.value()) {
+			case Direction::RIGHT: {
+				x = spawnRight;
+				y = organism.y;
+			} break;
+			case Direction::RIGHT_UP: {
+				x = spawnRight;
+				y = spawnUp;
+			} break;
+			case Direction::UP: {
+				x = organism.x;
+				y = spawnUp;
+			} break;
+			case Direction::LEFT_UP: {
+				x = spawnLeft;
+				y = spawnUp;
+			} break;
+			case Direction::LEFT: {
+				x = spawnLeft;
+				y = organism.y;
+			} break;
+			case Direction::LEFT_DOWN: {
+				x = spawnLeft;
+				y = spawnDown;
+			} break;
+			case Direction::DOWN: {
+				x = organism.x;
+				y = spawnDown;
+			} break;
+			case Direction::RIGHT_DOWN: {
+				x = spawnRight;
+				y = spawnDown;
+			} break;
+		}
+
+		if (organismGrid.isSpaceAvailable(childPhenome.body, x, y, rotation))
+			return std::make_optional<Util::Coord>(x, y);
+	}
+
+	return std::nullopt;
+}
+
+auto SimulationController::tryReproduce(Organism & organism, i32 reproductionEnergy, i32 childEnergy) -> std::optional<Organism> {
+	auto childPhenome = Phenome(
+		std::move(organism.getGenome().mutateCopy(0.01f, 0.01f, 0.01f)),
+		Body(2, BodyPart::MOUTH)
+	);
+
+	auto spawnPoint = findChildSpawnPoint(organism, childPhenome);
+	if (!spawnPoint.has_value()) return std::nullopt;
+
+	auto [x, y] = spawnPoint.value();
+
+	organism.energy -= (reproductionEnergy + childEnergy);
+
+	return std::make_optional<Organism>(
+		std::move(childPhenome),
+        UUID::generateRandom(),
+        x, y,
+        organism.rotation,
+        childEnergy
+	);
 }
 
 auto SimulationController::howMuchFood() -> i32 {
     auto numFood = 0;
     for (int i = 0; i < environment.getWidth(); ++i) {
         for (int j = 0; j < environment.getHeight(); ++j) {
-            auto cell = environment.getCell(i,j);
-            if (cell.getHasFood())
-                numFood++;
+            if (environment.getCell(i, j).getHasFood()) ++numFood;
         }
     }
     return numFood;
@@ -255,18 +361,22 @@ auto SimulationController::getOrganism(UUID & id) -> Organism * {
 	return nullptr;
 }
 
-auto SimulationController::updateFactors(std::span<Noise> noises) -> void {
-	for (auto & noise : noises) {
-		noise.tick();
-	}
+auto SimulationController::updateFactors(Settings & settings) -> void {
+	settings.factorNoises[Factor::TEMPERATURE].tick();
+	settings.factorNoises[Factor::LIGHT].tick();
+	settings.factorNoises[Factor::OXYGEN].tick();
 
+	refreshFactors(settings);
+}
+
+auto SimulationController::refreshFactors(Settings & settings) -> void {
 	for (auto y = 0; y < environment.getHeight(); ++y) {
 		for (auto x = 0; x < environment.getWidth(); ++x) {
 			auto && cell = environment.getCell(x, y);
 
-			cell.setFactor(Factor::TEMPERATURE, noises[Factor::TEMPERATURE].getValue(x, y));
-			cell.setFactor(Factor::LIGHT, noises[Factor::LIGHT].getValue(x, y));
-			cell.setFactor(Factor::OXYGEN, noises[Factor::OXYGEN].getValue(x, y));
+			cell.setFactor(Factor::TEMPERATURE, settings.factorNoises[Factor::TEMPERATURE].getValue(x, y));
+			cell.setFactor(Factor::LIGHT, settings.factorNoises[Factor::LIGHT].getValue(x, y));
+			cell.setFactor(Factor::OXYGEN, settings.factorNoises[Factor::OXYGEN].getValue(x, y));
 		}
 	}
 }

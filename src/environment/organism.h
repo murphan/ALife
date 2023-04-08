@@ -30,14 +30,13 @@ public:
 	i32 age;
 
 	Organism(Organism && other) = default;
-	Organism(Phenome && phenome, UUID uuid, i32 x, i32 y, Direction rotation);
+	Organism(Phenome && phenome, UUID uuid, i32 x, i32 y, Direction rotation, i32 energy);
 
 	auto operator=(Organism && other) noexcept -> Organism & = default;
 
 	auto getPhenome() const -> const Phenome &;
 	auto getGenome() const -> const Genome &;
 	auto body() const -> const Body &;
-    auto eatFood(Food & food) -> void;
 
 	auto tick() -> i32;
 

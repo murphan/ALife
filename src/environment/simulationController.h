@@ -24,23 +24,23 @@ private:
 
 	/* substep functions */
 
-	auto moveOrganisms() -> std::vector<i32>;
+	auto moveOrganisms(Settings & settings) -> std::vector<i32>;
 
-	auto doDamageAndKill(std::vector<i32> & damages) -> void;
+	auto doDamageAndKill(std::vector<i32> & damages, Settings & settings) -> void;
 
-	auto organismsAgeAndDie(i32 ageFactor) -> void;
+	auto organismsAgeAndDie(Settings & settings) -> void;
 
-	auto replaceOrganismWithFood(const Organism & organism) -> void;
+	auto replaceOrganismWithFood(const Organism & organism, Settings & settings) -> void;
 
-    auto organismsEat() -> void;
+    auto organismsEat(Settings & settings) -> void;
 
-    auto organismsReproduce() ->void;
+    auto organismsReproduce(Settings & settings) -> void;
 
-    auto addChild(auto && organism) -> void;
+	auto findChildSpawnPoint(Organism & organism, Phenome & childPhenome) -> std::optional<Util::Coord>;
 
+    auto tryReproduce(Organism & organism, i32 reproductionEnergy, i32 childEnergy) -> std::optional<Organism>;
 
-	auto updateFactors(std::span<Noise> noises) -> void;
-
+	auto updateFactors(Settings & settings) -> void;
 
 public:
 	Environment environment;
@@ -50,6 +50,7 @@ public:
 
     explicit SimulationController(Environment && environment);
 
+	auto refreshFactors(Settings & settings) -> void;
 	auto tick(Settings & settings) -> void;
 
 	auto serialize() -> json;

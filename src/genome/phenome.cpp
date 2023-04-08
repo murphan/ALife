@@ -124,6 +124,10 @@ Phenome::Phenome(Genome && inGenome, Body && inBody):
 	std::sort(environmentReactions.begin(), environmentReactions.end(), descendingPriority);
 }
 
-auto Phenome::maxAge(i32 ageFactor) const -> i32 {
-	return body.getNumCells() * ageFactor;
+auto Phenome::maxAge(i32 lifetimeFactor) const -> i32 {
+	return body.getNumCells() * lifetimeFactor;
+}
+
+auto Phenome::survivalEnergy(const Settings & settings) const -> i32 {
+	return body.getNumCells() * settings.energyFactor;
 }
