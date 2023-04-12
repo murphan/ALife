@@ -29,18 +29,8 @@ auto Organism::body() const -> const Body & {
 auto Organism::serialize(bool detailed) const -> json {
 	auto && body = phenome.body;
 
-	auto byteEncodedBody = std::string();
-	byteEncodedBody.reserve(body.getWidth() * body.getHeight());
-
-	for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
-		for (auto i = body.getLeft(rotation); i <= body.getRight(rotation); ++i) {
-			byteEncodedBody.push_back((char)body.access(i, j, rotation));
-		}
-	}
-
 	auto nonDetailedPart = json {
 		{ "id", uuid.asString() },
-		{ "body", Util::base64Encode(byteEncodedBody) },
 		{ "left", body.getLeft(rotation) },
 		{ "right", body.getRight(rotation) },
 		{ "down", body.getDown(rotation) },
@@ -77,11 +67,20 @@ auto Organism::serialize(bool detailed) const -> json {
 		{ "threshold", environmentReaction.getThreshold() },
 	});
 
+	auto byteEncodedBody = std::string();
+	byteEncodedBody.reserve(body.getWidth() * body.getHeight());
+	for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
+		for (auto i = body.getLeft(rotation); i <= body.getRight(rotation); ++i) {
+			byteEncodedBody.push_back((char)body.access(i, j, rotation));
+		}
+	}
+
 	nonDetailedPart.push_back({ "mutationModifiers", mutationModifiers });
 	nonDetailedPart.push_back({ "foodStats", foodStats });
 	nonDetailedPart.push_back({ "eyeReactions", eyeReactions });
 	nonDetailedPart.push_back({ "environmentReactions", environmentReactions });
 	nonDetailedPart.push_back({ "genome", phenome.genome.toString() });
+	nonDetailedPart.push_back({ "body", Util::base64Encode(byteEncodedBody) });
 	auto && completeParts = nonDetailedPart;
 	return completeParts;
 }

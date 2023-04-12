@@ -22,9 +22,8 @@ class Management:
 
         self.create_connection()
 
-        # todo call whenever new connection is established
+        # TODO call whenever new connection is established
         self.send_init_message()
-        # self.temp_func()
 
     def create_connection(self):
         # Set up the socket connection to the c++ application
@@ -80,24 +79,6 @@ class Management:
             Global_access.EXIT = 1
         else:
             return
-
-    def temp_func(self):
-        self.EnvironmentControl.fill_cell(12, 30, Global_access.org_colors[1])
-        self.EnvironmentControl.fill_cell(13, 30, Global_access.org_colors[2])
-        self.EnvironmentControl.fill_cell(14, 30, Global_access.org_colors[3])
-        self.EnvironmentControl.fill_cell(15, 30, Global_access.org_colors[4])
-        self.EnvironmentControl.fill_cell(16, 30, Global_access.org_colors[5])
-        self.EnvironmentControl.fill_cell(17, 30, Global_access.org_colors[6])
-        self.EnvironmentControl.fill_cell(18, 30, Global_access.org_colors[7])
-        self.EnvironmentControl.fill_cell(19, 30, Global_access.org_colors[8])
-        self.EnvironmentControl.fill_cell(20, 30, Global_access.org_colors[9])
-        self.EnvironmentControl.fill_cell(21, 30, Global_access.org_colors[10])
-        self.EnvironmentControl.fill_cell(22, 30, Global_access.org_colors[11])
-        self.EnvironmentControl.fill_cell(23, 30, Global_access.org_colors[12])
-        self.EnvironmentControl.fill_cell(24, 30, Global_access.org_colors[13])
-        self.EnvironmentControl.fill_cell(25, 30, Global_access.org_colors[14])
-        self.EnvironmentControl.fill_cell(26, 30, Global_access.org_colors[15])
-        self.EnvironmentControl.fill_cell(27, 30, Global_access.org_colors[16])
 
     def read_port(self):
         f = open("../config.txt", "r")
