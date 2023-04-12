@@ -18,11 +18,13 @@ auto SimulationController::tick(Settings & settings) -> void {
 
 	updateFactors(settings);
 
-	auto damages = moveOrganisms(settings);
+	moveOrganisms(settings);
 
-    organismsEat(settings, damages);
+	auto damages = std::vector<i32>(organisms.size());
 
-	doDamageAndKill(damages, settings);
+	organismsEat(settings, damages);
+
+	doDamageAndKill(settings, damages);
 
     organismsReproduce(settings);
 
@@ -35,10 +37,8 @@ auto SimulationController::tick(Settings & settings) -> void {
 
 auto symmetricRange = std::uniform_int_distribution<i32>(-1, 1);
 
-auto SimulationController::moveOrganisms(Settings & settings) -> std::vector<i32> {
+auto SimulationController::moveOrganisms(Settings & settings) -> void {
 	organismGrid.clear();
-
-	auto damages = std::vector<i32>(organisms.size());
 
 	for (auto i = 0; i < organisms.size(); ++i) {
 		organismGrid.placeOrganism(organisms.at(i), i);
@@ -52,26 +52,15 @@ auto SimulationController::moveOrganisms(Settings & settings) -> std::vector<i32
 			auto deltaY = symmetricRange(random);
 			auto deltaRotation = symmetricRange(random);
 
-			if (organismGrid.canMoveOrganism(organism, i, deltaX, deltaY, deltaRotation, [&](BodyPart bodyPart, OrganismGrid::Space gridSpace) {
-				///* attacking another organism */
-				//if (bodyPart == BodyPart::WEAPON && gridSpace.getBodyPart() != BodyPart::ARMOR) {
-				//	damages[gridSpace.getIndex()] += 100 * settings.energyFactor;
-//
-				///* moving into another organism's weapon and getting hurt */
-				//} else if (bodyPart != BodyPart::ARMOR && gridSpace.getBodyPart() == BodyPart::WEAPON) {
-				//	damages[i] += 100 * settings.energyFactor;
-				//}
-			})) {
+			if (organismGrid.canMoveOrganism(organism, i, deltaX, deltaY, deltaRotation, [&](BodyPart bodyPart, OrganismGrid::Space gridSpace) {})) {
 				organismGrid.moveOrganism(organism, i, deltaX, deltaY, deltaRotation);
 				break;
 			}
 		}
 	}
-
-	return damages;
 }
 
-auto SimulationController::doDamageAndKill(std::vector<i32> & damages, Settings & settings) -> void {
+auto SimulationController::doDamageAndKill(Settings & settings, std::vector<i32> & damages) -> void {
 	for (auto i = 0; i < organisms.size(); ++i) {
 		organisms[i].energy -= damages[i];
 	}

@@ -22,9 +22,9 @@ private:
 
 	/* substep functions */
 
-	auto moveOrganisms(Settings & settings) -> std::vector<i32>;
+	auto moveOrganisms(Settings & settings) -> void;
 
-	auto doDamageAndKill(std::vector<i32> & damages, Settings & settings) -> void;
+	auto doDamageAndKill(Settings & settings, std::vector<i32> & damages) -> void;
 
 	auto organismsAgeAndDie(Settings & settings) -> void;
 
