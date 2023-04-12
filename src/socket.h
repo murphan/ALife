@@ -75,6 +75,8 @@ private:
 	auto readIntoMessage(char * buffer, i32 & bufferIndex, i32 bytesReceived, OnReadFunction onRead) -> void {
 		auto headerBytesToRead = min(4 - currentMessageIndex, bytesReceived);
 
+		auto wasBefore = currentMessageLength;
+
 		auto start = bufferIndex;
 		for (; bufferIndex < start + headerBytesToRead; ++bufferIndex) {
 			currentMessageLength |= (u8)buffer[bufferIndex] << ((3 - currentMessageIndex) * 8);
