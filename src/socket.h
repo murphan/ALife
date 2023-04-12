@@ -72,12 +72,14 @@ private:
 	}
 
 	template<Util::Function<void, std::vector<char> &> OnReadFunction>
-	auto readIntoMessage(char * buffer, i32 bytesReceived, i32 & bufferIndex, OnReadFunction onRead) -> void {
+	auto readIntoMessage(char * buffer, i32 & bufferIndex, i32 bytesReceived, OnReadFunction onRead) -> void {
 		auto headerBytesToRead = min(4 - currentMessageIndex, bytesReceived);
+
+		auto wasBefore = currentMessageLength;
 
 		auto start = bufferIndex;
 		for (; bufferIndex < start + headerBytesToRead; ++bufferIndex) {
-			currentMessageLength |= buffer[bufferIndex] << ((3 - currentMessageIndex) * 8);
+			currentMessageLength |= (u8)buffer[bufferIndex] << ((3 - currentMessageIndex) * 8);
 			++currentMessageIndex;
 		}
 
@@ -236,7 +238,10 @@ public:
 				} else if (bytesReceived > 0) {
 					std::cout << "received " << bytesReceived << " bytes" << std::endl;
 
-					for (auto i = 0; i < bytesReceived; readIntoMessage(tempBuffer, bytesReceived, i, onRead));
+					auto bufferIndex = 0;
+					while (bufferIndex < bytesReceived) {
+						readIntoMessage(tempBuffer, bufferIndex, bytesReceived, onRead);
+					}
 				}
 			}
 		});
