@@ -1,10 +1,15 @@
 #include "environment.h"
 
 /** creates an environment of a certain size */
-Environment::Environment(i32 width, i32 height) : width(width), height(height), map(mapSize()) {}
+Environment::Environment(i32 width, i32 height) : emptyCell(), width(width), height(height), map(mapSize()) {}
 
 auto Environment::getCell(int x, int y) -> MapCell & {
     return map[y * width + x];
+}
+
+auto Environment::getCellSafe(i32 x, i32 y) -> MapCell & {
+	if (x < 0 || x >= width || y < 0 || y >= height) return emptyCell;
+	return map[y * width + x];
 }
 
 auto Environment::mapSize() const -> i32 {
@@ -17,12 +22,4 @@ auto Environment::getWidth() const -> i32 {
 
 auto Environment::getHeight() const -> i32 {
 	return height;
-}
-
-auto Environment::tick() -> void {
-    for (auto & cell : map) {
-        if (cell.getHasFood()){
-            cell.getFood().tick();
-        }
-    }
 }

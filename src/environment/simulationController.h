@@ -20,8 +20,6 @@ private:
 
 	OrganismGrid organismGrid;
 
-	auto tempId(i32 index) -> i32;
-
 	/* substep functions */
 
 	auto moveOrganisms(Settings & settings) -> std::vector<i32>;
@@ -32,15 +30,17 @@ private:
 
 	auto replaceOrganismWithFood(const Organism & organism, Settings & settings) -> void;
 
-    auto organismsEat(Settings & settings) -> void;
+    auto organismsEat(Settings & settings, std::vector<i32> & damages) -> void;
 
     auto organismsReproduce(Settings & settings) -> void;
 
 	auto findChildSpawnPoint(Organism & organism, Phenome & childPhenome) -> std::optional<Util::Coord>;
 
-    auto tryReproduce(Organism & organism, i32 reproductionEnergy, i32 childEnergy) -> std::optional<Organism>;
+    auto tryReproduce(Phenome & childPhenome, Organism & organism, i32 reproductionEnergy, i32 childEnergy) -> std::optional<Organism>;
 
 	auto updateFactors(Settings & settings) -> void;
+
+	auto tickFood(Settings & settings) -> void;
 
 public:
 	Environment environment;

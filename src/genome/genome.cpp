@@ -351,7 +351,7 @@ auto Genome::mutateCombine(
     return genomeWrapper;
 }
 
-auto makeNotEither(Genome::Base base, Genome::Base avoid0, Genome::Base avoid1) -> Genome::Base {
+inline auto makeNotEither(Genome::Base base, i32 avoid0, i32 avoid1) -> Genome::Base {
 	for (auto i = 0; i < 4; ++i) {
 		auto tryBase = (base + i) % 4;
 		if (tryBase != avoid0 && tryBase != avoid1) return (Genome::Base) tryBase;
@@ -360,6 +360,14 @@ auto makeNotEither(Genome::Base base, Genome::Base avoid0, Genome::Base avoid1) 
 }
 
 auto Genome::writeGarbage(i32 n, Base avoidEnd) -> void {
+	internalwriteGarbage(n, avoidEnd);
+}
+
+auto Genome::writeGarbage(i32 n) -> void {
+	internalwriteGarbage(n, -1);
+}
+
+auto Genome::internalwriteGarbage(i32 n, i32 avoidEnd) -> void {
 	auto device = std::random_device();
 	auto random = std::default_random_engine(device());
 

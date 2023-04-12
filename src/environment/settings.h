@@ -26,6 +26,11 @@ public:
 
 	/* how much of a body's energy gets converted into food */
 	f32 foodEfficiency;
+	/* how long before a food is removed */
+	i32 maxFoodAge;
+
+	f32 baseMutationRate;
+	f32 mutationFactor;
 
 	Noise factorNoises[3];
 

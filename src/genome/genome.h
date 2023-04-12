@@ -36,6 +36,8 @@ private:
 	std::vector<u8> code;
 	i32 length;
 
+	auto internalwriteGarbage(i32 n, i32 avoidEnd) -> void;
+
 public:
 	static char baseName[4];
 
@@ -68,6 +70,7 @@ public:
 	 * @param avoidEnd the last written base will not be this
 	 */
 	auto writeGarbage(i32 n, Base avoidEnd) -> void;
+	auto writeGarbage(i32 n) -> void;
 
     auto mutateCopy(
         f32 substitutionChance,

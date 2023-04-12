@@ -41,7 +41,7 @@ public:
 	 * these are just ints some distance away from 0
 	 * negative for a smaller rate, positive for a larger rate
 	 */
-	i32 mutationModifiers[3] { 0, 0, 0 };
+	i32 mutationModifiers[3];
 
 	FoodStats foodStats[4];
 

@@ -26,10 +26,13 @@ auto main () -> int {
 		.startingEnergy = 0.33_f32,
 		.reproductionCost = 0.1_f32,
 		.reproductionThreshold = 0.10_f32,
-		.foodEfficiency = 0.9_f32,
+		.foodEfficiency = 1.0_f32,
+		.maxFoodAge = 128,
+		.baseMutationRate = 0.005,
+		.mutationFactor = 1.1,
 		.factorNoises = {
 			Noise(Factor::TEMPERATURE, false, -1.0_f32, 0.01_f32, 100.0_f32, 1.0_f32),
-			Noise(Factor::LIGHT, true, 0.20_f32, 0.0_f32, 50.0_f32, 1.0_f32),
+			Noise(Factor::LIGHT, false, 0.33_f32, 0.0_f32, 50.0_f32, 1.0_f32),
 			Noise(Factor::OXYGEN, false, -1.0_f32, 0.01_f32, 100.0_f32, 1.0_f32),
 		}
 	};
@@ -37,7 +40,7 @@ auto main () -> int {
 	auto simulationController = SimulationController(Environment(150, 72));
 	simulationController.refreshFactors(settings);
 
-	auto initialPhenome = Phenome(InitialGenome::create(), Body(2, BodyPart::MOUTH));
+	auto initialPhenome = Phenome(InitialGenome::create(), Body(2));
 
 	OrganismSeeder::insertInitialOrganisms(simulationController.organisms, simulationController.environment, initialPhenome, settings, 80);
 

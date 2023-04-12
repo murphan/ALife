@@ -8,12 +8,12 @@
 auto InitialGenome::create() -> Genome {
 	auto baseGenome = Genome();
 
+	Gene::write5(baseGenome, BodyPart::MOUTH);
+	baseGenome.writeGarbage(7, Genome::A);
 	BodyGene::create(Direction::RIGHT, BodyPart::PHOTOSYNTHESIZER).write(baseGenome);
-	baseGenome.writeGarbage(4, Genome::A);
+	baseGenome.writeGarbage(13, Genome::A);
 	BodyGene::create(Direction::RIGHT, BodyPart::PHOTOSYNTHESIZER).write(baseGenome);
-	baseGenome.writeGarbage(4, Genome::A);
-	BodyGene::create(Direction::RIGHT, BodyPart::MOUTH).write(baseGenome);
-	baseGenome.writeGarbage(4, Genome::A);
+	baseGenome.writeGarbage(13);
 
 	return baseGenome;
 }

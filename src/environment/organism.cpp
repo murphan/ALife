@@ -11,6 +11,7 @@ Organism::Organism(Phenome && phenome, UUID uuid, i32 x, i32 y, Direction rotati
 	y(y),
 	rotation(rotation),
 	energy(energy),
+	storedChild(std::nullopt),
 	age(0) {}
 
 auto Organism::getPhenome() const -> const Phenome & {
@@ -23,13 +24,6 @@ auto Organism::getGenome() const -> const Genome & {
 
 auto Organism::body() const -> const Body & {
 	return phenome.body;
-}
-
-/**
- * @return the organism's new age after the tick
- */
-auto Organism::tick() -> i32 {
-	return ++age;
 }
 
 auto Organism::serialize(bool detailed) const -> json {

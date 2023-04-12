@@ -73,14 +73,12 @@ auto Body::canvasUp() const -> i32 {
     return (height - 1) - originY;
 }
 
-Body::Body(i32 edge, BodyPart center):
+Body::Body(i32 edge):
     width(edge * 2 + 1), height(edge * 2 + 1),
 	originX(edge), originY(edge),
 	canvas(width * height, BodyPart::NONE),
     left(0), right(0), down(0), up(0), numCells(0)
-{
-	canvas[indexOf(0, 0)] = center;
-}
+{}
 
 /**
  * @param builder the builder for the body creation process
@@ -109,18 +107,22 @@ auto Body::addPart(BodyBuilder & builder, Direction direction, BodyPart part, i3
         newY += newDirection.y();
     } while (accessExpand(newX, newY, 5) != 0);
 
-	canvas[indexOf(newX, newY)] = part;
-
-    /* update bounds */
-    if (newX < left) left = newX;
-    else if (newX > right) right = newX;
-
-    if (newY < down) down = newY;
-    else if (newY > up) up = newY;
-
     builder.currentDirection = newDirection;
 	builder.currentX = newX;
 	builder.currentY = newY;
+
+	directAddPart(part, newX, newY);
+}
+
+auto Body::directAddPart(BodyPart part, i32 x, i32 y) -> void {
+	canvas[indexOf(x, y)] = part;
+
+	/* update bounds */
+	if (x < left) left = x;
+	else if (x > right) right = x;
+
+	if (y < down) down = y;
+	else if (y > up) up = y;
 
 	++numCells;
 }
