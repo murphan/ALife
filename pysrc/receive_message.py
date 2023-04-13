@@ -3,6 +3,7 @@ import ast
 import random
 import json
 import pygame.display
+from threading import Thread
 
 import Global_access
 import Control_EnvironmentGUI
@@ -40,26 +41,34 @@ def decode_message(self, conn):
                     message = conn.recv(1024).decode(errors="ignore")
                     message_buf += message
                     length -= len(message)
+            if Global_access.receive:
+                Global_access.receive = False
+                thread = Thread(target=process_data, args=(self, message_buf, length_same))
+                thread.start()
 
-            data_map = json.loads(message_buf[:length_same])
 
-            message_type = data_map["type"]
-            if message_type == "frame":
-                handle_environment_data(self, data_map["environment"])
+def process_data(self, message_buf, length_same):
+        data_map = json.loads(message_buf[:length_same])
 
-            elif message_type == "init":
-                handle_environment_data(self, data_map["environment"])
-                handle_control_data(self, data_map["control"])
-                handle_settings_data(data_map["settings"])
+        message_type = data_map["type"]
+        if message_type == "frame":
+            handle_environment_data(self, data_map["environment"])
 
-            elif message_type == "organism_data":
-                print("organism data received")
+        elif message_type == "init":
+            handle_environment_data(self, data_map["environment"])
+            handle_control_data(self, data_map["control"])
+            handle_settings_data(data_map["settings"])
 
-            elif message_type == "control":
-                handle_control_data(self, data_map["control"])
+        elif message_type == "organism_data":
+            print("organism data received")
 
-            elif message_type == "settings":
-                handle_settings_data(data_map["settings"])
+        elif message_type == "control":
+            handle_control_data(self, data_map["control"])
+
+        elif message_type == "settings":
+            handle_settings_data(data_map["settings"])
+
+        Global_access.receive = True
 
 
 def handle_environment_data(self, environment_data_map):

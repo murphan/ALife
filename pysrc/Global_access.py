@@ -40,10 +40,11 @@ light_scale = 0.0
 light_depth = 0.0
 light_speed = 0.0
 
-repro_insertion = 0
-repro_deletion = 0
-repro_substitution = 0
+repro_insertion = 0.0
+repro_deletion = 0.0
+repro_substitution = 0.0
 
+receive = True  # This will be set to false if processing a message
 running = False
 updateDisplay = True
 
