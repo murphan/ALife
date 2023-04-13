@@ -68,10 +68,10 @@ class SetupSettings:
         This sets up the different configuration options which are split into four sections
 
         --------------------------------------------------------------
-        |                  |                      |                  |
-        |        fps       |        size          |       Click      |
-        |                  |                      |       Type       |
-        |                  |                      |                  |
+        |               |                |             |             |
+        |      fps      |  reproduction  |    size     |   Click     |
+        |               |      rates     |             |   Type      |
+        |               |                |             |             |
         --------------------------------------------------------------
         |                  |                      |                  |
         |       Temp       |       Light          |     Oxygen       |
@@ -82,18 +82,16 @@ class SetupSettings:
         """
         middle_top_frame = tkinter.Frame(self.window, bg=LIGHT_GREEN)
         middle_bottom_frame = tkinter.Frame(self.window, bg=LIGHT_GREEN)
-        speed_frame = tkinter.Frame(middle_top_frame, bg=LIGHT_GREEN, borderwidth=75)
-        size_frame = tkinter.Frame(middle_top_frame, bg=LIGHT_GREEN, borderwidth=75)
-        click_type_frame = tkinter.Frame(middle_top_frame, bg=LIGHT_GREEN, borderwidth=75)
+        speed_frame = tkinter.Frame(middle_top_frame, bg=LIGHT_GREEN, borderwidth=50)
+        repro_frame = tkinter.Frame(middle_top_frame, bg=LIGHT_GREEN, borderwidth=50)
+        size_frame = tkinter.Frame(middle_top_frame, bg=LIGHT_GREEN, borderwidth=50)
+        click_type_frame = tkinter.Frame(middle_top_frame, bg=LIGHT_GREEN, borderwidth=50)
 
         temp_frame = tkinter.Frame(middle_bottom_frame, bg=LIGHT_GREEN, borderwidth=75)
         light_frame = tkinter.Frame(middle_bottom_frame, bg=LIGHT_GREEN, borderwidth=75)
         oxygen_frame = tkinter.Frame(middle_bottom_frame, bg=LIGHT_GREEN, borderwidth=75)
 
         # Setting up the fps slider frame
-        speed_text_frame = tkinter.Frame(speed_frame, bg=LIGHT_GREEN)
-        speed_text_frame.pack(side=TOP, expand=True)
-
         speed_text_label = Label(speed_frame, text="Frames Per Second", background=LIGHT_GREEN)
         speed_text_label.config(font=("Arial", 12))
         speed_text_label.pack()
@@ -104,6 +102,46 @@ class SetupSettings:
         self.fps_slider.set(Global_access.fps)
         self.fps_slider.pack(side=TOP)
         speed_frame.pack(side=LEFT)
+
+        # Dealing with the reproduction inputs
+        reproduction_text_label = Label(repro_frame, text="Reproduction Mutation Rates", background=LIGHT_GREEN)
+        reproduction_text_label.config(font=("Arial", 12))
+        reproduction_text_label.pack(side=TOP)
+
+        insertion_frame = tkinter.Frame(repro_frame, bg=LIGHT_GREEN)
+        insertion_label = Label(insertion_frame, text="Insertion", background=LIGHT_GREEN)
+        insertion_label.config(font=("Arial", 10))
+        insertion_label.pack(side=LEFT)
+        self.insertion_value = tkinter.Entry(insertion_frame, width=12)
+        self.insertion_value.pack(side=LEFT)
+        insertion_frame.pack(side=TOP)
+
+        deletion_frame = tkinter.Frame(repro_frame, bg=LIGHT_GREEN)
+        deletion_label = Label(deletion_frame, text="Deletion", background=LIGHT_GREEN)
+        deletion_label.config(font=("Arial", 10))
+        deletion_label.pack(side=LEFT)
+        self.deletion_value = tkinter.Entry(deletion_frame, width=12)
+        self.deletion_value.pack(side=LEFT)
+        deletion_frame.pack(side=TOP)
+
+        substitution_frame = tkinter.Frame(repro_frame, bg=LIGHT_GREEN)
+        substitution_label = Label(substitution_frame, text="Substitution", background=LIGHT_GREEN)
+        substitution_label.config(font=("Arial", 10))
+        substitution_label.pack(side=LEFT)
+        self.substitution_value = tkinter.Entry(substitution_frame, width=12)
+        self.substitution_value.pack(side=LEFT)
+        substitution_frame.pack(side=TOP)
+
+        completed_button_frame = tkinter.Frame(repro_frame, bg=LIGHT_GREEN)
+        completed_button = tkinter.Button(completed_button_frame, bg="light blue", text="Complete!",
+                                          command=lambda: Control_Environment.EnvironmentControl.set_mutations(
+                                                                                        self,
+                                                                                        self.insertion_value.get,
+                                                                                        self.deletion_value.get,
+                                                                                        self.substitution_value.get))
+        completed_button.pack(side=TOP)
+        completed_button_frame.pack(side=TOP)
+        repro_frame.pack(side=LEFT)
 
         # Set up the size configuration options
         size_title_frame = tkinter.Frame(size_frame, bg=LIGHT_GREEN)
