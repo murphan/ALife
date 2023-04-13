@@ -28,8 +28,12 @@ auto main () -> int {
 		.reproductionThreshold = 0.10_f32,
 		.foodEfficiency = 1.0_f32,
 		.maxFoodAge = 128,
-		.baseMutationRate = 0.005,
-		.mutationFactor = 1.1,
+		.baseMutationRates = {
+			0.005,
+			0.005,
+			0.005,
+		},
+		.mutationFactor = 1.5,
 		.factorNoises = {
 			Noise(Factor::TEMPERATURE, false, -1.0_f32, 0.01_f32, 100.0_f32, 1.0_f32),
 			Noise(Factor::LIGHT, false, 0.33_f32, 0.0_f32, 50.0_f32, 1.0_f32),
@@ -113,8 +117,8 @@ auto main () -> int {
 		}
 	});
 
-	/* don't send more than 25 fps */
-	auto minSendTime = Loop::resolution((u64)((1._f64 / 25._f64) * Loop::resolution(Loop::seconds(1)).count()));
+	/* don't send more than 22 fps */
+	auto minSendTime = Loop::resolution((u64)((1._f64 / 22._f64) * Loop::resolution(Loop::seconds(1)).count()));
 
 	auto lastSendTime = Loop::timePoint();
 

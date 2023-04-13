@@ -75,8 +75,6 @@ private:
 	auto readIntoMessage(char * buffer, i32 & bufferIndex, i32 bytesReceived, OnReadFunction onRead) -> void {
 		auto headerBytesToRead = min(4 - currentMessageIndex, bytesReceived);
 
-		auto wasBefore = currentMessageLength;
-
 		auto start = bufferIndex;
 		for (; bufferIndex < start + headerBytesToRead; ++bufferIndex) {
 			currentMessageLength |= (u8)buffer[bufferIndex] << ((3 - currentMessageIndex) * 8);
@@ -254,7 +252,7 @@ public:
 
 				while (!outQueue.empty()) {
 					if (writeMessage(tempBuffer, outQueue.front()) == SendResult::BAD) {
-						BackSocket::clientSocket = INVALID_SOCKET;
+						std::cout << "BAD SEND" << std::endl;
 						outQueue.clear();
 					} else {
 						outQueue.pop_front();
@@ -280,12 +278,13 @@ public:
 
 	template<Util::IsIterator<char> Iterator>
 	auto send(Iterator begin, Iterator end) -> void {
-		auto lockGuard = std::lock_guard(outQueueMutex);
+		{
+			auto lockGuard = std::lock_guard(outQueueMutex);
 
-		outQueue.emplace_back();
-		auto & message = outQueue.back();
-		message.assign(begin, end);
-
+			outQueue.emplace_back();
+			auto &message = outQueue.back();
+			message.assign(begin, end);
+		}
 		outQueueSignal.notify_all();
 	}
 };

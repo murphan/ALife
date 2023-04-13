@@ -214,9 +214,9 @@ auto SimulationController::organismsReproduce(Settings & settings) -> void {
 			if (organism.energy > (i32)bodyEnergy + reproductionEnergy + childEnergy + thresholdEnergy) {
 				organism.storedChild = std::make_optional<Phenome>(
 					std::move(organism.getGenome().mutateCopy(
-						settings.baseMutationRate * pow(settings.mutationFactor, phenome.mutationModifiers[0]),
-						settings.baseMutationRate * pow(settings.mutationFactor, phenome.mutationModifiers[1]),
-						settings.baseMutationRate * pow(settings.mutationFactor, phenome.mutationModifiers[2])
+						settings.baseMutationRates[0] * pow(settings.mutationFactor, phenome.mutationModifiers[0]),
+						settings.baseMutationRates[1] * pow(settings.mutationFactor, phenome.mutationModifiers[1]),
+						settings.baseMutationRates[2] * pow(settings.mutationFactor, phenome.mutationModifiers[2])
 					)),
 					Body(2)
 				);
