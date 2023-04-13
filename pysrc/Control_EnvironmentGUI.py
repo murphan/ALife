@@ -356,8 +356,14 @@ class EnvironmentControl:
                             "scale": Global_access.oxygen_scale,
                             "amplitude": Global_access.oxygen_depth,
                         }
+                    ],
+                    "mutations": [{
+                        "insertion": Global_access.repro_insertion,
+                        "deletion": Global_access.repro_deletion,
+                        "substitution": Global_access.repro_substitution,
+                        }
                     ]
-                }
+                },
             })
         elif message_type == "init":
             return json.dumps({
@@ -365,6 +371,19 @@ class EnvironmentControl:
             })
 
     def set_mutations(self, insertion, deletion, substitution):
-        Global_access.set_insertion(insertion)
-        Global_access.set_deletion(deletion)
-        Global_access.set_substitution(substitution)
+        if insertion != "":
+            Global_access.set_insertion(float(insertion))
+        else:
+            Global_access.set_insertion(0.0)
+
+        if deletion != "":
+            Global_access.set_deletion(float(deletion))
+        else:
+            Global_access.set_deletion(0.0)
+
+        if substitution != "":
+            Global_access.set_substitution(float(substitution))
+        else:
+            Global_access.set_substitution(0.0)
+
+        EnvironmentControl.send_message(self, self.env_settings.conn, "settings")

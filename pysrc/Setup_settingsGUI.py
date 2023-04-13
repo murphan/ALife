@@ -113,6 +113,7 @@ class SetupSettings:
         insertion_label.config(font=("Arial", 10))
         insertion_label.pack(side=LEFT)
         self.insertion_value = tkinter.Entry(insertion_frame, width=12)
+        self.insertion_value.insert(0, Global_access.repro_insertion)
         self.insertion_value.pack(side=LEFT)
         insertion_frame.pack(side=TOP)
 
@@ -121,6 +122,7 @@ class SetupSettings:
         deletion_label.config(font=("Arial", 10))
         deletion_label.pack(side=LEFT)
         self.deletion_value = tkinter.Entry(deletion_frame, width=12)
+        self.deletion_value.insert(0, Global_access.repro_deletion)
         self.deletion_value.pack(side=LEFT)
         deletion_frame.pack(side=TOP)
 
@@ -129,6 +131,7 @@ class SetupSettings:
         substitution_label.config(font=("Arial", 10))
         substitution_label.pack(side=LEFT)
         self.substitution_value = tkinter.Entry(substitution_frame, width=12)
+        self.substitution_value.insert(0, Global_access.repro_substitution)
         self.substitution_value.pack(side=LEFT)
         substitution_frame.pack(side=TOP)
 
@@ -136,9 +139,9 @@ class SetupSettings:
         completed_button = tkinter.Button(completed_button_frame, bg="light blue", text="Complete!",
                                           command=lambda: Control_Environment.EnvironmentControl.set_mutations(
                                                                                         self,
-                                                                                        self.insertion_value.get,
-                                                                                        self.deletion_value.get,
-                                                                                        self.substitution_value.get))
+                                                                                        self.insertion_value.get(),
+                                                                                        self.deletion_value.get(),
+                                                                                        self.substitution_value.get()))
         completed_button.pack(side=TOP)
         completed_button_frame.pack(side=TOP)
         repro_frame.pack(side=LEFT)
