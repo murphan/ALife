@@ -24,7 +24,6 @@ def decode_message(self, conn):
 
     NOTE: Self was passed from setup_environment and so this will be a setup_environment instance of self
     """
-
     while True and not Global_access.EXIT:
         message_buf = ''  # The buffer to append message information to
 

@@ -40,6 +40,10 @@ light_scale = 0.0
 light_depth = 0.0
 light_speed = 0.0
 
+repro_insertion = 0
+repro_deletion = 0
+repro_substitution = 0
+
 running = False
 updateDisplay = True
 
@@ -167,4 +171,25 @@ def set_environment_size(width, height):
     mutex.acquire()
     global environment_size
     environment_size = width, height
+    mutex.release()
+
+
+def set_insertion(rate):
+    mutex.acquire()
+    global repro_insertion
+    repro_insertion = rate
+    mutex.release()
+
+
+def set_deletion(rate):
+    mutex.acquire()
+    global repro_deletion
+    repro_deletion = rate
+    mutex.release()
+
+
+def set_substitution(rate):
+    mutex.acquire()
+    global repro_substitution
+    repro_substitution = rate
     mutex.release()

@@ -14,7 +14,6 @@ import Setup_settingsGUI
 import Global_access
 import receive_message
 
-
 class Management:
     def __init__(self, *args, **kwargs):
         self.EnvironmentGui = Setup_EnvironmentGUI.SetupEnvironment()

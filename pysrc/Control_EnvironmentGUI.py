@@ -311,8 +311,7 @@ class EnvironmentControl:
                 "id": data,
             })
         elif message_type == "request_all":
-            # unused
-            return json.dumps({})
+            return json.dumps({"type": "request_all"})
         elif message_type == "control":
             return json.dumps({
                 "type": "control",
@@ -323,12 +322,14 @@ class EnvironmentControl:
                 }
             })
         elif message_type == "new_filled":
-            new_data = {"x": str(data[0]),
-                        "y": str(data[1]),
-                        "type": str(data[2])}
-            formatted_data = {"data": new_data}
-            formatted = {message_type: formatted_data}
-            return json.dumps(formatted)
+            return json.dumps({
+                "type": "new_filled",
+                "data": [{
+                    "x": str(data[0]),
+                    "y": str(data[1]),
+                    "square_type": str(data[2])
+                    }]
+                })
         elif message_type == "settings":
             return json.dumps({
                 "type": "settings",
@@ -362,3 +363,8 @@ class EnvironmentControl:
             return json.dumps({
                 "type": "init"
             })
+
+    def set_mutations(self, insertion, deletion, substitution):
+        Global_access.set_insertion(insertion)
+        Global_access.set_deletion(deletion)
+        Global_access.set_substitution(substitution)
