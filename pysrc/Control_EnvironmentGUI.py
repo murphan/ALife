@@ -311,8 +311,7 @@ class EnvironmentControl:
                 "id": data,
             })
         elif message_type == "request_all":
-            # unused
-            return json.dumps({})
+            return json.dumps({"type": "request_all"})
         elif message_type == "control":
             return json.dumps({
                 "type": "control",
@@ -323,12 +322,14 @@ class EnvironmentControl:
                 }
             })
         elif message_type == "new_filled":
-            new_data = {"x": str(data[0]),
-                        "y": str(data[1]),
-                        "type": str(data[2])}
-            formatted_data = {"data": new_data}
-            formatted = {message_type: formatted_data}
-            return json.dumps(formatted)
+            return json.dumps({
+                "type": "new_filled",
+                "data": [{
+                    "x": str(data[0]),
+                    "y": str(data[1]),
+                    "square_type": str(data[2])
+                    }]
+                })
         elif message_type == "settings":
             return json.dumps({
                 "type": "settings",
@@ -355,10 +356,34 @@ class EnvironmentControl:
                             "scale": Global_access.oxygen_scale,
                             "amplitude": Global_access.oxygen_depth,
                         }
+                    ],
+                    "mutations": [{
+                        "insertion": Global_access.repro_insertion,
+                        "deletion": Global_access.repro_deletion,
+                        "substitution": Global_access.repro_substitution,
+                        }
                     ]
-                }
+                },
             })
         elif message_type == "init":
             return json.dumps({
                 "type": "init"
             })
+
+    def set_mutations(self, insertion, deletion, substitution):
+        if insertion != "":
+            Global_access.set_insertion(float(insertion))
+        else:
+            Global_access.set_insertion(0.0)
+
+        if deletion != "":
+            Global_access.set_deletion(float(deletion))
+        else:
+            Global_access.set_deletion(0.0)
+
+        if substitution != "":
+            Global_access.set_substitution(float(substitution))
+        else:
+            Global_access.set_substitution(0.0)
+
+        EnvironmentControl.send_message(self, self.env_settings.conn, "settings")
