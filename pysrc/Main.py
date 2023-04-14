@@ -1,4 +1,5 @@
 import os
+import time
 from threading import Thread
 from multiprocessing import Process
 import sys
@@ -13,6 +14,7 @@ import Setup_EnvironmentGUI
 import Setup_settingsGUI
 import Global_access
 import receive_message
+import Drawing
 
 class Management:
     def __init__(self, *args, **kwargs):
@@ -38,7 +40,7 @@ class Management:
                 continue
 
     def start_receiver(self):
-        self.thread = Thread(target=receive_message.decode_message, args=(self, self.conn,))
+        self.thread = Thread(target=receive_message.decode_message, args=(self.conn,))
         self.thread.start()
 
     def send_init_message(self):
@@ -46,11 +48,16 @@ class Management:
 
     def main_loop(self):
         while True:
-            self.EnvironmentGui.clear_screen()
+            if Global_access.new_frame is not None:
+                Global_access.SCREEN.fill(Global_access.BLACK)
+                Drawing.render_grid(Global_access.new_frame)
+                Setup_EnvironmentGUI.SetupEnvironment.create_buttons(Global_access)
+
             if Global_access.EXIT == 1:
                 self.conn.close()
                 pygame.quit()
                 sys.exit()
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     thread = Thread(target=self.exiting)
@@ -59,18 +66,17 @@ class Management:
                     if self.EnvironmentGui.settings_button.mouse_click(event):  # Show the settings window
                         thread = Thread(target=self.open_settings)
                         thread.start()
-                    elif self.EnvironmentGui.play_button is not None and \
-                            self.EnvironmentGui.play_button.mouse_click(event):  # start button was clicked
-                        self.EnvironmentControl.start(self.conn)
-                        self.EnvironmentGui.createButtons()
-                    elif self.EnvironmentGui.pause_button is not None and \
-                            self.EnvironmentGui.pause_button.mouse_click(event):  # pause button was clicked
-                        self.EnvironmentControl.stop(self.conn)
-                        self.EnvironmentGui.createButtons()
+                    elif self.EnvironmentGui.play_pause_button.mouse_click(event):  # start button was clicked
+                        self.EnvironmentControl.toggle_start_stop(self.conn)
+                        self.EnvironmentGui.create_buttons()
                     else:  # Display on the environment that a square was clicked
                         self.EnvironmentControl.square_clicked(event, self.EnvironmentGui, self.conn)
 
             pygame.display.update()
+
+            Global_access.new_frame = None
+
+            time.sleep(0.01)
 
     def exiting(self):
         confirm = messagebox.askokcancel(title="Quit?", message="Are you sure that you want to Quit?")

@@ -19,49 +19,40 @@ class SetupEnvironment:
     def __init__(self):
         global CLOCK
         pygame.init()
-        Global_access.set_screen(pygame.display.set_mode(
-            (Global_access.WINDOW_WIDTH, Global_access.WINDOW_HEIGHT), pygame.DOUBLEBUF)
+        Global_access.set_screen(
+            pygame.display.set_mode(
+                size=(Global_access.WINDOW_WIDTH, Global_access.WINDOW_HEIGHT),
+            )
         )
         CLOCK = pygame.time.Clock()
         Global_access.SCREEN.fill(Global_access.BLACK)
 
         self.settings_button = None
-        self.play_button = None
-        self.pause_button = None
+        self.play_pause_button = None
 
-        self.createButtons()
+        self.create_buttons()
 
-        Global_access.set_environment_size(Global_access.WINDOW_WIDTH / 10, (Global_access.WINDOW_HEIGHT - 50) / 10)
-        Global_access.define_grid(Global_access.environment_size[0], Global_access.environment_size[1])
+        # Global_access.set_environment_size(Global_access.WINDOW_WIDTH / 10, (Global_access.WINDOW_HEIGHT - 50) / 10)
+        # Global_access.define_grid(Global_access.environment_size[0], Global_access.environment_size[1])
 
-    def clear_screen(self):
-        """
-        This will just clear the window for when the environment changes sizes and redraws the grid
-        """
-        if Global_access.size_changed or Global_access.new_frame:
-            Global_access.SCREEN.fill(Global_access.BLACK)
-            self.createButtons()
-            Global_access.size_changed = False
-            Global_access.new_frame = False
-            Global_access.SCREEN.blit(Global_access.second_surface, (0, 0))
-            Global_access.second_surface.fill(Global_access.BLACK)
+    def create_buttons(self):
+        self.play_pause_button = Button(
+            Global_access.SCREEN,
+            (Global_access.WINDOW_WIDTH - 150, Global_access.WINDOW_HEIGHT - 40, 70, 35),
+            "Pause" if Global_access.running else "Play",
+            20,
+            (255, 0, 0) if Global_access.running else (0, 255, 0),
+        )
+        self.settings_button = Button(
+            Global_access.SCREEN,
+            (Global_access.WINDOW_WIDTH - 75, Global_access.WINDOW_HEIGHT - 40, 70, 35),
+            "Settings",
+            20,
+            (255, 255, 0),
+        )
 
-    def createButtons(self):
-
-        buttons_surface = pygame.Surface([150, 40])
-        # The three buttons that are on the environment screen
-        if Global_access.running:
-            self.play_button = None
-            self.settings_button = Button(buttons_surface, (65, 8), "Settings", (255, 255, 0))
-            self.pause_button = Button(buttons_surface, (0, 8), "Pause", (255, 0, 0))
-        else:
-            self.pause_button = None
-            self.settings_button = Button(buttons_surface, (65, 8), "Settings", (255, 255, 0))
-            self.play_button = Button(buttons_surface, (0, 8), "Play", (0, 255, 0))
-
-        Global_access.SCREEN.blit(buttons_surface, (1350, 730))
-
-    def add_organism_display(self, organism):
+    @staticmethod
+    def add_organism_display(organism):
         """
         This will display the formatted string of organism information at the bottom of the screen
 
@@ -89,19 +80,18 @@ class Button:
     """
     The button class which defines the buttons in the environment
     """
-    def __init__(self, screen, position, text, color):
-        font = pygame.font.SysFont("Arial", 25)
-        text_options = font.render(text, True, (0, 0, 0))
-        x, y, w, h = text_options.get_rect()
+    def __init__(self, screen, position: (int, int, int, int), text: str, textSize: int, color: (int, int, int)):
+        font = pygame.font.SysFont("Arial", textSize)
 
-        # check rect is used for the positions in the environment to see if the button was clicked
-        x, y = position[0] + 1350, position[1] + 730
-        self.check_rect = pygame.Rect(x, y, w, h)
+        rendered_text = font.render(text, True, (0, 0, 0))
+        text_rect = rendered_text.get_rect()
 
-        # button rect is used for drawing within the button screen that is passed in
-        x, y = position
-        self.button_rect = pygame.draw.rect(screen, color, (x, y, w, h))
-        screen.blit(text_options, self.button_rect)
+        self.check_rect = pygame.Rect(*position)
+
+        x, y, w, h = position
+
+        pygame.draw.rect(screen, color, position)
+        screen.blit(source=rendered_text, dest=(x + (w - text_rect[2]) / 2, y + (h - text_rect[3]) / 2))
 
     def clicked(self):
         """

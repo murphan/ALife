@@ -44,7 +44,7 @@ class SetupSettings:
         """
         window = Tk()
         window.title("Settings")
-        window.state('zoomed')
+        # window.state('zoomed') this is annoying
         window.configure(bg=LIGHT_GREEN)
         window.geometry("1000x500")
         window.minsize(1500, 785)
