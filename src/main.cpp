@@ -41,7 +41,7 @@ auto main () -> int {
 		}
 	};
 
-	auto simulationController = SimulationController(Environment(150, 72));
+	auto simulationController = SimulationController(Environment(100, 50));
 	simulationController.refreshFactors(settings);
 
 	auto initialPhenome = Phenome(InitialGenome::create(), Body(2));
@@ -51,6 +51,30 @@ auto main () -> int {
 	//simulationController.scatterFood(Food::FOOD0, 150, 1 * settings.energyFactor);
 
 	auto simulationMutex = std::mutex();
+	auto lowPriorityMutex = std::mutex();
+	auto nextAccessMutex = std::mutex();
+
+	auto lowPriorityLock = [&]() {
+		lowPriorityMutex.lock();
+		nextAccessMutex.lock();
+		simulationMutex.lock();
+		nextAccessMutex.unlock();
+	};
+
+	auto lowPriorityUnlock = [&]() {
+		simulationMutex.unlock();
+		lowPriorityMutex.unlock();
+	};
+
+	auto highPriorityLock = [&]() {
+		nextAccessMutex.lock();
+		simulationMutex.lock();
+		nextAccessMutex.unlock();
+	};
+
+	auto highPriorityUnlock = [&]() {
+		simulationMutex.unlock();
+	};
 
 	auto socket = Socket();
 
@@ -62,7 +86,7 @@ auto main () -> int {
 		auto && parsedMessage = messageResult.value();
 
 		if (parsedMessage.type == "init") {
-			auto lock = std::unique_lock(simulationMutex);
+			highPriorityLock();
 
 			auto json = MessageCreator::initMessage(
 				simulationController.serialize(),
@@ -70,15 +94,19 @@ auto main () -> int {
 				settings.serialize()
 			).dump();
 
+			highPriorityUnlock();
+
 			socket.send(json.begin(), json.end());
 
 		} else if (parsedMessage.type == "control") {
 			if (!parsedMessage.body.contains("control")) return;
 
-			auto lock = std::unique_lock(simulationMutex);
-			controls.updateFromSerialized(parsedMessage.body["control"]);
+			highPriorityLock();
 
+			controls.updateFromSerialized(parsedMessage.body["control"]);
 			auto json = MessageCreator::controlsMessage(controls.serialize()).dump();
+
+			highPriorityUnlock();
 
 			socket.send(json.begin(), json.end());
 
@@ -117,21 +145,22 @@ auto main () -> int {
 		}
 	});
 
-	/* don't send more than 22 fps */
-	auto minSendTime = Loop::resolution((u64)((1._f64 / 22._f64) * Loop::resolution(Loop::seconds(1)).count()));
+	/* don't send more than 21 fps */
+	auto minSendTime = Loop::resolution((u64)((1._f64 / 21._f64) * Loop::resolution(Loop::seconds(1)).count()));
 
 	auto lastSendTime = Loop::timePoint();
 
 	auto loop = Loop();
 
 	loop.enter([&](Loop::timePoint now) -> Fps {
-		auto lock = std::unique_lock(simulationMutex);
+		lowPriorityLock();
 
 		if (controls.playing) {
 			simulationController.tick(settings);
 		}
 
-		if (socket.isConnected() && controls.updateDisplay && controls.playing && (now - lastSendTime) >= minSendTime) {
+		if (socket.isConnected() && controls.updateDisplay && controls.playing &&
+		    (now - lastSendTime) >= minSendTime) {
 			auto stateJson = MessageCreator::frameMessage(simulationController.serialize());
 
 			auto jsonData = stateJson.dump();
@@ -139,6 +168,8 @@ auto main () -> int {
 
 			lastSendTime = now;
 		}
+
+		lowPriorityUnlock();
 
 		return controls.unlimitedFPS() ? Fps::unlimited() : Fps(controls.fps);
 	});

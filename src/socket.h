@@ -35,7 +35,7 @@ struct BackSocket {
 
 class Socket {
 private:
-	constexpr static usize BUFFER_LENGTH = 1024;
+	constexpr static usize BUFFER_LENGTH = 4096;
 
 	std::deque<std::vector<char>> outQueue;
 

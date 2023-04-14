@@ -1,95 +1,69 @@
 import base64
-import ast
-import random
 import json
-import pygame.display
 from threading import Thread
 
 import Global_access
-import Control_EnvironmentGUI
-import Environment_cell
-import Organism_cell
 
 
-def decode_message(self, conn):
+def decode_message(conn):
     """
     This will decode the message that is sent from the c++ application. This will be
     started in setup Environment and will be in its own process. It will loop
     infinitely looking for messages
 
-    :param self: instance of setup_environment self that can be passed but isn't used
-    :type self: setup_environment instance
-
     :param conn: connection to receive messages from
     :type conn: socket
-
-    NOTE: Self was passed from setup_environment and so this will be a setup_environment instance of self
     """
-    while True and not Global_access.EXIT:
-        message_buf = ''  # The buffer to append message information to
+    while not Global_access.EXIT:
+        message_buf = bytes()  # The buffer to append message information to
 
-        length = conn.recv(4)
-        if length:
-            length = int.from_bytes(length, "big")
-            length_same = length
-            while length > 0:
-                if length < 1024:
-                    message = conn.recv(length).decode(errors="ignore")
-                    message_buf += message
-                    length = 0
-                else:
-                    message = conn.recv(1024).decode(errors="ignore")
-                    message_buf += message
-                    length -= len(message)
-            if Global_access.receive:
-                Global_access.receive = False
-                thread = Thread(target=process_data, args=(self, message_buf, length_same))
-                thread.start()
+        header = conn.recv(4)
+        if header:
+            length = int.from_bytes(header, "big")
+            remaining = length
+
+            while remaining > 0:
+                message_part = conn.recv(remaining)
+                message_buf += message_part
+                remaining -= len(message_part)
+
+            process_data(message_buf)
 
 
-def process_data(self, message_buf, length_same):
-        data_map = json.loads(message_buf[:length_same])
+def process_data(message_buf: bytes):
+        data_map = json.loads(message_buf)
 
         message_type = data_map["type"]
         if message_type == "frame":
-            handle_environment_data(self, data_map["environment"])
+            handle_environment_data(data_map["environment"])
 
         elif message_type == "init":
-            handle_environment_data(self, data_map["environment"])
-            handle_control_data(self, data_map["control"])
+            handle_environment_data(data_map["environment"])
+            handle_control_data(data_map["control"])
             handle_settings_data(data_map["settings"])
 
         elif message_type == "organism_data":
             print("organism data received")
 
         elif message_type == "control":
-            handle_control_data(self, data_map["control"])
+            handle_control_data(data_map["control"])
 
         elif message_type == "settings":
             handle_settings_data(data_map["settings"])
 
-        Global_access.receive = True
 
-
-def handle_environment_data(self, environment_data_map):
+def handle_environment_data(environment_data_map):
     height = environment_data_map["height"]
     width = environment_data_map["width"]
 
-    # TODO make grid dynamically sized
-    # Global_access.define_grid(width, height)
-
-    render_grid(
-        self,
-        buffer=base64.b64decode(environment_data_map["grid"]),
-        uuids=environment_data_map["organisms"],
-        width=width,
-        height=height
-    )
-
-    Global_access.new_frame = True
+    Global_access.new_frame = {
+        "size": (width, height),
+        "buffer": base64.b64decode(environment_data_map["grid"]),
+        "uuids": environment_data_map["organisms"],
+    }
 
 
-def handle_control_data(self, control):
+def handle_control_data(control):
     """
     update internal control values to match what the backend says is correct
     do not send a message back
@@ -123,32 +97,3 @@ def handle_settings_data(settings):
     Global_access.oxygen_speed = noise["speed"]
     Global_access.oxygen_scale = noise["scale"]
     Global_access.oxygen_depth = noise["amplitude"]
-
-
-def render_grid(self, buffer: bytes, uuids: list, width: int, height: int):
-    BYTES_PER_TILE = 9
-
-    for y in range(height):
-        for x in range(width):
-            baseIndex = (y * width + x) * BYTES_PER_TILE
-
-            meta_byte      = int.from_bytes(buffer[baseIndex + 0:baseIndex + 1], "big", signed=False)
-            organism_index = int.from_bytes(buffer[baseIndex + 1:baseIndex + 3], "big", signed=False)
-            color_0        = int.from_bytes(buffer[baseIndex + 3:baseIndex + 6], "big", signed=False)
-            color_1        = int.from_bytes(buffer[baseIndex + 6:baseIndex + 9], "big", signed=False)
-
-            draw_circle = meta_byte >> 7 == 1
-            meta_type = meta_byte & 0x7f
-
-            cell = Environment_cell.EnvironmentCell(0, 0, 0, meta_type, 0, 0, 0)
-
-            Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x, y, color_0)
-
-            if draw_circle:
-               Control_EnvironmentGUI.EnvironmentControl.fill_cell(self, x, y, color_1, circle=True)
-
-            Global_access.ENVIRONMENT_GRID[x][y]["environment"] = cell
-            if meta_type == Global_access.TILE_TYPE_ORGANISM:
-                Global_access.ENVIRONMENT_GRID[x][y]["organism"] = uuids[organism_index]
-            else:
-                Global_access.ENVIRONMENT_GRID[x][y]["organism"] = None
