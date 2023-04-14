@@ -20,25 +20,27 @@ private:
 
 	OrganismGrid organismGrid;
 
-	auto tempId(i32 index) -> i32;
-
 	/* substep functions */
 
-	auto moveOrganisms() -> void;
+	auto moveOrganisms(Settings & settings) -> void;
 
-	auto organismsAgeAndDie(i32 ageFactor) -> void;
+	auto doDamageAndKill(Settings & settings, std::vector<i32> & damages) -> void;
 
-	auto replaceOrganismWithFood(const Organism & organism) -> void;
+	auto organismsAgeAndDie(Settings & settings) -> void;
 
-    auto organismsEat() -> void;
+	auto replaceOrganismWithFood(const Organism & organism, Settings & settings) -> void;
 
-    auto organismsReproduce() ->void;
+    auto organismsEat(Settings & settings, std::vector<i32> & damages) -> void;
 
-    auto addChild(auto && organism) -> void;
+    auto organismsReproduce(Settings & settings) -> void;
 
+	auto findChildSpawnPoint(Organism & organism, Phenome & childPhenome) -> std::optional<Util::Coord>;
 
-	auto updateFactors(std::span<Noise> noises) -> void;
+    auto tryReproduce(Phenome & childPhenome, Organism & organism, i32 reproductionEnergy, i32 childEnergy) -> std::optional<Organism>;
 
+	auto updateFactors(Settings & settings) -> void;
+
+	auto tickFood(Settings & settings) -> void;
 
 public:
 	Environment environment;
@@ -48,6 +50,7 @@ public:
 
     explicit SimulationController(Environment && environment);
 
+	auto refreshFactors(Settings & settings) -> void;
 	auto tick(Settings & settings) -> void;
 
 	auto serialize() -> json;

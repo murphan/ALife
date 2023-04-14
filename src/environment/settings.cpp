@@ -25,6 +25,7 @@ auto Settings::handleSettingsMessage(Settings::json & body) -> void {
 			parseNoise(*it, this->factorNoises[index]);
 		}
 	}
+	//TODO handle lifetimeFactor and energyFactor
 }
 
 auto Settings::serialize() const -> json {
@@ -33,6 +34,8 @@ auto Settings::serialize() const -> json {
 			factorNoises[Factor::TEMPERATURE].serialize(),
 			factorNoises[Factor::LIGHT].serialize(),
 			factorNoises[Factor::OXYGEN].serialize(),
-		} }
+		} },
+		{ "lifetimeFactor", lifetimeFactor },
+		{ "energyFactor", energyFactor },
 	};
 }

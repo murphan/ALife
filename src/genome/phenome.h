@@ -14,6 +14,7 @@
 #include "genome/gene/reactionGene.h"
 #include "body.h"
 #include "genome/gene/mutationRateGene.h"
+#include "../environment/settings.h"
 
 class Sense {
 public:
@@ -40,9 +41,15 @@ public:
 	 * these are just ints some distance away from 0
 	 * negative for a smaller rate, positive for a larger rate
 	 */
-	i32 mutationModifiers[3] { 0, 0, 0 };
+	i32 mutationModifiers[3];
 
 	FoodStats foodStats[4];
+
+	/**
+	 * how many mover cells this organism has,
+	 * determines how many tries it gets in a turn to find a valid move
+	 */
+	i32 moveTries;
 
 	/**
 	 * indices of the sense cells within the body for quick lookup
@@ -52,15 +59,15 @@ public:
 	std::vector<EyeGene> eyeReactions;
 	std::vector<EnvironmentGene> environmentReactions;
 
-    i32 repoductionThreshold = 150;
-
 	explicit Phenome(Genome && inGenome, Body && inBody);
 
 	Phenome(const Phenome & other) = default;
 	Phenome(Phenome && other) = default;
 	auto operator=(Phenome && other) noexcept -> Phenome & = default;
 
-	auto maxAge(i32 ageFactor) const -> i32;
+	auto survivalEnergy(const Settings & settings) const -> i32;
+
+	auto maxAge(i32 lifetimeFactor) const -> i32;
 };
 
 #endif //ALIFE_PHENOME_H

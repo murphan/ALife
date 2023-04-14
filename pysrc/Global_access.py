@@ -58,38 +58,10 @@ ENVIRONMENT_GRID = []
 new_frame = False
 second_surface = pygame.Surface([1500, 730])
 
-factors_surface = pygame.Surface(environment_size)
-
-TILE_TYPE = {-2: "Empty",
-             -1: "Wall",
-             0: "Food 0",
-             1: "Food 1",
-             2: "Food 2",
-             3: "Food 3"}
-
-food_colors = {0: '#fafa16',  # Yellow
-               1: '#fa6c07',  # Orange
-               2: '#d10a0a',  # Red
-               3: '#f00ce1', }  # Pink
-
-# Organism Colors, they are labeled but can also be found in bodyPart.h
-org_colors = {1: '#5573a3',   # Mouth
-              2: '#23aac2',   # Basic
-              3: '#700232',   # Mover
-              4: '#9e9403',   # Photosynthesizer
-              5: '#7ee093',   # Weapon
-              6: '#0c871b',   # Armor
-              7: '#03f4fc',   # Eye
-              8: '#b1fc03',   # Sensor
-              9: '#fc95be',   # Stomach
-              10: '#8a05f7',  # Gonad
-              11: '#757171',  # Life Expander
-              12: '#a1641f',  # Mutator
-              13: '#836521',  # UNKNOWN 0
-              14: '#97b09d',  # UNKNOWN 1
-              15: '#61223f',  # UNKNOWN 2
-              16: '#6852f7'   # UNKNOWN 3
-              }
+TILE_TYPE_EMPTY = 0
+TILE_TYPE_ORGANISM = 1
+TILE_TYPE_FOOD = 2
+TILE_TYPE_WALL = 3
 
 # The Mutex needing to be acquired in order to update information
 mutex = Lock()

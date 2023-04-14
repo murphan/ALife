@@ -18,21 +18,37 @@
 #include "genome/initialGenome.h"
 
 auto main () -> int {
-
 	auto controls = Controls { .playing=false, .fps=20, .updateDisplay=true };
-	auto settings = Settings { .ageFactor = 1000, .factorNoises = {
-		Noise(0,true, 0.0_f32, 0.01_f32, 100.0_f32, 1.0_f32),
-		Noise(1,true, 0.0_f32, 0.1_f32, 50.0_f32, 1.0_f32),
-		Noise(2,true, 0.0_f32, 0.2_f32, 35.0_f32, 1.0_f32),
-	} };
+	auto settings = Settings {
+		.lifetimeFactor = 64,
+		.energyFactor = 16,
+		.photosynthesisFactor = 1,
+		.startingEnergy = 0.33_f32,
+		.reproductionCost = 0.1_f32,
+		.reproductionThreshold = 0.10_f32,
+		.foodEfficiency = 1.0_f32,
+		.maxFoodAge = 128,
+		.baseMutationRates = {
+			0.005,
+			0.005,
+			0.005,
+		},
+		.mutationFactor = 1.5,
+		.factorNoises = {
+			Noise(Factor::TEMPERATURE, false, -1.0_f32, 0.01_f32, 100.0_f32, 1.0_f32),
+			Noise(Factor::LIGHT, false, 0.33_f32, 0.0_f32, 50.0_f32, 1.0_f32),
+			Noise(Factor::OXYGEN, false, -1.0_f32, 0.01_f32, 100.0_f32, 1.0_f32),
+		}
+	};
 
 	auto simulationController = SimulationController(Environment(150, 72));
+	simulationController.refreshFactors(settings);
 
-	auto initialPhenome = Phenome(InitialGenome::create(), Body(2, BodyPart::MOUTH));
+	auto initialPhenome = Phenome(InitialGenome::create(), Body(2));
 
-	OrganismSeeder::insertInitialOrganisms(simulationController.organisms, simulationController.environment, initialPhenome, 10);
+	OrganismSeeder::insertInitialOrganisms(simulationController.organisms, simulationController.environment, initialPhenome, settings, 80);
 
-	simulationController.scatterFood(Food::FOOD0, 150, 20);
+	//simulationController.scatterFood(Food::FOOD0, 150, 1 * settings.energyFactor);
 
 	auto simulationMutex = std::mutex();
 
@@ -101,8 +117,8 @@ auto main () -> int {
 		}
 	});
 
-	/* don't send more than 25 fps */
-	auto minSendTime = Loop::resolution((u64)((1._f64 / 25._f64) * Loop::resolution(Loop::seconds(1)).count()));
+	/* don't send more than 22 fps */
+	auto minSendTime = Loop::resolution((u64)((1._f64 / 22._f64) * Loop::resolution(Loop::seconds(1)).count()));
 
 	auto lastSendTime = Loop::timePoint();
 

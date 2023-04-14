@@ -39,7 +39,7 @@ private:
 
 	std::deque<std::vector<char>> outQueue;
 
-	i32 messageLengthIndex;
+	i32 currentMessageIndex;
 	u32 currentMessageLength;
 	std::vector<char> currentMessage;
 
@@ -66,32 +66,29 @@ private:
 	}
 
 	auto resetCurrentMessage() -> void {
-		messageLengthIndex = 0;
+		currentMessageIndex = 0;
 		currentMessageLength = 0;
-		currentMessage = {};
+		currentMessage.clear();
 	}
 
 	template<Util::Function<void, std::vector<char> &> OnReadFunction>
-	auto readIntoMessage(char * buffer, i32 bytesReceived, i32 & index, OnReadFunction onRead) -> void {
-		auto headerBytesToRead = min(4 - messageLengthIndex, bytesReceived);
-		auto start = index;
+	auto readIntoMessage(char * buffer, i32 & bufferIndex, i32 bytesReceived, OnReadFunction onRead) -> void {
+		auto headerBytesToRead = min(4 - currentMessageIndex, bytesReceived);
 
-		for (; index < start + headerBytesToRead; ++index) {
-			currentMessageLength |= buffer[index] << ((3 - messageLengthIndex) * 8);
-			++messageLengthIndex;
+		auto start = bufferIndex;
+		for (; bufferIndex < start + headerBytesToRead; ++bufferIndex) {
+			currentMessageLength |= (u8)buffer[bufferIndex] << ((3 - currentMessageIndex) * 8);
+			++currentMessageIndex;
 		}
 
-		auto bodyBytesToRead = (i32)min(bytesReceived - index, currentMessageLength);
+		auto bodyBytesToRead = min(bytesReceived - bufferIndex, (i32)currentMessageLength);
 
-		currentMessage.insert(currentMessage.end(), buffer + index, buffer + bytesReceived);
-		index += bodyBytesToRead;
+		currentMessage.insert(currentMessage.end(), buffer + bufferIndex, buffer + bufferIndex + bodyBytesToRead);
+		currentMessageIndex += bodyBytesToRead;
+		bufferIndex += bodyBytesToRead;
 
 		if (currentMessage.size() == currentMessageLength) {
 			onRead(currentMessage);
-			//std::optional<std::string> message = this->onRead(currentMessage);
-			//if (message.has_value()) {
-			//	send(message->begin(), message->end());
-			//}
 			resetCurrentMessage();
 		}
 	}
@@ -129,20 +126,18 @@ private:
 	}
 
 	template<Util::Function<SendResult, std::span<const char>> T>
-	inline auto shipRemainingInBuffer(std::span<char> buffer, i32 bufferIndex, T onBufferFilled) {
-		if (bufferIndex == 0) return;
-		onBufferFilled(buffer.subspan(0, bufferIndex));
+	inline auto shipRemainingInBuffer(std::span<char> buffer, i32 bufferIndex, T onBufferFilled) -> SendResult {
+		if (bufferIndex == 0) return SendResult::BAD;
+		return onBufferFilled(buffer.subspan(0, bufferIndex));
 	}
 
-	auto writeMessage(char * buffer, const std::vector<char> & data) -> void {
+	auto writeMessage(char * buffer, const std::vector<char> & data) -> SendResult {
 		auto bufferIndex = 0;
 		auto bufferView = std::span { buffer, BUFFER_LENGTH };
 
 		auto send = [&](std::span<const char> buffer) {
-			if (::send(BackSocket::clientSocket, buffer.data(), buffer.size(), 0) == SOCKET_ERROR) {
-				std::cerr << "socket send error " << std::endl;
+			if (::send(BackSocket::clientSocket, buffer.data(), buffer.size(), 0) == SOCKET_ERROR)
 				return SendResult::BAD;
-			}
 			return SendResult::GOOD;
 		};
 
@@ -153,16 +148,16 @@ private:
 			(char)(data.size() & 0xff),
 		};
 
-		if (shipIntoBuffer(bufferView, bufferIndex, { header, 4 }, send)) return;
+		if (shipIntoBuffer(bufferView, bufferIndex, { header, 4 }, send)) return SendResult::BAD;
 
-		if (shipIntoBuffer(bufferView, bufferIndex, { data.data(), data.size() }, send)) return;
+		if (shipIntoBuffer(bufferView, bufferIndex, { data.data(), data.size() }, send)) return SendResult::BAD;
 
-		shipRemainingInBuffer(bufferView, bufferIndex, send);
+		return shipRemainingInBuffer(bufferView, bufferIndex, send);
 	}
 
 public:
 	explicit Socket() :
-		messageLengthIndex(0),
+		currentMessageIndex(0),
 		currentMessageLength(0_u32),
 		outQueue(),
 		currentMessage(),
@@ -241,7 +236,10 @@ public:
 				} else if (bytesReceived > 0) {
 					std::cout << "received " << bytesReceived << " bytes" << std::endl;
 
-					for (auto i = 0; i < bytesReceived; readIntoMessage(tempBuffer, bytesReceived, i, onRead));
+					auto bufferIndex = 0;
+					while (bufferIndex < bytesReceived) {
+						readIntoMessage(tempBuffer, bufferIndex, bytesReceived, onRead);
+					}
 				}
 			}
 		});
@@ -253,8 +251,12 @@ public:
 				outQueueSignal.wait(lock, [this] { return !outQueue.empty(); });
 
 				while (!outQueue.empty()) {
-					writeMessage(tempBuffer, outQueue.front());
-					outQueue.pop_front();
+					if (writeMessage(tempBuffer, outQueue.front()) == SendResult::BAD) {
+						std::cout << "BAD SEND" << std::endl;
+						outQueue.clear();
+					} else {
+						outQueue.pop_front();
+					}
 				}
 			}
 		});
@@ -276,12 +278,13 @@ public:
 
 	template<Util::IsIterator<char> Iterator>
 	auto send(Iterator begin, Iterator end) -> void {
-		auto lockGuard = std::lock_guard(outQueueMutex);
+		{
+			auto lockGuard = std::lock_guard(outQueueMutex);
 
-		outQueue.emplace_back();
-		auto & message = outQueue.back();
-		message.assign(begin, end);
-
+			outQueue.emplace_back();
+			auto &message = outQueue.back();
+			message.assign(begin, end);
+		}
 		outQueueSignal.notify_all();
 	}
 };

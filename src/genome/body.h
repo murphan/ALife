@@ -52,7 +52,7 @@ private:
 public:
 	Body(const Body & other) = default;
 	Body(Body && other) = default;
-	Body(i32 edge, BodyPart center);
+	Body(i32 edge);
 
 	auto operator=(Body && other) noexcept -> Body & = default;
 
@@ -60,6 +60,7 @@ public:
     auto access(i32, i32, Direction rotation) const -> BodyPart;
 
 	auto addPart(BodyBuilder &, Direction, BodyPart part, i32 jumpAnchor) -> void;
+	auto directAddPart(BodyPart part, i32 x, i32 y) -> void;
 
     auto debugToString() const -> std::string;
 

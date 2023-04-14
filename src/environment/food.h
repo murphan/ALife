@@ -20,17 +20,16 @@ public:
 private:
 	Type type;
     u8 energy;
-    u32 age;
-
 public:
+	u32 age;
+
 	Food(Type type, u8 energy);
     Food(Type type, u8 energy, u32 age);
 
-    auto tick() -> void;
-
     auto getType() const -> Type;
 	auto getEnergy() const -> u8;
-	auto getAge() const -> u32;
+
+	auto addEnergy(i32 energy) -> void;
 };
 
 #endif //ALIFE_FOOD_H

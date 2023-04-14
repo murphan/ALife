@@ -3,7 +3,7 @@
 //
 #include "organismGrid.h"
 
-OrganismGrid::OrganismGrid(i32 width, i32 height) : width(width), height(height), grid(width * height, 0) {}
+OrganismGrid::OrganismGrid(i32 width, i32 height) : blankSpace(0), width(width), height(height), grid(width * height, 0) {}
 
 auto OrganismGrid::inBounds(i32 x, i32 y) const -> bool {
 	return x >= 0 && x < width && y >= 0 && y < height;
@@ -13,7 +13,7 @@ auto OrganismGrid::indexOf(i32 x, i32 y) const -> i32 {
 	return y * width + x;
 }
 
-auto OrganismGrid::internalSpaceAvailable(const Body & body, i32 tempId, i32 centerX, i32 centerY, Direction rotation) -> bool {
+auto OrganismGrid::internalSpaceAvailable(const Body & body, i32 index, i32 centerX, i32 centerY, Direction rotation) -> bool {
 	for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
 		for (auto i = body.getLeft(rotation); i <= body.getRight(rotation); ++i) {
 			auto y = centerY + j;
@@ -26,10 +26,7 @@ auto OrganismGrid::internalSpaceAvailable(const Body & body, i32 tempId, i32 cen
 			if (cell != BodyPart::NONE) {
 				auto gridSpace = grid[indexOf(x, y)];
 				/* don't encroach onto an existing other organism */
-				if (
-					OrganismGridSpace::getFilled(gridSpace) &&
-					OrganismGridSpace::getTempId(gridSpace) != tempId
-				) return false;
+				if (gridSpace.getFilled() && gridSpace.getIndex() != index) return false;
 			}
 		}
 	}
@@ -39,11 +36,11 @@ auto OrganismGrid::internalSpaceAvailable(const Body & body, i32 tempId, i32 cen
 
 auto OrganismGrid::clear() -> void {
 	for (auto & space : grid) {
-		space = OrganismGridSpace::makeEmpty();
+		space.makeEmpty();
 	}
 }
 
-auto OrganismGrid::placeOrganism(const Organism & organism, i32 tempId) -> void {
+auto OrganismGrid::placeOrganism(const Organism & organism, i32 index) -> void {
 	auto && body = organism.body();
 	auto rotation = organism.rotation;
 
@@ -56,25 +53,16 @@ auto OrganismGrid::placeOrganism(const Organism & organism, i32 tempId) -> void 
 			auto cell = body.access(i, j, rotation);
 
 			if (cell != BodyPart::NONE) {
-				grid[indexOf(x, y)] = OrganismGridSpace::makeBodyPart(tempId, cell);
+				grid[indexOf(x, y)].makeBodyPart(index, cell);
 			}
 		}
 	}
 }
 
-auto OrganismGrid::canMoveOrganism(const Organism & organism, i32 tempId, i32 deltaX, i32 deltaY, i32 deltaRotation) -> bool {
-	return internalSpaceAvailable(
-		organism.body(),
-		tempId, organism.x + deltaX,
-		organism.y + deltaY,
-		organism.rotation.rotate(deltaRotation)
-		);
-}
-
 /**
  * modifies the passed organism's position and rotation
  */
-auto OrganismGrid::moveOrganism(Organism & organism, i32 tempId, i32 deltaX, i32 deltaY, i32 deltaRotation) -> void {
+auto OrganismGrid::moveOrganism(Organism & organism, i32 index, i32 deltaX, i32 deltaY, i32 deltaRotation) -> void {
 	auto && body = organism.body();
 	auto rotation = organism.rotation;
 
@@ -84,8 +72,8 @@ auto OrganismGrid::moveOrganism(Organism & organism, i32 tempId, i32 deltaX, i32
 			auto y = organism.y + j;
 			auto x = organism.x + i;
 
-			if (grid[indexOf(x, y)] == tempId) {
-				grid[indexOf(x, y)] = OrganismGridSpace::makeEmpty();
+			if (grid[indexOf(x, y)].getIndex() == index) {
+				grid[indexOf(x, y)].makeEmpty();
 			}
 		}
 	}
@@ -101,7 +89,7 @@ auto OrganismGrid::moveOrganism(Organism & organism, i32 tempId, i32 deltaX, i32
 			auto cell = body.access(i, j, newRotation);
 
 			if (cell != BodyPart::NONE) {
-				grid[indexOf(x, y)] = OrganismGridSpace::makeBodyPart(tempId, cell);
+				grid[indexOf(x, y)].makeBodyPart(index, cell);
 			}
 		}
 	}
@@ -115,34 +103,41 @@ auto OrganismGrid::isSpaceAvailable(const Body & body, i32 x, i32 y, Direction r
 	return internalSpaceAvailable(body, -1, x, y, rotation);
 }
 
-auto OrganismGrid::organismInSpace(i32 x, i32 y) const -> bool {
-	return OrganismGridSpace::getFilled(grid[indexOf(x, y)]);
-}
-
-auto OrganismGridSpace::makeEmpty() -> u32 {
-	return 0;
-}
-
-auto OrganismGridSpace::makeBodyPart(i32 tempId, BodyPart bodyPart) -> u32 {
-	return 0x1 | (tempId << 1) | ((bodyPart - 1) << 29);
-}
-
-auto OrganismGridSpace::getFilled(u32 space) -> bool {
-	return (space & 0x1) == 0x1;
-}
-
-auto OrganismGridSpace::getTempId(u32 space) -> i32 {
-	return (i32)((space >> 1) & ~(~0 << 28));
-}
-
-auto OrganismGridSpace::getBodyPart(u32 space) -> BodyPart {
-	return (BodyPart)((space >> 29) + 1);
-}
-
 auto OrganismGrid::getWidth() const -> i32 {
-    return width;
+	return width;
 }
 
-auto OrganismGrid::getHight() const -> i32 {
-    return height;
+auto OrganismGrid::getHeight() const -> i32 {
+	return height;
+}
+
+auto OrganismGrid::access(i32 x, i32 y) -> Space & {
+	return grid[indexOf(x, y)];
+}
+
+auto OrganismGrid::accessSafe(i32 x, i32 y) const -> const Space & {
+	if (x < 0 || x >= width || y < 0 || y >= height) return blankSpace;
+	return grid[indexOf(x, y)];
+}
+
+OrganismGrid::Space::Space(u32 value) : value(value) {}
+
+auto OrganismGrid::Space::makeEmpty() -> void {
+	value = 0;
+}
+
+auto OrganismGrid::Space::makeBodyPart(i32 tempId, BodyPart bodyPart) -> void {
+	value = 0x1 | (tempId << 1) | ((bodyPart - 1) << 29);
+}
+
+auto OrganismGrid::Space::getFilled() const -> bool {
+	return (value & 0x1) == 0x1;
+}
+
+auto OrganismGrid::Space::getIndex() const -> i32 {
+	return (i32)((value >> 1) & ~(~0 << 28));
+}
+
+auto OrganismGrid::Space::getBodyPart() const -> BodyPart {
+	return (BodyPart)((value >> 29) + 1);
 }

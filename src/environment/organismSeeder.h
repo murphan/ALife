@@ -9,10 +9,17 @@
 
 #include "organism.h"
 #include "environment.h"
+#include "settings.h"
 
 class OrganismSeeder {
 public:
-	static auto insertInitialOrganisms(std::vector<Organism> & insertList, const Environment & environment, const Phenome & initialPhenome, i32 count) -> void;
+	static auto insertInitialOrganisms(
+		std::vector<Organism> & insertList,
+		const Environment & environment,
+		const Phenome & initialPhenome,
+		const Settings & settings,
+		i32 count
+	) -> void;
 };
 
 #endif //ALIFE_ORGANISMSEEDER_H

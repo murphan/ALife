@@ -24,7 +24,7 @@ BodyGene::BodyGene(GenomeView & view) :
 	usingAnchor(-1),
 	setAnchor(-1),
 	duplicate(false),
-	bodyPart((BodyPart)(read16(view, 4) + 1))
+	bodyPart((BodyPart)(read5(view, 4) + 1))
 {
 	if (view[2] == Genome::B) {
 		usingAnchor = view[3];
@@ -56,7 +56,7 @@ auto BodyGene::writeBody(Genome & genome) -> void {
 		genome.write(Genome::A);
 	}
 
-	write16(genome, bodyPart - 1);
+	write5(genome, bodyPart - 1);
 }
 
 /* factories */
