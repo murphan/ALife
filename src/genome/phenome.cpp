@@ -9,7 +9,8 @@
 
 #include "phenome.h"
 
-Sense::Sense(i32 x, i32 y, BodyPart senseCell) : x(x), y(y), senseCell(senseCell) {}
+Sense::Sense(i32 x, i32 y, BodyPart senseCell, Direction direction) :
+	x(x), y(y), senseCell(senseCell), direction(direction) {}
 
 /**
  * INTERNAL USE FOR GENOME DECODER
@@ -64,46 +65,47 @@ Phenome::Phenome(Genome && inGenome, Body && inBody):
 
     auto index = 0;
 
-	auto initialGene = readNBases(genome, index, 2);
+	auto onAddPart = [&](i32 x, i32 y, BodyPart bodyPart) {
+		if (bodyPart == BodyPart::MOVER) ++moveTries;
+
+		else if (bodyPart == BodyPart::EYE) {
+			senses.emplace_back(x, y, bodyPart, Sense::determineDirection(x, y));
+		}
+	};
+
+	auto initialGene = readNBases(genome, index, 6);
 	if (!initialGene.empty()) {
 		auto center = (BodyPart)Gene::read5(initialGene, 0);
-		body.directAddPart(center, 0, 0);
-		if (center == BodyPart::MOVER) ++moveTries;
+		auto foodType = (Food::Type)Gene::read4(initialGene, 3);
+
+		body.directAddCell(Body::Cell(center, foodType), 0, 0);
+		onAddPart(0, 0, center);
 	}
 
     while (true) {
 		auto geneType = seekDoubles(genome, index);
 
         if (geneType == Genome::A) {
-	        auto gene = readNBases(genome, index, 6);
+	        auto gene = readNBases(genome, index, BodyGene::LENGTH);
 	        if (gene.empty()) return;
 
 	        auto bodyGene = BodyGene(gene);
 
-	        for (auto d = 0; d <= bodyGene.duplicate; ++d) {
-		        body.addPart(bodyBuilder, bodyGene.direction, bodyGene.bodyPart, bodyGene.usingAnchor);
-	        }
+			body.addCell(bodyBuilder, bodyGene.direction, Body::Cell(bodyGene.bodyPart, bodyGene.foodType), bodyGene.usingAnchor);
+			onAddPart(bodyBuilder.currentX, bodyBuilder.currentY, bodyGene.bodyPart);
 
 	        if (bodyGene.setsAnchor()) {
 		        bodyBuilder.anchors[bodyGene.setAnchor] = { bodyBuilder.currentX, bodyBuilder.currentY };
 	        }
 
-	        if (bodyGene.bodyPart == BodyPart::MOVER) ++moveTries;
-
 		} else if (geneType == Genome::B) {
-	        auto gene = readNBases(genome, index, 12);
+	        auto gene = readNBases(genome, index, ReactionGene::LENGTH);
 	        if (gene.empty()) break;
 
-	        auto senseType = Gene::read2(gene, 0);
-
-			if (senseType == 0) {
-				eyeReactions.emplace_back(gene);
-			} else {
-				environmentReactions.emplace_back(gene);
-			}
+			eyeReactions.emplace_back(gene);
 
 		} else if (geneType == Genome::C) {
-			auto gene = readNBases(genome, index, 6);
+			auto gene = readNBases(genome, index, FoodGene::LENGTH);
 			if (gene.empty()) break;
 
 			auto foodGene = FoodGene(gene);
@@ -112,13 +114,13 @@ Phenome::Phenome(Genome && inGenome, Body && inBody):
 	        foodStat.absoprtionBonus += foodGene.absorptionBonus();
 
 		} else if (geneType == Genome::D) {
-			auto gene = readNBases(genome, index, 8);
+			auto gene = readNBases(genome, index, MutationRateGene::LENGTH);
 			if (gene.empty()) break;
 
-			auto bonuses = MutationRateGene(gene).getResults();
-			mutationModifiers[MutationRateGene::SUBSTITUTION] += bonuses.substitution;
-	        mutationModifiers[MutationRateGene::INSERTION] += bonuses.insertion;
-	        mutationModifiers[MutationRateGene::DELETION] += bonuses.deletion;
+			auto change = MutationRateGene(gene).getChange();
+			mutationModifiers[0] += change;
+	        mutationModifiers[1] += change;
+	        mutationModifiers[2] += change;
 
         } else {
 	        break;
@@ -134,7 +136,8 @@ Phenome::Phenome(Genome && inGenome, Body && inBody):
 
 	/* somehow the genome was too small to have an initial body part */
 	if (body.getNumCells() == 0) {
-		body.directAddPart(BodyPart::MOUTH, 0, 0);
+		body.directAddCell(Body::Cell(BodyPart::MOUTH, Food::FOOD0), 0, 0);
+		onAddPart(0, 0, BodyPart::MOUTH);
 	}
 }
 

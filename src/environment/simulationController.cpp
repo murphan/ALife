@@ -3,8 +3,8 @@
 #include <iostream>
 #include "renderer.h"
 
-SimulationController::SimulationController(Environment && environment) :
-	random(std::random_device()()),
+SimulationController::SimulationController(Environment && environment, std::default_random_engine & random) :
+	random(random),
 	organismGrid(environment.getWidth(), environment.getHeight()),
 	environment(std::move(environment)),
 	organisms(),
@@ -47,16 +47,29 @@ auto SimulationController::moveOrganisms(Settings & settings) -> void {
 
 	for (auto i = 0; i < organisms.size(); ++i) {
 		auto && organism = organisms.at(i);
+		auto moveTries = organism.getPhenome().moveTries;
+		if (moveTries == 0) continue;
 
-		for (auto j = 0; j < organism.getPhenome().moveTries; ++j) {
-			auto deltaX = symmetricRange(random);
-			auto deltaY = symmetricRange(random);
+		if (moveTries < std::uniform_int_distribution(1, 2)(random)) continue;
+
+		for (auto j = 0; j < moveTries * 3; ++j) {
+			auto direction = organism.movementDirection;
+
+			auto deltaX = direction.x();
+			auto deltaY = direction.y();
 			auto deltaRotation = symmetricRange(random);
 
 			if (organismGrid.canMoveOrganism(organism, i, deltaX, deltaY, deltaRotation, [&](BodyPart bodyPart, OrganismGrid::Space gridSpace) {})) {
 				organismGrid.moveOrganism(organism, i, deltaX, deltaY, deltaRotation);
 				break;
+			} else {
+				organism.movementDirection = std::uniform_int_distribution(0, 7)(random);
 			}
+		}
+
+		if (++organism.ticksSinceCollision > 8) {
+			organism.ticksSinceCollision = 0;
+			organism.movementDirection = std::uniform_int_distribution(0, 7)(random);
 		}
 	}
 }
@@ -95,12 +108,12 @@ auto SimulationController::replaceOrganismWithFood(const Organism & organism, Se
 			auto y = organism.y + j, x = organism.x + i;
 			auto cell = body.access(i, j, rotation);
 
-			if (cell != BodyPart::NONE) {
+			if (cell.bodyPart() != BodyPart::NONE) {
 				auto && environmentCell = environment.getCell(x, y);
 				auto energy = (i32)((f32)settings.energyFactor * settings.foodEfficiency);
 
 				/* replace food, do not add on top */
-				environmentCell.setFood(Food(Food::FOOD0, energy));
+				environmentCell.setFood(Food(cell.foodType(), energy));
 			}
 		}
 	}
@@ -155,7 +168,7 @@ auto SimulationController::organismsEat(Settings & settings, std::vector<i32> & 
 				auto y = organism.y + j;
 				auto x = organism.x + i;
 
-				auto && bodyCell = body.access(i, j, rotation);
+				auto && bodyCell = body.access(i, j, rotation).bodyPart();
 				auto && environmentCell = environment.getCell(x, y);
 
 				if (bodyCell == BodyPart::PHOTOSYNTHESIZER) { // && organism.getPhenome().moveTries == 0
@@ -205,13 +218,13 @@ auto SimulationController::organismsReproduce(Settings & settings) -> void {
     for (auto && organism : organisms) {
 		if (!organism.storedChild.has_value()) {
 			auto & phenome = organism.getPhenome();
-			auto bodyEnergy = (f32)phenome.survivalEnergy(settings);
+			auto bodyEnergy = phenome.survivalEnergy(settings);
 
-			auto reproductionEnergy = (i32)(bodyEnergy * settings.reproductionCost);
-			auto childEnergy = (i32)(bodyEnergy * (1.0_f32 + settings.startingEnergy));
-			auto thresholdEnergy = (i32)(bodyEnergy * settings.reproductionThreshold);
+			auto reproductionEnergy = settings.energyFactor * settings.reproductionCost;
+			auto estimatedChildEnergy = bodyEnergy + (settings.energyFactor * settings.startingEnergy);
+			auto thresholdEnergy = settings.energyFactor * settings.reproductionThreshold;
 
-			if (organism.energy > (i32)bodyEnergy + reproductionEnergy + childEnergy + thresholdEnergy) {
+			if (organism.energy >= bodyEnergy + reproductionEnergy + estimatedChildEnergy + thresholdEnergy) {
 				organism.storedChild = std::make_optional<Phenome>(
 					std::move(organism.getGenome().mutateCopy(
 						settings.baseMutationRates[0] * pow(settings.mutationFactor, phenome.mutationModifiers[0]),
@@ -224,14 +237,14 @@ auto SimulationController::organismsReproduce(Settings & settings) -> void {
 		} else {
 			auto & childPhenome = organism.storedChild.value();
 
-			auto bodyEnergy = (f32)organism.getPhenome().survivalEnergy(settings);
-			auto childBodyEnergy = (f32)childPhenome.survivalEnergy(settings);
+			auto bodyEnergy = organism.getPhenome().survivalEnergy(settings);
+			auto childBodyEnergy = childPhenome.survivalEnergy(settings);
 
-			auto reproductionEnergy = (i32)(bodyEnergy * settings.reproductionCost);
-			auto childEnergy = (i32)(childBodyEnergy * (1.0_f32 + settings.startingEnergy));
-			auto thresholdEnergy = (i32)(bodyEnergy * settings.reproductionThreshold);
+			auto reproductionEnergy = settings.energyFactor * settings.reproductionCost;
+			auto childEnergy = childBodyEnergy + (settings.energyFactor * settings.startingEnergy);
+			auto thresholdEnergy = settings.energyFactor * settings.reproductionThreshold;
 
-			if (organism.energy > (i32)bodyEnergy + reproductionEnergy + childEnergy + thresholdEnergy) {
+			if (organism.energy >= bodyEnergy + reproductionEnergy + childEnergy + thresholdEnergy) {
 				auto newOrganism = tryReproduce(childPhenome, organism, reproductionEnergy, childEnergy);
 				if (newOrganism.has_value()) {
 					organism.storedChild.reset();
@@ -339,7 +352,8 @@ auto SimulationController::tryReproduce(Phenome & childPhenome, Organism & organ
         UUID::generateRandom(),
         x, y,
         organism.rotation,
-        childEnergy
+        childEnergy,
+		std::uniform_int_distribution(0, 7)(random)
 	);
 }
 

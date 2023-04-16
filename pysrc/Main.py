@@ -51,7 +51,7 @@ class Management:
             if Global_access.new_frame is not None:
                 Global_access.SCREEN.fill(Global_access.BLACK)
                 Drawing.render_grid(Global_access.new_frame)
-                Setup_EnvironmentGUI.SetupEnvironment.create_buttons(Global_access)
+                self.EnvironmentGui.create_buttons()
 
             if Global_access.EXIT == 1:
                 self.conn.close()

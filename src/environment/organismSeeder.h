@@ -6,6 +6,7 @@
 #define ALIFE_ORGANISMSEEDER_H
 
 #include <vector>
+#include <random>
 
 #include "organism.h"
 #include "environment.h"
@@ -18,7 +19,8 @@ public:
 		const Environment & environment,
 		const Phenome & initialPhenome,
 		const Settings & settings,
-		i32 count
+		i32 count,
+		std::default_random_engine & random
 	) -> void;
 };
 

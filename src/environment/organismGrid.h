@@ -64,7 +64,7 @@ private:
 				if (!inBounds(x, y)) {
 					spaceAvailable = false;
 				} else {
-					auto cell = body.access(i, j, rotation);
+					auto cell = body.access(i, j, rotation).bodyPart();
 
 					if (cell != BodyPart::NONE) {
 						auto gridSpace = grid[indexOf(x, y)];

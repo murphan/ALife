@@ -4,10 +4,13 @@
 
 #include "reactionGene.h"
 
-const char * ReactionGene::actionNames[3] = {
-	"Move Randomly",
+const auto ReactionGene::LENGTH = 15;
+
+const char * ReactionGene::actionNames[4] = {
 	"Move Toward",
-	"Move Away",
+	"Move Randomly",
+	"Stand Still",
+	"Move Away"
 };
 
 auto ReactionGene::headerBase() -> Genome::Base {
@@ -19,8 +22,8 @@ ReactionGene::ReactionGene(i32 priority, ActionType actionType) :
 	actionType(actionType) {}
 
 ReactionGene::ReactionGene(GenomeView & view) :
-	priority(read5(view, 8)),
-	actionType((ActionType)read4(view, 10)) {}
+	priority(read5(view, 9)),
+	actionType((ActionType)read4(view, 12)) {}
 
 auto ReactionGene::writeBody(Genome & genome) -> void {
 	write5(genome, priority);
@@ -30,20 +33,23 @@ auto ReactionGene::writeBody(Genome & genome) -> void {
 /* eye */
 
 EyeGene::EyeGene(GenomeView & view) :
-	seeingThing((EyeGene::SeeingThing)read3(view, 2)),
-	specific(read2(view, 4) == true),
-	modifier(read4(view, 6)),
+	seeingThing((EyeGene::SeeingThing)read3(view, 0)),
+	specific(read2(view, 3) == 1),
+	modifier(seeingThing == SeeingThing::CREATURE ? read6(view, 6) : read4(view, 6)),
 	ReactionGene(view) {}
 
 EyeGene::EyeGene(SeeingThing seeingThing, bool specific, i32 modifier, i32 priority, ActionType actionType) :
 		seeingThing(seeingThing), specific(specific), modifier(modifier), ReactionGene(priority, actionType) {}
 
 auto EyeGene::writeBody(Genome & genome) -> void {
-	write2(genome, 0);
-
 	write3(genome, seeingThing);
 	write2(genome, specific);
-	write4(genome, modifier);
+
+	if (seeingThing == SeeingThing::CREATURE) {
+		write6(genome, modifier);
+	} else {
+		write4(genome, modifier);
+	}
 
 	ReactionGene::writeBody(genome);
 }
@@ -57,6 +63,7 @@ auto EyeGene::getFriendly() const -> bool {
 }
 
 /* environment */
+/* NOT IMPLEMENTED */
 
 EnvironmentGene::EnvironmentGene(i32 factor, bool above, i32 threshold, i32 priority, ActionType actionType) :
 		factor(factor), above(above), threshold(threshold), ReactionGene(priority, actionType) {}

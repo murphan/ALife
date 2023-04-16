@@ -9,6 +9,9 @@
 
 #include <vector>
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 #include "types.h"
 #include "genome/genome.h"
 #include "genome/gene/reactionGene.h"
@@ -21,8 +24,20 @@ public:
 	i32 x;
 	i32 y;
 	BodyPart senseCell;
+	Direction direction;
 
-	Sense(i32 x, i32 y, BodyPart senseCell);
+	Sense(i32 x, i32 y, BodyPart senseCell, Direction direction);
+
+	static auto determineDirection(i32 x, i32 y) -> Direction {
+		return (i32)floor(
+			(
+				Util::positiveMod(
+					(f32)atan2(y, x),
+					(f32)M_PI * 2.0_f32
+				) + ((1.0_f32 / 8.0_f32) * M_PI)
+			) / ((1.0_f32 / 4.0_f32) * M_PI)
+		) % 8;
+	}
 };
 
 struct FoodStats {

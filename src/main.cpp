@@ -18,16 +18,18 @@
 #include "genome/initialGenome.h"
 
 auto main () -> int {
-	auto controls = Controls { .playing=false, .fps=20, .updateDisplay=true };
+	auto random = std::default_random_engine(std::random_device()());
+
+	auto controls = Controls { .playing=true, .fps=20, .updateDisplay=true };
 	auto settings = Settings {
 		.lifetimeFactor = 64,
 		.energyFactor = 16,
 		.photosynthesisFactor = 1,
-		.startingEnergy = 0.33_f32,
-		.reproductionCost = 0.1_f32,
-		.reproductionThreshold = 0.10_f32,
+		.startingEnergy = 4,
+		.reproductionCost = 1,
+		.reproductionThreshold = 2,
 		.foodEfficiency = 1.0_f32,
-		.maxFoodAge = 128,
+		.maxFoodAge = 100000000,
 		.baseMutationRates = {
 			0.005,
 			0.005,
@@ -36,19 +38,17 @@ auto main () -> int {
 		.mutationFactor = 1.5,
 		.factorNoises = {
 			Noise(Factor::TEMPERATURE, false, -1.0_f32, 0.01_f32, 100.0_f32, 1.0_f32),
-			Noise(Factor::LIGHT, false, 0.33_f32, 0.0_f32, 50.0_f32, 1.0_f32),
+			Noise(Factor::LIGHT, false, 0.35_f32, 0.0_f32, 50.0_f32, 1.0_f32),
 			Noise(Factor::OXYGEN, false, -1.0_f32, 0.01_f32, 100.0_f32, 1.0_f32),
 		}
 	};
 
-	auto simulationController = SimulationController(Environment(100, 50));
+	auto simulationController = SimulationController(Environment(120, 80), random);
 	simulationController.refreshFactors(settings);
 
 	auto initialPhenome = Phenome(InitialGenome::create(), Body(2));
 
-	OrganismSeeder::insertInitialOrganisms(simulationController.organisms, simulationController.environment, initialPhenome, settings, 80);
-
-	//simulationController.scatterFood(Food::FOOD0, 150, 1 * settings.energyFactor);
+	OrganismSeeder::insertInitialOrganisms(simulationController.organisms, simulationController.environment, initialPhenome, settings, 80, random);
 
 	auto simulationMutex = std::mutex();
 	auto lowPriorityMutex = std::mutex();

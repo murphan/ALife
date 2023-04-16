@@ -12,6 +12,7 @@ enum BodyPart {
 	PHOTOSYNTHESIZER = 3,
 	WEAPON = 4,
 	ARMOR = 5,
+	EYE = 6,
 };
 
 #endif //ALIFE_BODYPART_H

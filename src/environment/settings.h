@@ -30,21 +30,20 @@ public:
 	 */
 	i32 photosynthesisFactor;
 	/*
-	 * percentage of body energy that organism's start with in addition to survival energy
-	 * suggested range: 0-1
+	 * additional cells worth of energy that an organism is born with
+	 * suggested range: 1-8
 	 */
-	f32 startingEnergy;
+	i32 startingEnergy;
 	/*
-	 * percentage of body energy that an organism has to expend on top of expending all the energy that goes into the child
-	 * suggested range: 0-1
+	 * additional cells worth of energy that are expended on reproduction
+	 * suggested range: 1-8
 	 */
-	f32 reproductionCost;
+	i32 reproductionCost;
 	/*
-	 * percentage of body energy that the parent has to have remaining in addition to their survival energy
-	 * after they produce a child
-	 * suggested range: 0-1
+	 * additional cells worth of energy that must be kept after reproducing
+	 * suggested range: 1-8
 	 */
-	f32 reproductionThreshold;
+	i32 reproductionThreshold;
 	/*
 	 * percentage of each cell's energy that gets transferred to the food when an organism dies
 	 * suggested range: 0-1

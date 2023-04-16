@@ -16,7 +16,7 @@ using json = nlohmann::json;
 
 class SimulationController {
 private:
-	std::default_random_engine random;
+	std::default_random_engine & random;
 
 	OrganismGrid organismGrid;
 
@@ -48,7 +48,7 @@ public:
 
 	int currentTick;
 
-    explicit SimulationController(Environment && environment);
+    explicit SimulationController(Environment && environment, std::default_random_engine & random);
 
 	auto refreshFactors(Settings & settings) -> void;
 	auto tick(Settings & settings) -> void;

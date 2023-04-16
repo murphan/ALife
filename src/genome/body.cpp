@@ -5,6 +5,26 @@
 #include "body.h"
 #include "rotation.h"
 
+Body::Cell::Cell(u32 value): value(value) {}
+
+Body::Cell::Cell(BodyPart bodyPart, Food::Type foodType) : value((foodType << 8) | bodyPart) {}
+
+auto Body::Cell::set(BodyPart bodyPart, Food::Type foodType) -> void {
+	value = (foodType << 8) | bodyPart;
+}
+
+auto Body::Cell::bodyPart() const -> BodyPart {
+	return (BodyPart)(value & 0xff);
+}
+
+auto Body::Cell::foodType() const -> Food::Type {
+	return (Food::Type)((value >> 8) & 0xff);
+}
+
+auto Body::Cell::emptyCell() -> Body::Cell {
+	return Cell(0_u32);
+}
+
 BodyBuilder::BodyBuilder() :
     currentX(0), currentY(0), currentDirection(Direction::RIGHT), anchors() {}
 
@@ -38,7 +58,7 @@ auto Body::expand(i32 expandX, i32 expandY) -> void {
 		newHeight += expandY;
 	}
 
-	auto newCanvas = std::vector<BodyPart>(newWidth * newHeight, BodyPart::NONE);
+	auto newCanvas = std::vector<Cell>(newWidth * newHeight, Cell::emptyCell());
 
 	for (auto y = 0; y < height; ++y) {
 		for (auto x = 0; x < width; ++x) {
@@ -76,7 +96,7 @@ auto Body::canvasUp() const -> i32 {
 Body::Body(i32 edge):
     width(edge * 2 + 1), height(edge * 2 + 1),
 	originX(edge), originY(edge),
-	canvas(width * height, BodyPart::NONE),
+	canvas(width * height, Cell::emptyCell()),
     left(0), right(0), down(0), up(0), numCells(0)
 {}
 
@@ -88,7 +108,7 @@ Body::Body(i32 edge):
  *
  * modifies the builder's current direction and current position
  */
-auto Body::addPart(BodyBuilder & builder, Direction direction, BodyPart part, i32 jumpAnchor) -> void {
+auto Body::addCell(BodyBuilder & builder, Direction direction, Cell cell, i32 jumpAnchor) -> void {
     /* move from current position unless anchored, then jump */
 	auto baseX = builder.currentX;
 	auto baseY = builder.currentY;
@@ -105,17 +125,17 @@ auto Body::addPart(BodyBuilder & builder, Direction direction, BodyPart part, i3
     do {
         newX += newDirection.x();
         newY += newDirection.y();
-    } while (accessExpand(newX, newY, 5) != 0);
+    } while (accessExpand(newX, newY, 5).bodyPart() != BodyPart::NONE);
 
     builder.currentDirection = newDirection;
 	builder.currentX = newX;
 	builder.currentY = newY;
 
-	directAddPart(part, newX, newY);
+	directAddCell(cell, newX, newY);
 }
 
-auto Body::directAddPart(BodyPart part, i32 x, i32 y) -> void {
-	canvas[indexOf(x, y)] = part;
+auto Body::directAddCell(Cell cell, i32 x, i32 y) -> void {
+	canvas[indexOf(x, y)] = cell;
 
 	/* update bounds */
 	if (x < left) left = x;
@@ -128,7 +148,7 @@ auto Body::directAddPart(BodyPart part, i32 x, i32 y) -> void {
 }
 
 /** may resize the canvas if out of bounds */
-auto Body::accessExpand(i32 x, i32 y, i32 expandBy) -> i32 {
+auto Body::accessExpand(i32 x, i32 y, i32 expandBy) -> Cell {
     auto expandX = 0;
     auto expandY = 0;
 
@@ -147,12 +167,12 @@ auto Body::accessExpand(i32 x, i32 y, i32 expandBy) -> i32 {
     return canvas[indexOf(x, y)];
 }
 
-auto Body::safeAccess(i32 x, i32 y) const -> BodyPart {
-	if (x < canvasLeft() || x > canvasRight() || y < canvasDown() || y > canvasUp()) return BodyPart::NONE;
+auto Body::safeAccess(i32 x, i32 y) const -> Cell {
+	if (x < canvasLeft() || x > canvasRight() || y < canvasDown() || y > canvasUp()) return Cell::emptyCell();
 	return canvas[indexOf(x, y)];
 }
 
-auto Body::access(i32 x, i32 y, Direction rotation) const -> BodyPart {
+auto Body::access(i32 x, i32 y, Direction rotation) const -> Cell {
 	auto [accessX, accessY] = Rotation::rotate({ x, y }, rotation);
 	return safeAccess(accessX, accessY);
 }
@@ -163,7 +183,7 @@ auto Body::debugToString() const -> std::string {
 
     for (auto y = height - 1; y >= 0; --y) {
         for (auto x = 0; x < width; ++x) {
-            string.push_back(canvas[canvasIndex(width, x, y)] + '0');
+            string.push_back(canvas[canvasIndex(width, x, y)].bodyPart() + '0');
         }
         if (y > down) string.push_back('\n');
     }
