@@ -60,8 +60,7 @@ auto Organism::serialize(bool detailed) const -> json {
 	for (auto && eyeReaction : phenome.eyeReactions) eyeReactions.push_back(json {
 		{ "seeingThing", EyeGene::SEEING_THING_NAMES[eyeReaction.seeingThing] },
 		{ "specific", eyeReaction.specific },
-		{ "foodType", eyeReaction.getFoodType() },
-		{ "friendly", eyeReaction.getFriendly() },
+		{ "modifier", eyeReaction.getFoodType() },
 	});
 	auto environmentReactions = json::array();
 	for (auto && environmentReaction : phenome.environmentReactions) environmentReactions.push_back(json {

@@ -36,10 +36,10 @@ constexpr u32 bodyPartColors[] = {
 };
 
 constexpr u32 foodColors[] = {
-	0xfafa16,
-	0xfa6c07,
-	0xd10a0a,
-	0xf00ce1,
+	0x8d9400,
+	0x945900,
+	0x940000,
+	0x940059,
 };
 
 inline auto insert3(std::vector<u8> & buffer, i32 index, u32 value) -> void {

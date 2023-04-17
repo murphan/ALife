@@ -22,6 +22,10 @@ private:
 
 	/* substep functions */
 
+	struct ActionReturn { ReactionGene::ActionType actionType; Direction direction; };
+
+	auto organismSeeingAction(Organism & organism, Settings & settings) -> ActionReturn;
+
 	auto moveOrganisms(Settings & settings) -> void;
 
 	auto doDamageAndKill(Settings & settings, std::vector<i32> & damages) -> void;

@@ -54,12 +54,12 @@ auto EyeGene::writeBody(Genome & genome) -> void {
 	ReactionGene::writeBody(genome);
 }
 
-auto EyeGene::getFoodType() const -> i32 {
-	return modifier;
+auto EyeGene::getFoodType() const -> Food::Type {
+	return (Food::Type)modifier;
 }
 
-auto EyeGene::getFriendly() const -> bool {
-	return modifier < 2;
+auto EyeGene::getBodyPart() const -> BodyPart {
+	return (BodyPart)modifier;
 }
 
 /* environment */

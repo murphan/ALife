@@ -43,3 +43,7 @@ auto MapCell::removeFood() -> void {
 auto MapCell::setFactor(Factor factor, i8 value) -> void {
 	factors[factor] = value;
 }
+
+auto MapCell::setHasWall(bool hasWall) -> void {
+	this->hasWall = hasWall;
+}

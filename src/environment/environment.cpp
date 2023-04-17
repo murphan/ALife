@@ -1,7 +1,9 @@
 #include "environment.h"
 
 /** creates an environment of a certain size */
-Environment::Environment(i32 width, i32 height) : emptyCell(), width(width), height(height), map(mapSize()) {}
+Environment::Environment(i32 width, i32 height) : emptyCell(), width(width), height(height), map(mapSize()) {
+	emptyCell.setHasWall(true);
+}
 
 auto Environment::getCell(int x, int y) -> MapCell & {
     return map[y * width + x];

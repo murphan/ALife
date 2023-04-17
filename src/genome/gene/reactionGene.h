@@ -7,6 +7,8 @@
 
 #include "types.h"
 #include "../gene.h"
+#include "../../environment/food.h"
+#include "../bodyPart.h"
 
 class ReactionGene : public Gene {
 protected:
@@ -56,8 +58,8 @@ public:
 
 	auto writeBody(Genome & genome) -> void final;
 
-	auto getFoodType() const -> i32;
-	auto getFriendly() const -> bool;
+	auto getFoodType() const -> Food::Type;
+	auto getBodyPart() const -> BodyPart;
 };
 
 class EnvironmentGene : public ReactionGene {

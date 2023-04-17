@@ -20,7 +20,7 @@
 auto main () -> int {
 	auto random = std::default_random_engine(std::random_device()());
 
-	auto controls = Controls { .playing=true, .fps=20, .updateDisplay=true };
+	auto controls = Controls { .playing=false, .fps=20, .updateDisplay=true };
 	auto settings = Settings {
 		.lifetimeFactor = 64,
 		.energyFactor = 16,
@@ -36,6 +36,7 @@ auto main () -> int {
 			0.005,
 		},
 		.mutationFactor = 1.5,
+		.sightRange = 8,
 		.factorNoises = {
 			Noise(Factor::TEMPERATURE, false, -1.0_f32, 0.01_f32, 100.0_f32, 1.0_f32),
 			Noise(Factor::LIGHT, false, 0.35_f32, 0.0_f32, 50.0_f32, 1.0_f32),
@@ -43,7 +44,7 @@ auto main () -> int {
 		}
 	};
 
-	auto simulationController = SimulationController(Environment(120, 80), random);
+	auto simulationController = SimulationController(Environment(200, 100), random);
 	simulationController.refreshFactors(settings);
 
 	auto initialPhenome = Phenome(InitialGenome::create(), Body(2));

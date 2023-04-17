@@ -65,6 +65,7 @@ public:
 	 * suggested range: 1.0-2.0
 	 */
 	f32 mutationFactor;
+	i32 sightRange;
 
 	Noise factorNoises[3];
 

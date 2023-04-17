@@ -30,6 +30,7 @@ public:
 	auto setFactor(Factor factor, i8 value) -> void;
 
     auto setFood(Food newFood) -> void;
+	auto setHasWall(bool hasWall) -> void;
 
 	auto getHasWall() const -> bool;
 	auto getHasFood() const -> bool;

@@ -38,6 +38,62 @@ auto SimulationController::tick(Settings & settings) -> void {
 
 auto symmetricRange = std::uniform_int_distribution<i32>(-1, 1);
 
+auto SimulationController::organismSeeingAction(Organism & organism, Settings & settings) -> ActionReturn {
+	auto && eyeReactions = organism.getPhenome().eyeReactions;
+	auto && eyes = organism.getPhenome().senses;
+
+	auto bestActionPriority = -1;
+	auto bestAction = ActionReturn { ReactionGene::ActionType::WANDER, 0 };
+
+	if (eyeReactions.empty() || eyes.empty()) return bestAction;
+
+	for (auto && eye : eyes) {
+		for (auto i = 1; i <= settings.sightRange; ++i) {
+			auto seeX = eye.x + i * eye.direction.x();
+			auto seeY = eye.y + i * eye.direction.y();
+
+			if (!organismGrid.inBounds(seeX, seeY)) break;
+
+			auto & accessOrganism = organismGrid.accessSafe(seeX, seeY);
+			auto & accessMap = environment.getCellSafe(seeX, seeY);
+
+			if (accessOrganism.getFilled() || accessMap.getHasFood() || accessMap.getHasWall()) {
+				for (auto && reaction : eyeReactions) {
+					if (reaction.priority < bestActionPriority) continue;
+
+					if (
+						(
+							reaction.seeingThing == EyeGene::CREATURE &&
+							accessOrganism.getFilled() && (
+								!reaction.specific || reaction.getBodyPart() == accessOrganism.getBodyPart()
+							)
+						) ||
+						(
+							reaction.seeingThing == EyeGene::FOOD &&
+							accessMap.getHasFood() && (
+								!reaction.specific || reaction.getFoodType() == accessMap.getFood().getType()
+							)
+						) ||
+						(
+							reaction.seeingThing == EyeGene::WALL &&
+							accessMap.getHasWall()
+						)
+					) {
+						bestAction.direction = eye.direction;
+						bestAction.actionType = reaction.actionType;
+						bestActionPriority = reaction.priority;
+					}
+				}
+				break;
+			}
+		}
+	}
+
+	return bestAction;
+}
+
+auto randomDirection = std::uniform_int_distribution(0, 7);
+
 auto SimulationController::moveOrganisms(Settings & settings) -> void {
 	organismGrid.clear();
 
@@ -52,24 +108,28 @@ auto SimulationController::moveOrganisms(Settings & settings) -> void {
 
 		if (moveTries < std::uniform_int_distribution(1, 2)(random)) continue;
 
-		for (auto j = 0; j < moveTries * 3; ++j) {
-			auto direction = organism.movementDirection;
+		auto [actionType, preferredDirection] = organismSeeingAction(organism, settings);
 
-			auto deltaX = direction.x();
-			auto deltaY = direction.y();
+		if (actionType == ReactionGene::ActionType::STOP) continue;
+
+		for (auto j = 0; j < moveTries * 3; ++j) {
+			auto direction = actionType == EyeGene::ActionType::WANDER ? organism.movementDirection :
+				actionType == EyeGene::ActionType::TOWARD ? preferredDirection : preferredDirection.opposite();
+
+			auto deltaX = direction.x(), deltaY = direction.y();
 			auto deltaRotation = symmetricRange(random);
 
 			if (organismGrid.canMoveOrganism(organism, i, deltaX, deltaY, deltaRotation, [&](BodyPart bodyPart, OrganismGrid::Space gridSpace) {})) {
 				organismGrid.moveOrganism(organism, i, deltaX, deltaY, deltaRotation);
 				break;
 			} else {
-				organism.movementDirection = std::uniform_int_distribution(0, 7)(random);
+				organism.movementDirection = randomDirection(random);
 			}
 		}
 
 		if (++organism.ticksSinceCollision > 8) {
 			organism.ticksSinceCollision = 0;
-			organism.movementDirection = std::uniform_int_distribution(0, 7)(random);
+			organism.movementDirection = randomDirection(random);
 		}
 	}
 }

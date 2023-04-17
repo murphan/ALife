@@ -34,7 +34,6 @@ private:
 	i32 width, height;
 	std::vector<Space> grid;
 
-	auto inBounds(i32 x, i32 y) const -> bool;
 	auto indexOf(i32 x, i32 y) const -> i32;
 
 	auto internalSpaceAvailable(
@@ -88,6 +87,8 @@ public:
 	OrganismGrid(i32 width, i32 height);
 
 	auto clear() -> void;
+
+	auto inBounds(i32 x, i32 y) const -> bool;
 
 	auto placeOrganism(const Organism & organism, i32 index) -> void;
 
