@@ -3,36 +3,15 @@
 //
 
 #include <algorithm>
+
 #include "genomeView.h"
 #include "genome/gene/bodyGene.h"
 #include "genome/gene/foodGene.h"
-
+#include "geneMap.h"
 #include "phenome.h"
 
 Sense::Sense(i32 x, i32 y, BodyPart senseCell, Direction direction) :
 	x(x), y(y), senseCell(senseCell), direction(direction) {}
-
-/**
- * INTERNAL USE FOR GENOME DECODER
- * points i to after the pattern
- * @return the base value of double pattern found, or -1 if end reached
- */
-auto seekDoubles(const Genome & genome, i32 & i) -> i32 {
-    if (i >= genome.size() - 1) return -1;
-
-    auto last = genome.get(i);
-    for (++i; i < genome.size(); ++i) {
-        auto current = genome.get(i);
-        if (last == current) {
-            ++i;
-            return last;
-        }
-
-        last = current;
-    }
-
-    return -1;
-}
 
 /**
  * INTERNAL USE FOR GENOME DECODER
@@ -47,6 +26,10 @@ auto readNBases(const Genome & genome, i32 & i, i32 length) -> GenomeView {
 	i += length;
 
 	return view;
+}
+
+inline auto readSegment(const Genome & genome, GeneMap::Segment segment) -> GenomeView {
+	return GenomeView { &genome, segment.begin, segment.length() };
 }
 
 Phenome::Phenome(Genome && inGenome, Body && inBody):
@@ -73,8 +56,16 @@ Phenome::Phenome(Genome && inGenome, Body && inBody):
 		}
 	};
 
-	auto initialGene = readNBases(genome, index, 6);
-	if (!initialGene.empty()) {
+	auto geneMap = GeneMap(genome);
+
+	/* default organism for too-short genome */
+	if (geneMap.segments.empty() || !geneMap.segments[0].isCoding) {
+		body.directAddCell(Body::Cell(BodyPart::MOUTH, Food::FOOD0), 0, 0);
+		onAddPart(0, 0, BodyPart::MOUTH);
+	}
+
+	{
+		auto initialGene = readSegment(genome, geneMap.segments[0]);
 		auto center = (BodyPart)Gene::read5(initialGene, 0);
 		auto foodType = (Food::Type)Gene::read4(initialGene, 3);
 
@@ -82,50 +73,43 @@ Phenome::Phenome(Genome && inGenome, Body && inBody):
 		onAddPart(0, 0, center);
 	}
 
-    while (true) {
-		auto geneType = seekDoubles(genome, index);
+	for (auto i = 1; i < geneMap.segments.size(); ++i) {
+		auto segment = geneMap.segments[i];
+		if (!segment.isCoding) continue;
 
-        if (geneType == Genome::A) {
-	        auto gene = readNBases(genome, index, BodyGene::LENGTH);
-	        if (gene.empty()) return;
+		auto gene = readSegment(genome, segment.startOffset(2));
 
-	        auto bodyGene = BodyGene(gene);
+		if (segment.type == Genome::A) {
+			auto bodyGene = BodyGene(gene);
 
-			body.addCell(bodyBuilder, bodyGene.direction, Body::Cell(bodyGene.bodyPart, bodyGene.foodType), bodyGene.usingAnchor);
+			body.addCell(
+				bodyBuilder,
+				bodyGene.direction,
+				Body::Cell(bodyGene.bodyPart, bodyGene.foodType),
+				bodyGene.usingAnchor
+			);
 			onAddPart(bodyBuilder.currentX, bodyBuilder.currentY, bodyGene.bodyPart);
 
-	        if (bodyGene.setsAnchor()) {
-		        bodyBuilder.anchors[bodyGene.setAnchor] = { bodyBuilder.currentX, bodyBuilder.currentY };
-	        }
+			if (bodyGene.setsAnchor()) {
+				bodyBuilder.anchors[bodyGene.setAnchor] = { bodyBuilder.currentX, bodyBuilder.currentY };
+			}
 
-		} else if (geneType == Genome::B) {
-	        auto gene = readNBases(genome, index, ReactionGene::LENGTH);
-	        if (gene.empty()) break;
-
+		} else if (segment.type == Genome::B) {
 			eyeReactions.emplace_back(gene);
 
-		} else if (geneType == Genome::C) {
-			auto gene = readNBases(genome, index, FoodGene::LENGTH);
-			if (gene.empty()) break;
-
+		} else if (segment.type == Genome::C) {
 			auto foodGene = FoodGene(gene);
 			auto & foodStat = foodStats[foodGene.foodType];
 			foodStat.digestionBonus += foodGene.digestionBonus();
-	        foodStat.absoprtionBonus += foodGene.absorptionBonus();
+			foodStat.absoprtionBonus += foodGene.absorptionBonus();
 
-		} else if (geneType == Genome::D) {
-			auto gene = readNBases(genome, index, MutationRateGene::LENGTH);
-			if (gene.empty()) break;
-
+		} else if (segment.type == Genome::D) {
 			auto change = MutationRateGene(gene).getChange();
 			mutationModifiers[0] += change;
-	        mutationModifiers[1] += change;
-	        mutationModifiers[2] += change;
-
-        } else {
-	        break;
+			mutationModifiers[1] += change;
+			mutationModifiers[2] += change;
 		}
-    }
+	}
 
 	auto descendingPriority = [](ReactionGene & left, ReactionGene & right) {
 		return left.priority > right.priority;
