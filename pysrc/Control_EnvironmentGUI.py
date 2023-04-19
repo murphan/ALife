@@ -180,6 +180,10 @@ class EnvironmentControl:
             Global_access.running = False
             self.send_message(conn, "control")
 
+    def toggle_start_stop(self, conn):
+        Global_access.running = not Global_access.running
+        self.send_message(conn, "control")
+
     def set_width(self, width):
         """
         This is where the width is set and adjusted from the settings window
@@ -213,6 +217,7 @@ class EnvironmentControl:
         :param conn: connection to send message with
         :param type: socket
         """
+        return # this function is broken right now
         mpos_x, mpos_y = event.pos
         # Grid coords are different in python than they are in c++ for y coordinates
         coord = mpos_x // 10, int(Global_access.environment_size[1] - (mpos_y // 10) - 1)
@@ -228,6 +233,10 @@ class EnvironmentControl:
         # If the cell wasn't filled with an organism we check if it is empty (not food or a wall cell but empty)
         elif Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["environment"] is not None and \
             Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["environment"].tile_type == Global_access.TILE_TYPE_EMPTY:
+
+            # we're probably going to have to send a new frame message instead of trying to prerender what we think it's gonna look like
+            # when we place the thing
+
             if Global_access.CLICK_TYPE == 'Organism':
                 self.fill_cell(coord[0], coord[1], Global_access.org_colors[1])
                 new_cell = Organism_cell.OrganismCell(0, 0, 0, 0, 0, 0, 0, 0, 0, coord[0], coord[1])
@@ -244,7 +253,8 @@ class EnvironmentControl:
                 Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["environment"] = new_cell
                 self.send_message(conn, "new_filled", (coord[0], coord[1], "wall"))
 
-    def fill_cell(self, x, y, color, circle = False):
+    @staticmethod
+    def fill_cell(x, y, color, circle = False):
         """
         This will fill in a cell when the information is passed from c++
         Grid coords are different in python than they are in c++.
@@ -260,11 +270,20 @@ class EnvironmentControl:
         :type color: Global_access.color
         """
         y = int(Global_access.environment_size[1] - y - 1)
+        cell_size = Global_access.CELL_SIZE
 
         if circle:
-            pygame.draw.circle(Global_access.second_surface, color, (x * 10 + 5, y * 10 + 5), 5)
+            pygame.draw.circle(
+                Global_access.SCREEN,
+                color,
+                (x * cell_size + (cell_size / 2), y * cell_size + (cell_size / 2)), (cell_size / 2)
+            )
         else:
-            pygame.draw.rect(Global_access.second_surface, color, (x * 10, y * 10, 10, 10))
+            pygame.draw.rect(
+                Global_access.SCREEN,
+                color,
+                (x * cell_size, y * cell_size, cell_size, cell_size)
+            )
 
     def click_type(self, clicked_type):
         """
@@ -311,8 +330,7 @@ class EnvironmentControl:
                 "id": data,
             })
         elif message_type == "request_all":
-            # unused
-            return json.dumps({})
+            return json.dumps({"type": "request_all"})
         elif message_type == "control":
             return json.dumps({
                 "type": "control",
@@ -323,12 +341,14 @@ class EnvironmentControl:
                 }
             })
         elif message_type == "new_filled":
-            new_data = {"x": str(data[0]),
-                        "y": str(data[1]),
-                        "type": str(data[2])}
-            formatted_data = {"data": new_data}
-            formatted = {message_type: formatted_data}
-            return json.dumps(formatted)
+            return json.dumps({
+                "type": "new_filled",
+                "data": [{
+                    "x": str(data[0]),
+                    "y": str(data[1]),
+                    "square_type": str(data[2])
+                    }]
+                })
         elif message_type == "settings":
             return json.dumps({
                 "type": "settings",
@@ -355,10 +375,34 @@ class EnvironmentControl:
                             "scale": Global_access.oxygen_scale,
                             "amplitude": Global_access.oxygen_depth,
                         }
+                    ],
+                    "mutations": [{
+                        "insertion": Global_access.repro_insertion,
+                        "deletion": Global_access.repro_deletion,
+                        "substitution": Global_access.repro_substitution,
+                        }
                     ]
-                }
+                },
             })
         elif message_type == "init":
             return json.dumps({
                 "type": "init"
             })
+
+    def set_mutations(self, insertion, deletion, substitution):
+        if insertion != "":
+            Global_access.set_insertion(float(insertion))
+        else:
+            Global_access.set_insertion(0.0)
+
+        if deletion != "":
+            Global_access.set_deletion(float(deletion))
+        else:
+            Global_access.set_deletion(0.0)
+
+        if substitution != "":
+            Global_access.set_substitution(float(substitution))
+        else:
+            Global_access.set_substitution(0.0)
+
+        EnvironmentControl.send_message(self, self.env_settings.conn, "settings")
