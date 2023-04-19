@@ -5,6 +5,8 @@
 #ifndef ALIFE_GENEMAP_H
 #define ALIFE_GENEMAP_H
 
+#include <random>
+
 #include "genome.h"
 
 /**
@@ -35,7 +37,15 @@ public:
 
 	std::vector<Segment> segments;
 
-	GeneMap(Genome & genome);
+	GeneMap(const Genome & genome);
+
+	auto smartMutateCopy(
+		const Genome & original,
+		f32 substitutionChance,
+		f32 insertionChance,
+		f32 deletionChance,
+		std::default_random_engine random
+	 ) -> Genome;
 };
 
 #endif //ALIFE_GENEMAP_H

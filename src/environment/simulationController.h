@@ -34,7 +34,7 @@ private:
 
 	auto replaceOrganismWithFood(const Organism & organism, Settings & settings) -> void;
 
-    auto organismsEat(Settings & settings, std::vector<i32> & damages) -> void;
+    auto organismCellsTick(Settings & settings, std::vector<i32> & damages) -> void;
 
     auto organismsReproduce(Settings & settings) -> void;
 

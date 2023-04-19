@@ -26,7 +26,15 @@ auto Body::Cell::emptyCell() -> Body::Cell {
 }
 
 BodyBuilder::BodyBuilder() :
-    currentX(0), currentY(0), currentDirection(Direction::RIGHT), anchors() {}
+	currentX(0),
+	currentY(0),
+	currentDirection(Direction::RIGHT),
+	anchors {
+		{ { 0, 0 }, Direction::RIGHT },
+		{ { 0, 0 }, Direction::RIGHT },
+		{ { 0, 0 }, Direction::RIGHT },
+		{ { 0, 0 }, Direction::RIGHT },
+	} {}
 
 auto canvasIndex(i32 width, i32 x, i32 y) -> i32 {
 	return y * width + x;
@@ -110,16 +118,18 @@ Body::Body(i32 edge):
  */
 auto Body::addCell(BodyBuilder & builder, Direction direction, Cell cell, i32 jumpAnchor) -> void {
     /* move from current position unless anchored, then jump */
+	auto baseDirection = builder.currentDirection;
 	auto baseX = builder.currentX;
 	auto baseY = builder.currentY;
 
 	if (jumpAnchor > -1) {
-		baseX = builder.anchors[jumpAnchor].x;
-		baseY = builder.anchors[jumpAnchor].y;
+		baseDirection = builder.anchors[jumpAnchor].direction;
+		baseX = builder.anchors[jumpAnchor].coord.x;
+		baseY = builder.anchors[jumpAnchor].coord.y;
 	}
 
     /* keep moving in direction until finding an empty space */
-	auto newDirection = builder.currentDirection.rotate(direction);
+	auto newDirection = baseDirection.rotate(direction);
     auto newX = baseX;
     auto newY = baseY;
     do {

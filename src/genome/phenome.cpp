@@ -91,7 +91,10 @@ Phenome::Phenome(Genome && inGenome, Body && inBody):
 			onAddPart(bodyBuilder.currentX, bodyBuilder.currentY, bodyGene.bodyPart);
 
 			if (bodyGene.setsAnchor()) {
-				bodyBuilder.anchors[bodyGene.setAnchor] = { bodyBuilder.currentX, bodyBuilder.currentY };
+				bodyBuilder.anchors[bodyGene.setAnchor] = {
+					{ bodyBuilder.currentX, bodyBuilder.currentY },
+					bodyBuilder.currentDirection,
+				};
 			}
 
 		} else if (segment.type == Genome::B) {

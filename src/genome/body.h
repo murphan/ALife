@@ -19,11 +19,16 @@
  */
 class BodyBuilder {
 public:
+	struct Anchor {
+		Util::Coord coord;
+		Direction direction;
+	};
+
     BodyBuilder();
 
     i32 currentX, currentY;
     Direction currentDirection;
-    Util::Coord anchors [4];
+    Anchor anchors[4];
 };
 
 class Body {

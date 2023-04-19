@@ -105,55 +105,6 @@ auto Genome::write(Base base) -> void {
 }
 
 /**
- * creates a new genome from this genome, but mutated in some way
- *
- * substitutions: changes any single base pair to another random base pair,
- * insertions: adds a base pair somewhere in the code,
- * deletions: deletes a base pair,
- *
- * @param substitutionChance from 0 (never) to 1 (always)
- *
- * mutation rates should probably be nowhere near 1
- */
-auto Genome::mutateCopy(
-    f32 substitutionChance,
-    f32 insertionChance,
-    f32 deletionChance
-) const -> Genome {
-    auto device = std::random_device();
-    auto random = std::default_random_engine(device());
-    auto chance = std::uniform_real_distribution<f32>(0.0_f32, std::nextafter(1.0_f32, FLT_MAX));
-    auto otherBase = std::uniform_int_distribution<i32>(1, 3);
-    auto anyBase = std::uniform_int_distribution<i32>(0, 3);
-
-    auto newGenome = Genome();
-
-    for (auto i = 0; i < length; ++i) {
-        /* prepend insertion */
-        if (chance(random) < insertionChance)
-            newGenome.write((Base)anyBase(random));
-
-        /* don't copy over this base */
-        if (chance(random) < deletionChance)
-            continue;
-        
-        auto base = get(i);
-
-        /* substitute with a random *other* base, cannot remain the same */
-        if (chance(random) < substitutionChance)
-            base = (Base)((base + otherBase(random)) % 4);
-
-        newGenome.write(base);
-    }
-
-    /* chance for final insertion */
-    if (chance(random) < insertionChance)
-        newGenome.write((Base)anyBase(random));
-
-    return newGenome;
-}
-
-/**
  * dynamic programming solution to the edit distance problem
  *
  * @return the intermediate grid produced by the algorithm, of width string0.length() + 1 and height string1.length() + 1,

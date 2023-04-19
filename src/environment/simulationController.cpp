@@ -1,7 +1,9 @@
 
-#include "environment/simulationController.h"
 #include <iostream>
+
+#include "environment/simulationController.h"
 #include "renderer.h"
+#include "../genome/geneMap.h"
 
 SimulationController::SimulationController(Environment && environment, std::default_random_engine & random) :
 	random(random),
@@ -23,7 +25,7 @@ auto SimulationController::tick(Settings & settings) -> void {
 
 	auto damages = std::vector<i32>(organisms.size());
 
-	organismsEat(settings, damages);
+	organismCellsTick(settings, damages);
 
 	doDamageAndKill(settings, damages);
 
@@ -217,7 +219,7 @@ auto SimulationController::scatterFood(Food::Type type, i32 numFood, i32 energyD
     }
 }
 
-auto SimulationController::organismsEat(Settings & settings, std::vector<i32> & damages) -> void {
+auto SimulationController::organismCellsTick(Settings & settings, std::vector<i32> & damages) -> void {
 	for (auto index = 0; index < organisms.size(); ++index) {
 		auto && organism = organisms[index];
 		auto && body = organism.body();
@@ -252,14 +254,29 @@ auto SimulationController::organismsEat(Settings & settings, std::vector<i32> & 
 					tryEatAround(-1, 0);
 					tryEatAround(0, -1);
 				} else if (bodyCell == BodyPart::WEAPON) {
+					auto checkForArmor = [&](i32 x, i32 y, i32 defenderIndex) {
+						auto space = organismGrid.accessSafe(x, y);
+						return space.getFilled() && space.getIndex() == defenderIndex && space.getBodyPart() == BodyPart::ARMOR;
+					};
+
 					auto damageAround = [&](i32 deltaX, i32 deltaY) {
-						auto space = organismGrid.accessSafe(x + deltaX, y + deltaY);
+						auto spaceX = x + deltaX, spaceY = y + deltaY;
+
+						auto space = organismGrid.accessSafe(spaceX, spaceY);
 						if (!space.getFilled()) return;
 
-						auto enemyIndex = space.getIndex();
-						if (enemyIndex == index || space.getBodyPart() == BodyPart::ARMOR) return;
+						auto defenderIndex = space.getIndex();
+						if (
+							defenderIndex == index || (
+								checkForArmor(spaceX, spaceY, defenderIndex) ||
+								checkForArmor(spaceX + 1, spaceY, defenderIndex) ||
+								checkForArmor(spaceX, spaceY + 1, defenderIndex) ||
+								checkForArmor(spaceX - 1, spaceY, defenderIndex) ||
+								checkForArmor(spaceX, spaceY - 1, defenderIndex)
+						    )
+						) return;
 
-						damages[enemyIndex] += 1 * settings.energyFactor;
+						damages[defenderIndex] += 2 * settings.energyFactor;
 					};
 
 					damageAround(1, 0);
@@ -277,7 +294,7 @@ auto SimulationController::organismsReproduce(Settings & settings) -> void {
 
     for (auto && organism : organisms) {
 		if (!organism.storedChild.has_value()) {
-			auto & phenome = organism.getPhenome();
+			auto && phenome = organism.getPhenome();
 			auto bodyEnergy = phenome.survivalEnergy(settings);
 
 			auto reproductionEnergy = settings.energyFactor * settings.reproductionCost;
@@ -285,14 +302,15 @@ auto SimulationController::organismsReproduce(Settings & settings) -> void {
 			auto thresholdEnergy = settings.energyFactor * settings.reproductionThreshold;
 
 			if (organism.energy >= bodyEnergy + reproductionEnergy + estimatedChildEnergy + thresholdEnergy) {
-				organism.storedChild = std::make_optional<Phenome>(
-					std::move(organism.getGenome().mutateCopy(
-						settings.baseMutationRates[0] * pow(settings.mutationFactor, phenome.mutationModifiers[0]),
-						settings.baseMutationRates[1] * pow(settings.mutationFactor, phenome.mutationModifiers[1]),
-						settings.baseMutationRates[2] * pow(settings.mutationFactor, phenome.mutationModifiers[2])
-					)),
-					Body(2)
+				auto geneMap = GeneMap(phenome.genome);
+				auto childGenome = geneMap.smartMutateCopy(
+					phenome.genome,
+					settings.baseMutationRates[0] * (f32)pow(settings.mutationFactor, phenome.mutationModifiers[0]),
+					settings.baseMutationRates[1] * (f32)pow(settings.mutationFactor, phenome.mutationModifiers[1]),
+					settings.baseMutationRates[2] * (f32)pow(settings.mutationFactor, phenome.mutationModifiers[2]),
+					random
 				);
+				organism.storedChild = std::make_optional<Phenome>(std::move(childGenome), Body(2));
 			}
 		} else {
 			auto & childPhenome = organism.storedChild.value();

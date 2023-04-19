@@ -45,7 +45,7 @@ auto GeneMap::Segment::startOffset(i32 offset) -> GeneMap::Segment & {
 	return *this;
 }
 
-GeneMap::GeneMap(Genome & genome): segments() {
+GeneMap::GeneMap(const Genome & genome): segments() {
 	auto pushJunkSegment = [this](i32 begin, i32 end) {
 		auto length = end - begin;
 		if (length > 0) {
@@ -86,5 +86,63 @@ GeneMap::GeneMap(Genome & genome): segments() {
 			}
 		}
 	}
+}
+
+auto
+GeneMap::smartMutateCopy(
+	const Genome & original,
+	f32 substitutionChance,
+	f32 insertionChance,
+	f32 deletionChance,
+	std::default_random_engine random
+) -> Genome {
+	auto chance = std::uniform_real_distribution<f32>(0.0_f32, std::nextafter(1.0_f32, FLT_MAX));
+	auto otherBase = std::uniform_int_distribution<i32>(1, 3);
+	auto anyBase = std::uniform_int_distribution<i32>(0, 3);
+
+	auto newGenome = Genome();
+
+	auto copySegment = [&](Segment segment) {
+		for (auto i = segment.begin; i < segment.end; ++i) {
+			/* don't allow insertions and deletions inside a gene */
+			if (!segment.isCoding) {
+				/* prepend insertion */
+				if (chance(random) < insertionChance)
+					newGenome.write((Genome::Base)anyBase(random));
+
+				/* don't copy over this base */
+				if (chance(random) < deletionChance)
+					continue;
+			}
+
+			auto base = original.get(i);
+
+			/* substitute with a random *other* base, cannot remain the same */
+			if (chance(random) < substitutionChance)
+				base = (Genome::Base)((base + otherBase(random)) % 4);
+
+			newGenome.write(base);
+		}
+	};
+
+	for (auto && segment : segments) {
+		/* entire gene deletion */
+		if (segment.isCoding && chance(random) < deletionChance) {
+			continue;
+		}
+
+		copySegment(segment);
+
+		/* entire gene duplication */
+		if (segment.isCoding && chance(random) < insertionChance) {
+			copySegment(segment);
+		}
+	}
+
+	/* chance for final insertion */
+	if (chance(random) < insertionChance)
+		newGenome.write((Genome::Base)anyBase(random));
+
+	return newGenome;
 }
 
