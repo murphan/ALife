@@ -13,6 +13,7 @@ enum BodyPart {
 	WEAPON = 4,
 	ARMOR = 5,
 	EYE = 6,
+	SCAFFOLD = 7,
 };
 
 #endif //ALIFE_BODYPART_H

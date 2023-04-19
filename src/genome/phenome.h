@@ -50,6 +50,8 @@ public:
 	Genome genome;
 	Body body;
 
+	i32 survivalEnergy;
+
 	/**
 	 * these are not the actual mutation rates
 	 * the mutations rates are calculated later
@@ -74,13 +76,11 @@ public:
 	std::vector<EyeGene> eyeReactions;
 	std::vector<EnvironmentGene> environmentReactions;
 
-	explicit Phenome(Genome && inGenome, Body && inBody);
+	explicit Phenome(Genome && inGenome, Body && inBody, Settings & settings);
 
 	Phenome(const Phenome & other) = default;
 	Phenome(Phenome && other) = default;
 	auto operator=(Phenome && other) noexcept -> Phenome & = default;
-
-	auto survivalEnergy(const Settings & settings) const -> i32;
 
 	auto maxAge(i32 lifetimeFactor) const -> i32;
 };

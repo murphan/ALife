@@ -32,10 +32,11 @@ inline auto readSegment(const Genome & genome, GeneMap::Segment segment) -> Geno
 	return GenomeView { &genome, segment.begin, segment.length() };
 }
 
-Phenome::Phenome(Genome && inGenome, Body && inBody):
+Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 	mutationModifiers { 0, 0, 0 },
 	genome(std::move(inGenome)),
 	body(std::move(inBody)),
+	survivalEnergy(0),
 	foodStats(),
 	moveTries(0),
 	senses(),
@@ -46,14 +47,14 @@ Phenome::Phenome(Genome && inGenome, Body && inBody):
 
 	auto bodyBuilder = BodyBuilder();
 
-    auto index = 0;
-
 	auto onAddPart = [&](i32 x, i32 y, BodyPart bodyPart) {
 		if (bodyPart == BodyPart::MOVER) ++moveTries;
 
 		else if (bodyPart == BodyPart::EYE) {
 			senses.emplace_back(x, y, bodyPart, Sense::determineDirection(x, y));
 		}
+
+		survivalEnergy += settings.bodyPartCosts[bodyPart - 1];
 	};
 
 	auto geneMap = GeneMap(genome);
@@ -130,8 +131,4 @@ Phenome::Phenome(Genome && inGenome, Body && inBody):
 
 auto Phenome::maxAge(i32 lifetimeFactor) const -> i32 {
 	return body.getNumCells() * lifetimeFactor;
-}
-
-auto Phenome::survivalEnergy(const Settings & settings) const -> i32 {
-	return body.getNumCells() * settings.energyFactor;
 }

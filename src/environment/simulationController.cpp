@@ -142,7 +142,7 @@ auto SimulationController::doDamageAndKill(Settings & settings, std::vector<i32>
 	}
 
 	std::erase_if(organisms, [&, this](Organism & organism) {
-		if (organism.energy < organism.getPhenome().survivalEnergy(settings)) {
+		if (organism.energy < organism.getPhenome().survivalEnergy) {
 			replaceOrganismWithFood(organism, settings);
 			return true;
 		}
@@ -172,7 +172,7 @@ auto SimulationController::replaceOrganismWithFood(const Organism & organism, Se
 
 			if (cell.bodyPart() != BodyPart::NONE) {
 				auto && environmentCell = environment.getCell(x, y);
-				auto energy = (i32)((f32)settings.energyFactor * settings.foodEfficiency);
+				auto energy = (i32)(settings.bodyPartCosts[cell.bodyPart() - 1] * settings.foodEfficiency);
 
 				/* replace food, do not add on top */
 				environmentCell.setFood(Food(cell.foodType(), energy));
@@ -276,7 +276,7 @@ auto SimulationController::organismCellsTick(Settings & settings, std::vector<i3
 						    )
 						) return;
 
-						damages[defenderIndex] += 2 * settings.energyFactor;
+						damages[defenderIndex] += settings.weaponDamage;
 					};
 
 					damageAround(1, 0);
@@ -295,7 +295,7 @@ auto SimulationController::organismsReproduce(Settings & settings) -> void {
     for (auto && organism : organisms) {
 		if (!organism.storedChild.has_value()) {
 			auto && phenome = organism.getPhenome();
-			auto bodyEnergy = phenome.survivalEnergy(settings);
+			auto bodyEnergy = phenome.survivalEnergy;
 
 			auto reproductionEnergy = settings.energyFactor * settings.reproductionCost;
 			auto estimatedChildEnergy = bodyEnergy + (settings.energyFactor * settings.startingEnergy);
@@ -310,13 +310,13 @@ auto SimulationController::organismsReproduce(Settings & settings) -> void {
 					settings.baseMutationRates[2] * (f32)pow(settings.mutationFactor, phenome.mutationModifiers[2]),
 					random
 				);
-				organism.storedChild = std::make_optional<Phenome>(std::move(childGenome), Body(2));
+				organism.storedChild = std::make_optional<Phenome>(std::move(childGenome), Body(2), settings);
 			}
 		} else {
 			auto & childPhenome = organism.storedChild.value();
 
-			auto bodyEnergy = organism.getPhenome().survivalEnergy(settings);
-			auto childBodyEnergy = childPhenome.survivalEnergy(settings);
+			auto bodyEnergy = organism.getPhenome().survivalEnergy;
+			auto childBodyEnergy = childPhenome.survivalEnergy;
 
 			auto reproductionEnergy = settings.energyFactor * settings.reproductionCost;
 			auto childEnergy = childBodyEnergy + (settings.energyFactor * settings.startingEnergy);

@@ -66,6 +66,9 @@ public:
 	 */
 	f32 mutationFactor;
 	i32 sightRange;
+	i32 weaponDamage;
+
+	i32 bodyPartCosts[7];
 
 	Noise factorNoises[3];
 

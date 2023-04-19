@@ -37,6 +37,16 @@ auto main () -> int {
 		},
 		.mutationFactor = 1.5,
 		.sightRange = 8,
+		.weaponDamage = 32,
+		.bodyPartCosts = {
+			16, /* MOUTH */
+			16, /* MOVER */
+			16, /* PHOTOSYNTHESIZER */
+			16, /* WEAPON */
+			12, /* ARMOR */
+			8, /* EYE */
+			4, /* SCAFFOLD */
+		},
 		.factorNoises = {
 			Noise(Factor::TEMPERATURE, false, -1.0_f32, 0.01_f32, 100.0_f32, 1.0_f32),
 			Noise(Factor::LIGHT, false, 0.35_f32, 0.0_f32, 50.0_f32, 1.0_f32),
@@ -47,7 +57,7 @@ auto main () -> int {
 	auto simulationController = SimulationController(Environment(200, 100), random);
 	simulationController.refreshFactors(settings);
 
-	auto initialPhenome = Phenome(InitialGenome::create(), Body(2));
+	auto initialPhenome = Phenome(InitialGenome::create(), Body(2), settings);
 
 	OrganismSeeder::insertInitialOrganisms(simulationController.organisms, simulationController.environment, initialPhenome, settings, 80, random);
 
