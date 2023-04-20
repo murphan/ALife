@@ -67,6 +67,7 @@ public:
 	f32 mutationFactor;
 	i32 sightRange;
 	i32 weaponDamage;
+	i32 armorPrevents;
 
 	i32 bodyPartCosts[7];
 	/* not all parts can be upgraded, but list them anyway */

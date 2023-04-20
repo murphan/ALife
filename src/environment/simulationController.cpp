@@ -117,9 +117,10 @@ auto SimulationController::moveOrganisms(Settings & settings) -> void {
 		for (auto j = 0; j < moveTries * 3; ++j) {
 			auto direction = actionType == EyeGene::ActionType::WANDER ? organism.movementDirection :
 				actionType == EyeGene::ActionType::TOWARD ? preferredDirection : preferredDirection.opposite();
+			organism.movementDirection = direction;
 
 			auto deltaX = direction.x(), deltaY = direction.y();
-			auto deltaRotation = symmetricRange(random);
+			auto deltaRotation = j == 0 ? 0 : symmetricRange(random);
 
 			if (organismGrid.canMoveOrganism(organism, i, deltaX, deltaY, deltaRotation)) {
 				organismGrid.moveOrganism(organism, i, deltaX, deltaY, deltaRotation);
@@ -129,7 +130,7 @@ auto SimulationController::moveOrganisms(Settings & settings) -> void {
 			}
 		}
 
-		if (++organism.ticksSinceCollision > 8) {
+		if (++organism.ticksSinceCollision > 12) {
 			organism.ticksSinceCollision = 0;
 			organism.movementDirection = randomDirection(random);
 		}
@@ -179,7 +180,13 @@ auto SimulationController::replaceOrganismWithFood(const Organism & organism, Se
 				);
 
 				/* replace food, do not add on top */
-				environmentCell.setFood(Food(cell.foodType(), energy));
+				if (environmentCell.getHasFood()) {
+					auto && food = environmentCell.getFood();
+					food.age = 0;
+					food.addEnergy(energy);
+				} else {
+					environmentCell.setFood(Food(cell.foodType(), energy));
+				}
 			}
 		}
 	}
@@ -237,11 +244,23 @@ auto SimulationController::organismCellsTick(Settings & settings, std::vector<i3
 				auto && bodyCell = body.access(i, j, rotation);
 				auto && environmentCell = environment.getCell(x, y);
 
-				if (bodyCell.bodyPart() == BodyPart::PHOTOSYNTHESIZER) { // && organism.getPhenome().moveTries == 0
+				if (bodyCell.bodyPart() == BodyPart::PHOTOSYNTHESIZER) {
 					auto lightPercentage = (f32)environmentCell.getFactor(Factor::LIGHT) / 127.0_f32;
 
-					if (std::uniform_real_distribution<f32>(0.0_f32, 1.0_f32)(random) < lightPercentage)
-						organism.energy += settings.photosynthesisFactor;
+					auto isOtherAround = [&](i32 deltaX, i32 deltaY) {
+						auto && other = organismGrid.accessSafe(x + deltaX, y + deltaY);
+						return (other.filled() && other.cell().bodyPart() == BodyPart::PHOTOSYNTHESIZER) ? 1 : 0;
+					};
+
+					auto othersAround = isOtherAround(0, 1) +
+						isOtherAround(1, 0) +
+						isOtherAround(0, -1) +
+						isOtherAround(-1, 0);
+
+					if (
+						std::uniform_real_distribution<f32>(0.0_f32, 1.0_f32)(random) <
+						lightPercentage * (1.0_f32 - ((f32)othersAround * 0.25_f32))
+					) organism.energy += settings.photosynthesisFactor;
 
 				} else if (bodyCell.bodyPart() == BodyPart::MOUTH) {
 					auto tryEatAround = [&](i32 deltaX, i32 deltaY) {
@@ -267,6 +286,7 @@ auto SimulationController::organismCellsTick(Settings & settings, std::vector<i3
 						if (!space.filled()) return;
 
 						auto defenderIndex = space.index();
+						if (defenderIndex == index) return;
 
 						auto armorDoesBlock = [&](i32 deltaX, i32 deltaY) {
 							auto space = organismGrid.accessSafe(spaceX + deltaX, spaceY + deltaY);
@@ -286,19 +306,14 @@ auto SimulationController::organismCellsTick(Settings & settings, std::vector<i3
 							}
 						};
 
-						if (
-							defenderIndex == index || (
-								armorDoesBlock(0, 0) ||
-								armorDoesBlock(1, 0) ||
-								armorDoesBlock(0, 1) ||
-								armorDoesBlock(-1, 0) ||
-								armorDoesBlock(0, -1)
-						    )
-						) return;
-
-						damages[defenderIndex] += settings.weaponDamage;
+						damages[defenderIndex] += (
+							armorDoesBlock(0, 0) ||
+							armorDoesBlock(1, 0) ||
+							armorDoesBlock(0, 1) ||
+							armorDoesBlock(-1, 0) ||
+							armorDoesBlock(0, -1)
+						) ? settings.weaponDamage - settings.armorPrevents : settings.weaponDamage;
 					};
-
 
 					damageAround(1, 0);
 					damageAround(0, 1);
@@ -452,7 +467,7 @@ auto SimulationController::tryReproduce(Phenome & childPhenome, Organism & organ
         x, y,
         organism.rotation,
         childEnergy,
-		std::uniform_int_distribution(0, 7)(random)
+		organism.movementDirection.opposite()
 	);
 }
 

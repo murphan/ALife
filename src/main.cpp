@@ -38,13 +38,14 @@ auto main () -> int {
 		.mutationFactor = 1.5,
 		.sightRange = 8,
 		.weaponDamage = 32,
+		.armorPrevents = 20,
 		.bodyPartCosts = {
 			16, /* MOUTH */
 			16, /* MOVER */
 			16, /* PHOTOSYNTHESIZER */
 			16, /* WEAPON */
 			16, /* ARMOR */
-			4, /* EYE */
+			8, /* EYE */
 			2, /* SCAFFOLD */
 		},
 		.upgradedPartCosts = {
@@ -52,13 +53,13 @@ auto main () -> int {
 			0, /* MOVER */
 			0, /* PHOTOSYNTHESIZER */
 			1, /* WEAPON */
-			1, /* ARMOR */
+			2, /* ARMOR */
 			0, /* EYE */
-			1, /* SCAFFOLD */
+			2, /* SCAFFOLD */
 		},
 		.factorNoises = {
 			Noise(Factor::TEMPERATURE, false, -1.0_f32, 0.01_f32, 100.0_f32, 1.0_f32),
-			Noise(Factor::LIGHT, false, 0.35_f32, 0.0_f32, 50.0_f32, 1.0_f32),
+			Noise(Factor::LIGHT, false, 0.5_f32, 0.0_f32, 50.0_f32, 1.0_f32),
 			Noise(Factor::OXYGEN, false, -1.0_f32, 0.01_f32, 100.0_f32, 1.0_f32),
 		}
 	};
