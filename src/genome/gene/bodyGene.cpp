@@ -18,15 +18,15 @@ auto BodyGene::headerBase() -> Genome::Base {
 	return Genome::A;
 }
 
-BodyGene::BodyGene(Direction direction, BodyPart bodyPart, i32 usingAnchor, i32 setAnchor, Food::Type foodType) :
-	direction(direction), bodyPart(bodyPart), usingAnchor(usingAnchor), setAnchor(setAnchor), foodType(foodType) {}
+BodyGene::BodyGene(Direction direction, BodyPart bodyPart, i32 usingAnchor, i32 setAnchor, i32 data) :
+	direction(direction), bodyPart(bodyPart), usingAnchor(usingAnchor), setAnchor(setAnchor), data(data) {}
 
 BodyGene::BodyGene(GenomeView & view) :
-	direction(read5(view, 3) - 2),
+	bodyPart((BodyPart)(read7(view, 0) + 1)),
+	direction(read8(view, 3)),
 	usingAnchor(-1),
 	setAnchor(-1),
-	bodyPart((BodyPart)(read7(view, 0) + 1)),
-	foodType((Food::Type)read4(view, 12))
+	data(read8(view, 12))
 {
 	auto special = read3(view, 6);
 
@@ -39,7 +39,7 @@ BodyGene::BodyGene(GenomeView & view) :
 
 auto BodyGene::writeBody(Genome & genome) -> void {
 	write7(genome, bodyPart - 1);
-	write5(genome, direction.normalized() + 2);
+	write8(genome, direction.value());
 
 	if (usesAnchor()) {
 		write3(genome, 1);
@@ -52,7 +52,7 @@ auto BodyGene::writeBody(Genome & genome) -> void {
 		write4(genome, 0);
 	}
 
-	write4(genome, foodType);
+	write8(genome, data);
 }
 
 /* factories */

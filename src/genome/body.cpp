@@ -12,12 +12,12 @@ auto Body::Cell::bodyPart() const -> BodyPart {
 	return (BodyPart)(value & 0xff);
 }
 
-auto Body::Cell::foodType() const -> Food::Type {
-	return (Food::Type)((value >> 8) & 0xff);
+auto Body::Cell::data() const -> i32 {
+	return (i32)((value >> 8) & 0xff);
 }
 
-auto Body::Cell::make(BodyPart bodyPart, Food::Type foodType) -> Cell {
-	return Cell((foodType << 8) | bodyPart);
+auto Body::Cell::make(BodyPart bodyPart, i32 data) -> Cell {
+	return Cell((data << 8) | bodyPart);
 }
 
 auto Body::Cell::modify(i32 modifier) -> void {
@@ -39,12 +39,11 @@ auto Body::Cell::modifier() const -> i32 {
 BodyBuilder::BodyBuilder() :
 	currentX(0),
 	currentY(0),
-	currentDirection(Direction::RIGHT),
 	anchors {
-		{ { 0, 0 }, Direction::RIGHT },
-		{ { 0, 0 }, Direction::RIGHT },
-		{ { 0, 0 }, Direction::RIGHT },
-		{ { 0, 0 }, Direction::RIGHT },
+		{ 0, 0 },
+		{ 0, 0 },
+		{ 0, 0 },
+		{ 0, 0 },
 	} {}
 
 auto BodyBuilder::getNextCellofType(BodyPart bodyPart, i32 & start) -> std::optional<Util::Coord> {
@@ -137,7 +136,7 @@ Body::Body(i32 edge):
 
 /**
  * @param builder the builder for the body creation process
- * @param direction relative direction from current direction to place body part
+ * @param direction direction to add the body part in
  * @param part the body segment to add
  * @param jumpAnchor use -1 for no usingAnchor, otherwise 0,1,2,3 for anchors A,B,C,D
  *
@@ -145,26 +144,22 @@ Body::Body(i32 edge):
  */
 auto Body::addCell(BodyBuilder & builder, Direction direction, Cell cell, i32 jumpAnchor) -> void {
     /* move from current position unless anchored, then jump */
-	auto baseDirection = builder.currentDirection;
 	auto baseX = builder.currentX;
 	auto baseY = builder.currentY;
 
 	if (jumpAnchor > -1) {
-		baseDirection = builder.anchors[jumpAnchor].direction;
-		baseX = builder.anchors[jumpAnchor].coord.x;
-		baseY = builder.anchors[jumpAnchor].coord.y;
+		baseX = builder.anchors[jumpAnchor].x;
+		baseY = builder.anchors[jumpAnchor].y;
 	}
 
     /* keep moving in direction until finding an empty space */
-	auto newDirection = baseDirection.rotate(direction);
     auto newX = baseX;
     auto newY = baseY;
     do {
-        newX += newDirection.x();
-        newY += newDirection.y();
+        newX += direction.x();
+        newY += direction.y();
     } while (accessExpand(newX, newY, 5).bodyPart() != BodyPart::NONE);
 
-    builder.currentDirection = newDirection;
 	builder.currentX = newX;
 	builder.currentY = newY;
 

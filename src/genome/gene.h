@@ -30,6 +30,7 @@ public:
 	static auto write5(Genome & genome, i32 value) -> void;
 	static auto write6(Genome & genome, i32 value) -> void;
 	static auto write7(Genome & genome, i32 value) -> void;
+	static auto write8(Genome & genome, i32 value) -> void;
 
 	static auto read2(GenomeView & genome, i32 offset) -> i32;
 	static auto read3(GenomeView & genome, i32 offset) -> i32;
@@ -37,6 +38,7 @@ public:
 	static auto read5(GenomeView & genome, i32 offset) -> i32;
 	static auto read6(GenomeView & genome, i32 offset) -> i32;
 	static auto read7(GenomeView & genome, i32 offset) -> i32;
+	static auto read8(GenomeView & genome, i32 offset) -> i32;
 };
 
 #endif //ALIFE_GENE_H

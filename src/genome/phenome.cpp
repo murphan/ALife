@@ -11,8 +11,8 @@
 #include "geneMap.h"
 #include "phenome.h"
 
-Sense::Sense(i32 x, i32 y, BodyPart senseCell, Direction direction) :
-	x(x), y(y), senseCell(senseCell), direction(direction) {}
+Sense::Sense(i32 x, i32 y, Body::Cell senseCell) :
+	x(x), y(y), senseCell(senseCell) {}
 
 /**
  * INTERNAL USE FOR GENOME DECODER
@@ -47,14 +47,14 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 
 	auto bodyBuilder = BodyBuilder();
 
-	auto onAddPart = [&](i32 x, i32 y, BodyPart bodyPart) {
-		if (bodyPart == BodyPart::MOVER) ++moveTries;
+	auto onAddPart = [&](i32 x, i32 y, Body::Cell cell) {
+		if (cell.bodyPart() == BodyPart::MOVER) ++moveTries;
 
-		else if (bodyPart == BodyPart::EYE) {
-			senses.emplace_back(x, y, bodyPart, Sense::determineDirection(x, y));
+		else if (cell.bodyPart() == BodyPart::EYE) {
+			senses.emplace_back(x, y, cell);
 		}
 
-		survivalEnergy += settings.bodyPartCosts[bodyPart - 1];
+		survivalEnergy += settings.bodyPartCosts[cell.bodyPart() - 1];
 	};
 
 	auto upgradeGenes = std::vector<UpgradeGene>();
@@ -62,17 +62,19 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 
 	/* default organism for too-short genome */
 	if (geneMap.segments.empty() || !geneMap.segments[0].isCoding) {
-		body.directAddCell(bodyBuilder, Body::Cell::make(BodyPart::MOUTH, Food::FOOD0), 0, 0);
-		onAddPart(0, 0, BodyPart::MOUTH);
+		auto cell = Body::Cell::make(BodyPart::MOUTH, 0);
+		body.directAddCell(bodyBuilder, cell, 0, 0);
+		onAddPart(0, 0, cell);
 
 	/* read center cell section */
 	} else {
 		auto initialGene = readSegment(genome, geneMap.segments[0]);
-		auto center = (BodyPart)Gene::read5(initialGene, 0);
-		auto foodType = (Food::Type)Gene::read4(initialGene, 3);
+		auto bodyPart = (BodyPart)Gene::read5(initialGene, 0);
+		auto data = Gene::read8(initialGene, 3);
 
-		body.directAddCell(bodyBuilder, Body::Cell::make(center, foodType), 0, 0);
-		onAddPart(0, 0, center);
+		auto cell = Body::Cell::make(bodyPart, data);
+		body.directAddCell(bodyBuilder, cell, 0, 0);
+		onAddPart(0, 0, cell);
 	}
 
 	for (auto i = 1; i < geneMap.segments.size(); ++i) {
@@ -83,19 +85,19 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 
 		if (segment.type == Genome::A) {
 			auto bodyGene = BodyGene(gene);
+			auto cell = Body::Cell::make(bodyGene.bodyPart, bodyGene.data);
 
 			body.addCell(
 				bodyBuilder,
 				bodyGene.direction,
-				Body::Cell::make(bodyGene.bodyPart, bodyGene.foodType),
+				cell,
 				bodyGene.usingAnchor
 			);
-			onAddPart(bodyBuilder.currentX, bodyBuilder.currentY, bodyGene.bodyPart);
+			onAddPart(bodyBuilder.currentX, bodyBuilder.currentY, cell);
 
 			if (bodyGene.setsAnchor()) {
 				bodyBuilder.anchors[bodyGene.setAnchor] = {
-					{ bodyBuilder.currentX, bodyBuilder.currentY },
-					bodyBuilder.currentDirection,
+					bodyBuilder.currentX, bodyBuilder.currentY,
 				};
 			}
 

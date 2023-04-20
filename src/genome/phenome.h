@@ -23,21 +23,9 @@ class Sense {
 public:
 	i32 x;
 	i32 y;
-	BodyPart senseCell;
-	Direction direction;
+	Body::Cell senseCell;
 
-	Sense(i32 x, i32 y, BodyPart senseCell, Direction direction);
-
-	static auto determineDirection(i32 x, i32 y) -> Direction {
-		return (i32)floor(
-			(
-				Util::positiveMod(
-					(f32)atan2(y, x),
-					(f32)M_PI * 2.0_f32
-				) + ((1.0_f32 / 8.0_f32) * M_PI)
-			) / ((1.0_f32 / 4.0_f32) * M_PI)
-		) % 8;
-	}
+	Sense(i32 x, i32 y, Body::Cell senseCell);
 };
 
 struct FoodStats {

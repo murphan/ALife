@@ -27,16 +27,10 @@ private:
 	std::vector<Insertion> insertedOrder;
 
 public:
-	struct Anchor {
-		Util::Coord coord;
-		Direction direction;
-	};
-
     BodyBuilder();
 
     i32 currentX, currentY;
-    Direction currentDirection;
-    Anchor anchors[4];
+	Util::Coord anchors[4];
 
 	auto add(BodyPart bodyPart, i32 x, i32 y) -> void;
 	auto getNextCellofType(BodyPart bodyPart, i32 & start) -> std::optional<Util::Coord>;
@@ -52,12 +46,12 @@ public:
 		explicit Cell(u32 value);
 
 		static auto makeEmpty() -> Cell;
-		static auto make(BodyPart bodyPart, Food::Type foodType) -> Cell;
+		static auto make(BodyPart bodyPart, i32 data) -> Cell;
 
 		auto modify(i32 modifier) -> void;
 
 		auto bodyPart() const -> BodyPart;
-		auto foodType() const -> Food::Type;
+		auto data() const -> i32;
 		auto isModified() const -> bool;
 		auto modifier() const -> i32;
 	};

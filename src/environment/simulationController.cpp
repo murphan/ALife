@@ -48,7 +48,7 @@ auto SimulationController::organismSeeingDirection(Organism & organism, i32 inde
 
 	for (auto && eye : eyes) {
 		for (auto i = 1; i <= settings.sightRange; ++i) {
-			auto eyeDirection = eye.direction.rotate(organism.rotation);
+			auto eyeDirection = Direction(eye.senseCell.data()).rotate(organism.rotation);
 
 			auto seeX = eye.x + i * eyeDirection.x();
 			auto seeY = eye.y + i * eyeDirection.y();
@@ -161,7 +161,7 @@ auto SimulationController::replaceOrganismWithFood(const Organism & organism, Se
 					food.age = 0;
 					food.addEnergy(energy);
 				} else {
-					environmentCell.setFood(Food(cell.foodType(), energy));
+					environmentCell.setFood(Food((Food::Type)(cell.data() / 2), energy));
 				}
 			}
 		}

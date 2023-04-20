@@ -17,18 +17,18 @@ protected:
 public:
 	static const i32 LENGTH;
 
-	Direction direction;
 	BodyPart bodyPart;
+	Direction direction;
 	i32 usingAnchor;
 	i32 setAnchor;
-	Food::Type foodType;
+	i32 data;
 
 	auto usesAnchor() const -> bool;
 	auto setsAnchor() const -> bool;
 
 	auto headerBase() -> Genome::Base override;
 
-	BodyGene(Direction direction, BodyPart bodyPart, i32 usingAnchor, i32 setAnchor, Food::Type foodType);
+	BodyGene(Direction direction, BodyPart bodyPart, i32 usingAnchor, i32 setAnchor, i32 data);
 	explicit BodyGene(GenomeView & view);
 
 	/* helper factories */

@@ -13,7 +13,7 @@ auto InitialGenome::create() -> Genome {
 	baseGenome.writeGarbage(7, Genome::A);
 	BodyGene::create(Direction::RIGHT_UP, BodyPart::PHOTOSYNTHESIZER, Food::FOOD0).write(baseGenome);
 	baseGenome.writeGarbage(13, Genome::A);
-	BodyGene::create(Direction::DOWN, BodyPart::PHOTOSYNTHESIZER, Food::FOOD0).write(baseGenome);
+	BodyGene::create(Direction::RIGHT_DOWN, BodyPart::PHOTOSYNTHESIZER, Food::FOOD0).write(baseGenome);
 	baseGenome.writeGarbage(13);
 
 	return baseGenome;
