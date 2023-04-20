@@ -3,7 +3,7 @@
 //
 #include "geneMap.h"
 #include "gene/bodyGene.h"
-#include "gene/foodGene.h"
+#include "gene/upgradeGene.h"
 #include "gene/mutationRateGene.h"
 #include "gene/reactionGene.h"
 
@@ -72,7 +72,7 @@ GeneMap::GeneMap(const Genome & genome): segments() {
 			auto geneLength = 2 + (
 				headerBase == Genome::A ? BodyGene::LENGTH :
 				headerBase == Genome::B ? ReactionGene::LENGTH :
-				headerBase == Genome::C ? FoodGene::LENGTH :
+				headerBase == Genome::C ? UpgradeGene::LENGTH :
 				/*         == Genome::D*/ MutationRateGene::LENGTH
             );
 

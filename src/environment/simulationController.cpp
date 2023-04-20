@@ -59,15 +59,15 @@ auto SimulationController::organismSeeingAction(Organism & organism, Settings & 
 			auto & accessOrganism = organismGrid.accessSafe(seeX, seeY);
 			auto & accessMap = environment.getCellSafe(seeX, seeY);
 
-			if (accessOrganism.getFilled() || accessMap.getHasFood() || accessMap.getHasWall()) {
+			if (accessOrganism.filled() || accessMap.getHasFood() || accessMap.getHasWall()) {
 				for (auto && reaction : eyeReactions) {
 					if (reaction.priority < bestActionPriority) continue;
 
 					if (
 						(
 							reaction.seeingThing == EyeGene::CREATURE &&
-							accessOrganism.getFilled() && (
-								!reaction.specific || reaction.getBodyPart() == accessOrganism.getBodyPart()
+							accessOrganism.filled() && (
+								!reaction.specific || reaction.getBodyPart() == accessOrganism.cell().bodyPart()
 							)
 						) ||
 						(
@@ -121,7 +121,7 @@ auto SimulationController::moveOrganisms(Settings & settings) -> void {
 			auto deltaX = direction.x(), deltaY = direction.y();
 			auto deltaRotation = symmetricRange(random);
 
-			if (organismGrid.canMoveOrganism(organism, i, deltaX, deltaY, deltaRotation, [&](BodyPart bodyPart, OrganismGrid::Space gridSpace) {})) {
+			if (organismGrid.canMoveOrganism(organism, i, deltaX, deltaY, deltaRotation)) {
 				organismGrid.moveOrganism(organism, i, deltaX, deltaY, deltaRotation);
 				break;
 			} else {
@@ -172,7 +172,11 @@ auto SimulationController::replaceOrganismWithFood(const Organism & organism, Se
 
 			if (cell.bodyPart() != BodyPart::NONE) {
 				auto && environmentCell = environment.getCell(x, y);
-				auto energy = (i32)(settings.bodyPartCosts[cell.bodyPart() - 1] * settings.foodEfficiency);
+				auto energy = (i32)(
+					(f32)(
+						settings.bodyPartCosts[cell.bodyPart() - 1] + (cell.isModified() ? settings.upgradedPartCosts[cell.bodyPart() - 1] : 0)
+					) * settings.foodEfficiency
+				);
 
 				/* replace food, do not add on top */
 				environmentCell.setFood(Food(cell.foodType(), energy));
@@ -214,7 +218,7 @@ auto SimulationController::scatterFood(Food::Type type, i32 numFood, i32 energyD
         auto x = std::uniform_int_distribution(0, organismGrid.getWidth() - 1)(random);
         auto y = std::uniform_int_distribution(0, organismGrid.getHeight() - 1)(random);
 
-        if (!organismGrid.access(x, y).getFilled())
+        if (!organismGrid.access(x, y).filled())
             addFood(x, y, type, energyDefault);
     }
 }
@@ -230,16 +234,16 @@ auto SimulationController::organismCellsTick(Settings & settings, std::vector<i3
 				auto y = organism.y + j;
 				auto x = organism.x + i;
 
-				auto && bodyCell = body.access(i, j, rotation).bodyPart();
+				auto && bodyCell = body.access(i, j, rotation);
 				auto && environmentCell = environment.getCell(x, y);
 
-				if (bodyCell == BodyPart::PHOTOSYNTHESIZER) { // && organism.getPhenome().moveTries == 0
+				if (bodyCell.bodyPart() == BodyPart::PHOTOSYNTHESIZER) { // && organism.getPhenome().moveTries == 0
 					auto lightPercentage = (f32)environmentCell.getFactor(Factor::LIGHT) / 127.0_f32;
 
 					if (std::uniform_real_distribution<f32>(0.0_f32, 1.0_f32)(random) < lightPercentage)
 						organism.energy += settings.photosynthesisFactor;
 
-				} else if (bodyCell == BodyPart::MOUTH) {
+				} else if (bodyCell.bodyPart() == BodyPart::MOUTH) {
 					auto tryEatAround = [&](i32 deltaX, i32 deltaY) {
 						auto && cell = environment.getCellSafe(x + deltaX, y + deltaY);
 						if (!cell.getHasFood()) return;
@@ -253,31 +257,48 @@ auto SimulationController::organismCellsTick(Settings & settings, std::vector<i3
 					tryEatAround(0, 1);
 					tryEatAround(-1, 0);
 					tryEatAround(0, -1);
-				} else if (bodyCell == BodyPart::WEAPON) {
-					auto checkForArmor = [&](i32 x, i32 y, i32 defenderIndex) {
-						auto space = organismGrid.accessSafe(x, y);
-						return space.getFilled() && space.getIndex() == defenderIndex && space.getBodyPart() == BodyPart::ARMOR;
-					};
+				} else if (bodyCell.bodyPart() == BodyPart::WEAPON) {
+					auto superAttack = !bodyCell.isModified() ? -1 : bodyCell.modifier();
 
 					auto damageAround = [&](i32 deltaX, i32 deltaY) {
 						auto spaceX = x + deltaX, spaceY = y + deltaY;
 
 						auto space = organismGrid.accessSafe(spaceX, spaceY);
-						if (!space.getFilled()) return;
+						if (!space.filled()) return;
 
-						auto defenderIndex = space.getIndex();
+						auto defenderIndex = space.index();
+
+						auto armorDoesBlock = [&](i32 deltaX, i32 deltaY) {
+							auto space = organismGrid.accessSafe(spaceX + deltaX, spaceY + deltaY);
+							if (!space.filled() || space.index() != defenderIndex) return false;
+
+							if (space.cell().bodyPart() == BodyPart::ARMOR) {
+								if (superAttack == -1) return true;
+
+								auto superArmor = !space.cell().isModified() ? -1 : space.cell().modifier();
+								return superArmor == superAttack;
+
+							} else if (space.cell().bodyPart() == BodyPart::SCAFFOLD) {
+								return superAttack == -1 && space.cell().isModified();
+
+							} else {
+								return false;
+							}
+						};
+
 						if (
 							defenderIndex == index || (
-								checkForArmor(spaceX, spaceY, defenderIndex) ||
-								checkForArmor(spaceX + 1, spaceY, defenderIndex) ||
-								checkForArmor(spaceX, spaceY + 1, defenderIndex) ||
-								checkForArmor(spaceX - 1, spaceY, defenderIndex) ||
-								checkForArmor(spaceX, spaceY - 1, defenderIndex)
+								armorDoesBlock(0, 0) ||
+								armorDoesBlock(1, 0) ||
+								armorDoesBlock(0, 1) ||
+								armorDoesBlock(-1, 0) ||
+								armorDoesBlock(0, -1)
 						    )
 						) return;
 
 						damages[defenderIndex] += settings.weaponDamage;
 					};
+
 
 					damageAround(1, 0);
 					damageAround(0, 1);

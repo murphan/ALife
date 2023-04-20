@@ -7,11 +7,6 @@
 
 Body::Cell::Cell(u32 value): value(value) {}
 
-Body::Cell::Cell(BodyPart bodyPart, Food::Type foodType) : value((foodType << 8) | bodyPart) {}
-
-auto Body::Cell::set(BodyPart bodyPart, Food::Type foodType) -> void {
-	value = (foodType << 8) | bodyPart;
-}
 
 auto Body::Cell::bodyPart() const -> BodyPart {
 	return (BodyPart)(value & 0xff);
@@ -21,8 +16,24 @@ auto Body::Cell::foodType() const -> Food::Type {
 	return (Food::Type)((value >> 8) & 0xff);
 }
 
-auto Body::Cell::emptyCell() -> Body::Cell {
+auto Body::Cell::make(BodyPart bodyPart, Food::Type foodType) -> Cell {
+	return Cell((foodType << 8) | bodyPart);
+}
+
+auto Body::Cell::modify(i32 modifier) -> void {
+	value |= ((modifier + 1) << 16);
+}
+
+auto Body::Cell::makeEmpty() -> Body::Cell {
 	return Cell(0_u32);
+}
+
+auto Body::Cell::isModified() const -> bool {
+	return ((value >> 16) & 0xff) != 0;
+}
+
+auto Body::Cell::modifier() const -> i32 {
+	return (i32)((value >> 16) & 0xff) - 1;
 }
 
 BodyBuilder::BodyBuilder() :
@@ -35,6 +46,22 @@ BodyBuilder::BodyBuilder() :
 		{ { 0, 0 }, Direction::RIGHT },
 		{ { 0, 0 }, Direction::RIGHT },
 	} {}
+
+auto BodyBuilder::getNextCellofType(BodyPart bodyPart, i32 & start) -> std::optional<Util::Coord> {
+	for (auto i = start; i < insertedOrder.size(); ++i) {
+		auto [current, x, y] = insertedOrder[i];
+		if (current == bodyPart) {
+			start = i;
+			return std::make_optional<Util::Coord>(x, y);
+		}
+	}
+
+	return std::nullopt;
+}
+
+auto BodyBuilder::add(BodyPart bodyPart, i32 x, i32 y) -> void {
+	insertedOrder.push_back({ bodyPart, x, y });
+}
 
 auto canvasIndex(i32 width, i32 x, i32 y) -> i32 {
 	return y * width + x;
@@ -66,7 +93,7 @@ auto Body::expand(i32 expandX, i32 expandY) -> void {
 		newHeight += expandY;
 	}
 
-	auto newCanvas = std::vector<Cell>(newWidth * newHeight, Cell::emptyCell());
+	auto newCanvas = std::vector<Cell>(newWidth * newHeight, Cell::makeEmpty());
 
 	for (auto y = 0; y < height; ++y) {
 		for (auto x = 0; x < width; ++x) {
@@ -104,7 +131,7 @@ auto Body::canvasUp() const -> i32 {
 Body::Body(i32 edge):
     width(edge * 2 + 1), height(edge * 2 + 1),
 	originX(edge), originY(edge),
-	canvas(width * height, Cell::emptyCell()),
+	canvas(width * height, Cell::makeEmpty()),
     left(0), right(0), down(0), up(0), numCells(0)
 {}
 
@@ -141,11 +168,13 @@ auto Body::addCell(BodyBuilder & builder, Direction direction, Cell cell, i32 ju
 	builder.currentX = newX;
 	builder.currentY = newY;
 
-	directAddCell(cell, newX, newY);
+	directAddCell(builder, cell, newX, newY);
 }
 
-auto Body::directAddCell(Cell cell, i32 x, i32 y) -> void {
+auto Body::directAddCell(BodyBuilder & builder, Cell cell, i32 x, i32 y) -> void {
 	canvas[indexOf(x, y)] = cell;
+
+	builder.add(cell.bodyPart(), x, y);
 
 	/* update bounds */
 	if (x < left) left = x;
@@ -178,7 +207,11 @@ auto Body::accessExpand(i32 x, i32 y, i32 expandBy) -> Cell {
 }
 
 auto Body::safeAccess(i32 x, i32 y) const -> Cell {
-	if (x < canvasLeft() || x > canvasRight() || y < canvasDown() || y > canvasUp()) return Cell::emptyCell();
+	if (x < canvasLeft() || x > canvasRight() || y < canvasDown() || y > canvasUp()) return Cell::makeEmpty();
+	return canvas[indexOf(x, y)];
+}
+
+auto Body::directAccess(i32 x, i32 y) -> Body::Cell & {
 	return canvas[indexOf(x, y)];
 }
 

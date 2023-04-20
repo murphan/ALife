@@ -6,6 +6,7 @@
 #define ALIFE_BODY_H
 
 #include <vector>
+#include <optional>
 
 #include "types.h"
 #include "util.h"
@@ -18,6 +19,13 @@
  * additional context needed to build a body from instructions
  */
 class BodyBuilder {
+private:
+	struct Insertion {
+		BodyPart bodyPart;
+		i32 x, y;
+	};
+	std::vector<Insertion> insertedOrder;
+
 public:
 	struct Anchor {
 		Util::Coord coord;
@@ -29,6 +37,9 @@ public:
     i32 currentX, currentY;
     Direction currentDirection;
     Anchor anchors[4];
+
+	auto add(BodyPart bodyPart, i32 x, i32 y) -> void;
+	auto getNextCellofType(BodyPart bodyPart, i32 & start) -> std::optional<Util::Coord>;
 };
 
 class Body {
@@ -39,14 +50,16 @@ public:
 
 	public:
 		explicit Cell(u32 value);
-		Cell(BodyPart bodyPart, Food::Type foodType);
 
-		static auto emptyCell() -> Cell;
+		static auto makeEmpty() -> Cell;
+		static auto make(BodyPart bodyPart, Food::Type foodType) -> Cell;
 
-		auto set(BodyPart bodyPart, Food::Type foodType) -> void;
+		auto modify(i32 modifier) -> void;
 
 		auto bodyPart() const -> BodyPart;
 		auto foodType() const -> Food::Type;
+		auto isModified() const -> bool;
+		auto modifier() const -> i32;
 	};
 private:
     /** width of total canvas, not extent of organism body parts */
@@ -80,9 +93,10 @@ public:
 
     auto accessExpand(i32, i32, i32) -> Cell;
     auto access(i32, i32, Direction rotation) const -> Cell;
+	auto directAccess(i32 x, i32 y) -> Cell &;
 
 	auto addCell(BodyBuilder &, Direction, Cell cell, i32 jumpAnchor) -> void;
-	auto directAddCell(Cell cell, i32 x, i32 y) -> void;
+	auto directAddCell(BodyBuilder & builder, Cell cell, i32 x, i32 y) -> void;
 
     auto debugToString() const -> std::string;
 

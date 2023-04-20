@@ -36,6 +36,20 @@ constexpr u32 bodyPartColors[] = {
 	0xede6da, /* Scaffolding */
 };
 
+constexpr u32 weaponUpgradeColors[] = {
+	0x8f0a2b,
+	0xe34b71,
+	0xe8bac5,
+};
+
+constexpr u32 armorUpgradeColors[] = {
+	0x210c57,
+	0x4e358f,
+	0xa891e3,
+};
+
+constexpr u32 scaffoldingUpgradeColor = 0xf0c47a;
+
 constexpr u32 foodColors[] = {
 	0x8d9400,
 	0x945900,
@@ -94,12 +108,12 @@ auto Renderer::render(Environment & environment, std::vector<Organism> & organis
 
 		for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
 			for (auto i = body.getLeft(rotation); i <= body.getRight(rotation); ++i) {
-				auto cell = body.access(i, j, rotation).bodyPart();
+				auto cell = body.access(i, j, rotation);
 
 				auto x = organism.x + i, y = organism.y + j;
 
-				if (cell != BodyPart::NONE) {
-					buffer[bufferIndex(x, y)] = META_ORGANISM;
+				if (cell.bodyPart() != BodyPart::NONE) {
+					buffer[bufferIndex(x, y)] = META_ORGANISM | (cell.isModified() ? CIRCLE_FLAG : 0);
 					insert2(
 						buffer,
 						bufferIndex(x, y) + 1,
@@ -108,8 +122,17 @@ auto Renderer::render(Environment & environment, std::vector<Organism> & organis
 					insert3(
 						buffer,
 						bufferIndex(x, y) + 3,
-						bodyPartColors[cell - 1]
+						bodyPartColors[cell.bodyPart() - 1]
 					);
+					if (cell.isModified()) {
+						insert3(
+							buffer,
+							bufferIndex(x, y) + 6,
+							cell.bodyPart() == BodyPart::WEAPON ? weaponUpgradeColors[cell.modifier()] :
+								cell.bodyPart() == BodyPart::ARMOR ? armorUpgradeColors[cell.modifier()] :
+								scaffoldingUpgradeColor
+						);
+					}
 				}
 			}
 		}

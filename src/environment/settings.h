@@ -69,6 +69,8 @@ public:
 	i32 weaponDamage;
 
 	i32 bodyPartCosts[7];
+	/* not all parts can be upgraded, but list them anyway */
+	i32 upgradedPartCosts[7];
 
 	Noise factorNoises[3];
 

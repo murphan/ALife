@@ -6,7 +6,8 @@
 
 #include "genomeView.h"
 #include "genome/gene/bodyGene.h"
-#include "genome/gene/foodGene.h"
+
+#include "genome/gene/upgradeGene.h"
 #include "geneMap.h"
 #include "phenome.h"
 
@@ -57,20 +58,21 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 		survivalEnergy += settings.bodyPartCosts[bodyPart - 1];
 	};
 
+	auto upgradeGenes = std::vector<UpgradeGene>();
 	auto geneMap = GeneMap(genome);
 
 	/* default organism for too-short genome */
 	if (geneMap.segments.empty() || !geneMap.segments[0].isCoding) {
-		body.directAddCell(Body::Cell(BodyPart::MOUTH, Food::FOOD0), 0, 0);
+		body.directAddCell(bodyBuilder, Body::Cell::make(BodyPart::MOUTH, Food::FOOD0), 0, 0);
 		onAddPart(0, 0, BodyPart::MOUTH);
-	}
 
-	{
+	/* read center cell section */
+	} else {
 		auto initialGene = readSegment(genome, geneMap.segments[0]);
 		auto center = (BodyPart)Gene::read5(initialGene, 0);
 		auto foodType = (Food::Type)Gene::read4(initialGene, 3);
 
-		body.directAddCell(Body::Cell(center, foodType), 0, 0);
+		body.directAddCell(bodyBuilder, Body::Cell::make(center, foodType), 0, 0);
 		onAddPart(0, 0, center);
 	}
 
@@ -86,7 +88,7 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 			body.addCell(
 				bodyBuilder,
 				bodyGene.direction,
-				Body::Cell(bodyGene.bodyPart, bodyGene.foodType),
+				Body::Cell::make(bodyGene.bodyPart, bodyGene.foodType),
 				bodyGene.usingAnchor
 			);
 			onAddPart(bodyBuilder.currentX, bodyBuilder.currentY, bodyGene.bodyPart);
@@ -102,10 +104,7 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 			eyeReactions.emplace_back(gene);
 
 		} else if (segment.type == Genome::C) {
-			auto foodGene = FoodGene(gene);
-			auto & foodStat = foodStats[foodGene.foodType];
-			foodStat.digestionBonus += foodGene.digestionBonus();
-			foodStat.absoprtionBonus += foodGene.absorptionBonus();
+			upgradeGenes.emplace_back(gene);
 
 		} else if (segment.type == Genome::D) {
 			auto change = MutationRateGene(gene).getChange();
@@ -115,18 +114,34 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 		}
 	}
 
+	/* apply upgrade genes */
+	{
+		std::sort(upgradeGenes.begin(), upgradeGenes.end(), [](UpgradeGene & left, UpgradeGene & right) { return left.getBodyPart() < right.getBodyPart(); });
+
+		auto onBodyPart = BodyPart::MOUTH;
+		auto lastFoundIndex = 0;
+		for (auto && upgradeGene : upgradeGenes) {
+			if (upgradeGene.getBodyPart() != onBodyPart) {
+				onBodyPart = upgradeGene.getBodyPart();
+				lastFoundIndex = 0;
+			}
+
+			auto coord = bodyBuilder.getNextCellofType(onBodyPart, lastFoundIndex);
+			if (!coord.has_value()) continue;
+
+			auto [x, y] = coord.value();
+
+			body.directAccess(x, y).modify(upgradeGene.getModifier());
+			survivalEnergy += settings.upgradedPartCosts[onBodyPart];
+		}
+	}
+
 	auto descendingPriority = [](ReactionGene & left, ReactionGene & right) {
 		return left.priority > right.priority;
 	};
 
 	std::sort(eyeReactions.begin(), eyeReactions.end(), descendingPriority);
 	std::sort(environmentReactions.begin(), environmentReactions.end(), descendingPriority);
-
-	/* somehow the genome was too small to have an initial body part */
-	if (body.getNumCells() == 0) {
-		body.directAddCell(Body::Cell(BodyPart::MOUTH, Food::FOOD0), 0, 0);
-		onAddPart(0, 0, BodyPart::MOUTH);
-	}
 }
 
 auto Phenome::maxAge(i32 lifetimeFactor) const -> i32 {

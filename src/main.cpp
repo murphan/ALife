@@ -29,7 +29,7 @@ auto main () -> int {
 		.reproductionCost = 1,
 		.reproductionThreshold = 2,
 		.foodEfficiency = 1.0_f32,
-		.maxFoodAge = 100000000,
+		.maxFoodAge = 256,
 		.baseMutationRates = {
 			0.005,
 			0.005,
@@ -43,9 +43,18 @@ auto main () -> int {
 			16, /* MOVER */
 			16, /* PHOTOSYNTHESIZER */
 			16, /* WEAPON */
-			12, /* ARMOR */
-			8, /* EYE */
-			4, /* SCAFFOLD */
+			16, /* ARMOR */
+			4, /* EYE */
+			2, /* SCAFFOLD */
+		},
+		.upgradedPartCosts = {
+			0, /* MOUTH */
+			0, /* MOVER */
+			0, /* PHOTOSYNTHESIZER */
+			1, /* WEAPON */
+			1, /* ARMOR */
+			0, /* EYE */
+			1, /* SCAFFOLD */
 		},
 		.factorNoises = {
 			Noise(Factor::TEMPERATURE, false, -1.0_f32, 0.01_f32, 100.0_f32, 1.0_f32),
