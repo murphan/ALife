@@ -14,7 +14,7 @@
 
 #include "types.h"
 #include "genome/genome.h"
-#include "genome/gene/reactionGene.h"
+#include "genome/gene/eyeGene.h"
 #include "body.h"
 #include "genome/gene/mutationRateGene.h"
 #include "../environment/settings.h"
@@ -74,7 +74,6 @@ public:
 	std::vector<Sense> senses;
 
 	std::vector<EyeGene> eyeReactions;
-	std::vector<EnvironmentGene> environmentReactions;
 
 	explicit Phenome(Genome && inGenome, Body && inBody, Settings & settings);
 

@@ -5,7 +5,7 @@
 #include "gene/bodyGene.h"
 #include "gene/upgradeGene.h"
 #include "gene/mutationRateGene.h"
-#include "gene/reactionGene.h"
+#include "gene/eyeGene.h"
 
 /**
  * points index to the start of the pattern
@@ -71,7 +71,7 @@ GeneMap::GeneMap(const Genome & genome): segments() {
 		} else {
 			auto geneLength = 2 + (
 				headerBase == Genome::A ? BodyGene::LENGTH :
-				headerBase == Genome::B ? ReactionGene::LENGTH :
+				headerBase == Genome::B ? EyeGene::LENGTH :
 				headerBase == Genome::C ? UpgradeGene::LENGTH :
 				/*         == Genome::D*/ MutationRateGene::LENGTH
             );

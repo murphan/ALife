@@ -41,8 +41,7 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 	foodStats(),
 	moveTries(0),
 	senses(),
-	eyeReactions(),
-	environmentReactions()
+	eyeReactions()
 {
 	if (genome.size() == 0) return;
 
@@ -135,13 +134,6 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 			survivalEnergy += settings.upgradedPartCosts[onBodyPart];
 		}
 	}
-
-	auto descendingPriority = [](ReactionGene & left, ReactionGene & right) {
-		return left.priority > right.priority;
-	};
-
-	std::sort(eyeReactions.begin(), eyeReactions.end(), descendingPriority);
-	std::sort(environmentReactions.begin(), environmentReactions.end(), descendingPriority);
 }
 
 auto Phenome::maxAge(i32 lifetimeFactor) const -> i32 {

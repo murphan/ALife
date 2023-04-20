@@ -58,15 +58,8 @@ auto Organism::serialize(bool detailed) const -> json {
 
 	auto eyeReactions = json::array();
 	for (auto && eyeReaction : phenome.eyeReactions) eyeReactions.push_back(json {
-		{ "seeingThing", EyeGene::SEEING_THING_NAMES[eyeReaction.seeingThing] },
-		{ "specific", eyeReaction.specific },
-		{ "modifier", eyeReaction.getFoodType() },
-	});
-	auto environmentReactions = json::array();
-	for (auto && environmentReaction : phenome.environmentReactions) environmentReactions.push_back(json {
-		{ "factor", environmentReaction.factor },
-		{ "above", environmentReaction.getAbove() },
-		{ "threshold", environmentReaction.getThreshold() },
+		{ "seeing", eyeReaction.seeing },
+		{ "action", EyeGene::ACTION_NAMES[eyeReaction.actionType] },
 	});
 
 	auto byteEncodedBody = std::string();
@@ -80,7 +73,6 @@ auto Organism::serialize(bool detailed) const -> json {
 	nonDetailedPart.push_back({ "mutationModifiers", mutationModifiers });
 	nonDetailedPart.push_back({ "foodStats", foodStats });
 	nonDetailedPart.push_back({ "eyeReactions", eyeReactions });
-	nonDetailedPart.push_back({ "environmentReactions", environmentReactions });
 	nonDetailedPart.push_back({ "genome", phenome.genome.toString() });
 	nonDetailedPart.push_back({ "body", Util::base64Encode(byteEncodedBody) });
 	auto && completeParts = nonDetailedPart;
