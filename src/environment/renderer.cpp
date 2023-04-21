@@ -37,15 +37,15 @@ constexpr u32 bodyPartColors[] = {
 };
 
 constexpr u32 weaponUpgradeColors[] = {
-	0x8f0a2b,
-	0xe34b71,
-	0xe8bac5,
+	0x820c29,
+	0xa24f64,
+	0xe9b2c0,
 };
 
 constexpr u32 armorUpgradeColors[] = {
-	0x210c57,
-	0x4e358f,
-	0xa891e3,
+	0x220b5d,
+	0x5a23e7,
+	0xc8bde6,
 };
 
 constexpr u32 scaffoldingUpgradeColor = 0xf0c47a;

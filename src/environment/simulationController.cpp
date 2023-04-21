@@ -264,31 +264,62 @@ auto SimulationController::organismCellsTick(Settings & settings, std::vector<i3
 						auto defenderIndex = space.index();
 						if (defenderIndex == index) return;
 
-						auto armorDoesBlock = [&](i32 deltaX, i32 deltaY) {
+						constexpr static i32 BLOCK_NONE = 0x0;
+						constexpr static i32 BLOCK_PART = 0x1;
+						constexpr static i32 BLOCK_FULL = 0x2;
+						constexpr static i32 BLOCK_FULL_BUT_COOLER = 0x2;
+
+						auto armorDoesBlock = [&](i32 deltaX, i32 deltaY) -> i32 {
 							auto space = organismGrid.accessSafe(spaceX + deltaX, spaceY + deltaY);
-							if (!space.filled() || space.index() != defenderIndex) return false;
+							if (!space.filled() || space.index() != defenderIndex) return BLOCK_NONE;
 
-							if (space.cell().bodyPart() == BodyPart::ARMOR) {
-								if (superAttack == -1) return true;
+							auto isDirectlyAttacked = deltaX == 0 && deltaY == 0;
+							auto bodyPart = space.cell().bodyPart();
 
-								auto superArmor = !space.cell().isModified() ? -1 : space.cell().modifier();
-								return superArmor == superAttack;
+							auto isAmored = (bodyPart == BodyPart::ARMOR) ||
+								(bodyPart == BodyPart::SCAFFOLD && isDirectlyAttacked);
 
-							} else if (space.cell().bodyPart() == BodyPart::SCAFFOLD) {
-								return superAttack == -1 && space.cell().isModified();
+							if (!isAmored) return BLOCK_NONE;
 
+							volatile auto superArmor = bodyPart == BodyPart::ARMOR ?
+				                  !space.cell().isModified() ? -1 : space.cell().modifier() : -1;
+
+							auto superCounters = superArmor == superAttack;
+
+							if (isDirectlyAttacked) {
+								if (superAttack == -1) {
+									return superArmor == -1 ? BLOCK_FULL : BLOCK_FULL_BUT_COOLER;
+								} else {
+									if (superArmor == -1) {
+										return BLOCK_PART;
+									} else {
+										return superCounters ? BLOCK_FULL : BLOCK_PART;
+									}
+								}
 							} else {
-								return false;
+								if (superAttack == -1) {
+									return superArmor == -1 ? BLOCK_PART : BLOCK_FULL;
+								} else {
+									if (superArmor == -1) {
+										return BLOCK_NONE;
+									} else {
+										return superCounters ? BLOCK_PART : BLOCK_NONE;
+									}
+								}
 							}
 						};
 
-						damages[defenderIndex] += (
-							armorDoesBlock(0, 0) ||
-							armorDoesBlock(1, 0) ||
-							armorDoesBlock(0, 1) ||
-							armorDoesBlock(-1, 0) ||
-							armorDoesBlock(0, -1)
-						) ? settings.weaponDamage - settings.armorPrevents : settings.weaponDamage;
+						auto blockLevel = armorDoesBlock(0, 0) |
+						                  armorDoesBlock(1, 0) |
+						                  armorDoesBlock(0, 1) |
+						                  armorDoesBlock(-1, 0) |
+						                  armorDoesBlock(0, -1);
+
+						auto damageDealt = (blockLevel >> 1) & 0x1 ? 0 :
+							blockLevel & 0x1 ? settings.weaponDamage - settings.armorPrevents :
+							settings.weaponDamage;
+
+						damages[defenderIndex] += damageDealt;
 					};
 
 					damageAround(1, 0);
@@ -309,9 +340,9 @@ auto SimulationController::organismsReproduce(Settings & settings) -> void {
 			auto && phenome = organism.getPhenome();
 			auto bodyEnergy = phenome.survivalEnergy;
 
-			auto reproductionEnergy = settings.energyFactor * settings.reproductionCost;
-			auto estimatedChildEnergy = bodyEnergy + (settings.energyFactor * settings.startingEnergy);
-			auto thresholdEnergy = settings.energyFactor * settings.reproductionThreshold;
+			auto reproductionEnergy = settings.reproductionCost;
+			auto estimatedChildEnergy = bodyEnergy + settings.startingEnergy;
+			auto thresholdEnergy = settings.reproductionThreshold;
 
 			if (organism.energy >= bodyEnergy + reproductionEnergy + estimatedChildEnergy + thresholdEnergy) {
 				auto geneMap = GeneMap(phenome.genome);
@@ -330,9 +361,9 @@ auto SimulationController::organismsReproduce(Settings & settings) -> void {
 			auto bodyEnergy = organism.getPhenome().survivalEnergy;
 			auto childBodyEnergy = childPhenome.survivalEnergy;
 
-			auto reproductionEnergy = settings.energyFactor * settings.reproductionCost;
-			auto childEnergy = childBodyEnergy + (settings.energyFactor * settings.startingEnergy);
-			auto thresholdEnergy = settings.energyFactor * settings.reproductionThreshold;
+			auto reproductionEnergy = settings.reproductionCost;
+			auto childEnergy = childBodyEnergy + settings.startingEnergy;
+			auto thresholdEnergy = settings.reproductionThreshold;
 
 			if (organism.energy >= bodyEnergy + reproductionEnergy + childEnergy + thresholdEnergy) {
 				auto newOrganism = tryReproduce(childPhenome, organism, reproductionEnergy, childEnergy);

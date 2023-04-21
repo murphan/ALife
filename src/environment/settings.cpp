@@ -36,6 +36,5 @@ auto Settings::serialize() const -> json {
 			factorNoises[Factor::OXYGEN].serialize(),
 		} },
 		{ "lifetimeFactor", lifetimeFactor },
-		{ "energyFactor", energyFactor },
 	};
 }

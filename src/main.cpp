@@ -22,12 +22,11 @@ auto main () -> int {
 
 	auto controls = Controls { .playing=false, .fps=20, .updateDisplay=true };
 	auto settings = Settings {
-		.lifetimeFactor = 64,
-		.energyFactor = 16,
+		.lifetimeFactor = 100,
 		.photosynthesisFactor = 1,
-		.startingEnergy = 4,
-		.reproductionCost = 1,
-		.reproductionThreshold = 2,
+		.startingEnergy = 34,
+		.reproductionCost = 8,
+		.reproductionThreshold = 19,
 		.foodEfficiency = 1.0_f32,
 		.maxFoodAge = 256,
 		.baseMutationRates = {
@@ -38,7 +37,7 @@ auto main () -> int {
 		.mutationFactor = 1.5,
 		.sightRange = 8,
 		.weaponDamage = 32,
-		.armorPrevents = 20,
+		.armorPrevents = 28,
 		.bodyPartCosts = {
 			16, /* MOUTH */
 			16, /* MOVER */
@@ -52,14 +51,14 @@ auto main () -> int {
 			0, /* MOUTH */
 			0, /* MOVER */
 			0, /* PHOTOSYNTHESIZER */
-			1, /* WEAPON */
-			2, /* ARMOR */
+			4, /* WEAPON */
+			6, /* ARMOR */
 			0, /* EYE */
 			2, /* SCAFFOLD */
 		},
 		.factorNoises = {
 			Noise(Factor::TEMPERATURE, false, -1.0_f32, 0.01_f32, 100.0_f32, 1.0_f32),
-			Noise(Factor::LIGHT, false, 0.5_f32, 0.0_f32, 50.0_f32, 1.0_f32),
+			Noise(Factor::LIGHT, false, 0.35_f32, 0.0_f32, 50.0_f32, 1.0_f32),
 			Noise(Factor::OXYGEN, false, -1.0_f32, 0.01_f32, 100.0_f32, 1.0_f32),
 		}
 	};

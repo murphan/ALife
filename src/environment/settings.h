@@ -19,29 +19,23 @@ public:
 	 */
 	i32 lifetimeFactor;
 	/*
-	 * the fundamental unit of energy, how much energy each cell is "worth"
-	 * "body energy" refers to the number of cells * the energy factor
-	 * suggested range: 1-128
-	 */
-	i32 energyFactor;
-	/*
 	 * how much energy a photosynthesis cell generates each tick when it receives light
 	 * suggseted range: 1-16
 	 */
 	i32 photosynthesisFactor;
 	/*
-	 * additional cells worth of energy that an organism is born with
-	 * suggested range: 1-8
+	 * energy that an organism is born with
+	 * suggested range: 1-128
 	 */
 	i32 startingEnergy;
 	/*
-	 * additional cells worth of energy that are expended on reproduction
-	 * suggested range: 1-8
+	 * energy expended on reproduction
+	 * suggested range: 1-128
 	 */
 	i32 reproductionCost;
 	/*
-	 * additional cells worth of energy that must be kept after reproducing
-	 * suggested range: 1-8
+	 * energy that must be kept after reproducing
+	 * suggested range: 1-128
 	 */
 	i32 reproductionThreshold;
 	/*
