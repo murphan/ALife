@@ -33,12 +33,42 @@ inline auto readSegment(const Genome & genome, GeneMap::Segment segment) -> Geno
 	return GenomeView { &genome, segment.begin, segment.length() };
 }
 
+auto Phenome::onAddCell(i32 x, i32 y, Settings & settings) -> void {
+	auto cell = body.directAccess(x, y);
+
+	if (cell.bodyPart() == BodyPart::MOVER) ++moveTries;
+
+	else if (cell.bodyPart() == BodyPart::EYE) {
+		senses.emplace_back(x, y, cell);
+	}
+
+	bodyEnergy += cell.cost(settings);
+
+	++numAliveCells;
+}
+
+auto Phenome::onRemoveCell(i32 x, i32 y, Settings & settings) -> void {
+	auto cell = body.directAccess(x, y);
+
+	if (cell.bodyPart() == BodyPart::MOVER) --moveTries;
+
+	else if (cell.bodyPart() == BodyPart::EYE) {
+		std::erase_if(senses, [&](Sense & sense) {
+			return sense.x == x && sense.y == y;
+		});
+	}
+
+	bodyEnergy -= cell.cost(settings);
+
+	--numAliveCells;
+}
+
 Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 	mutationModifiers { 0, 0, 0 },
 	genome(std::move(inGenome)),
 	body(std::move(inBody)),
-	survivalEnergy(0),
-	foodStats(),
+	numAliveCells(0),
+	bodyEnergy(0),
 	moveTries(0),
 	senses(),
 	eyeReactions()
@@ -47,16 +77,6 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 
 	auto bodyBuilder = BodyBuilder();
 
-	auto onAddPart = [&](i32 x, i32 y, Body::Cell cell) {
-		if (cell.bodyPart() == BodyPart::MOVER) ++moveTries;
-
-		else if (cell.bodyPart() == BodyPart::EYE) {
-			senses.emplace_back(x, y, cell);
-		}
-
-		survivalEnergy += settings.bodyPartCosts[cell.bodyPart() - 1];
-	};
-
 	auto upgradeGenes = std::vector<UpgradeGene>();
 	auto geneMap = GeneMap(genome);
 
@@ -64,7 +84,6 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 	if (geneMap.segments.empty() || !geneMap.segments[0].isCoding) {
 		auto cell = Body::Cell::make(BodyPart::MOUTH, 0);
 		body.directAddCell(bodyBuilder, cell, 0, 0);
-		onAddPart(0, 0, cell);
 
 	/* read center cell section */
 	} else {
@@ -74,7 +93,6 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 
 		auto cell = Body::Cell::make(bodyPart, data);
 		body.directAddCell(bodyBuilder, cell, 0, 0);
-		onAddPart(0, 0, cell);
 	}
 
 	for (auto i = 1; i < geneMap.segments.size(); ++i) {
@@ -93,7 +111,6 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 				cell,
 				bodyGene.usingAnchor
 			);
-			onAddPart(bodyBuilder.currentX, bodyBuilder.currentY, cell);
 
 			if (bodyGene.setsAnchor()) {
 				bodyBuilder.anchors[bodyGene.setAnchor] = {
@@ -133,8 +150,13 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 			auto [x, y] = coord.value();
 
 			body.directAccess(x, y).modify(upgradeGene.getModifier());
-			survivalEnergy += settings.upgradedPartCosts[onBodyPart];
+			bodyEnergy += settings.upgradedPartCosts[onBodyPart];
 		}
+	}
+
+	/* calculate cell based stats */
+	for (auto && insertion : bodyBuilder.insertedOrder) {
+		onAddCell(insertion.x, insertion.y, settings);
 	}
 }
 

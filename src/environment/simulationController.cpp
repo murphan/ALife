@@ -4,6 +4,7 @@
 #include "environment/simulationController.h"
 #include "renderer.h"
 #include "../genome/geneMap.h"
+#include "genome/rotation.h"
 
 SimulationController::SimulationController(Environment && environment, std::default_random_engine & random) :
 	random(random),
@@ -16,18 +17,16 @@ auto SimulationController::tick(Settings & settings) -> void {
 	/* organism priority determined by number of move cells */
 	std::shuffle(organisms.begin(), organisms.end(), random);
 	std::sort(organisms.begin(), organisms.end(), [](Organism & left, Organism & right) {
-		return left.getPhenome().moveTries > right.getPhenome().moveTries;
+		return left.phenome.moveTries > right.phenome.moveTries;
 	});
 
 	updateFactors(settings);
 
 	moveOrganisms(settings);
 
-	auto damages = std::vector<i32>(organisms.size());
+	organismCellsTick(settings);
 
-	organismCellsTick(settings, damages);
-
-	doDamageAndKill(settings, damages);
+	checkOrganismsDie(settings);
 
     organismsReproduce(settings);
 
@@ -41,21 +40,22 @@ auto SimulationController::tick(Settings & settings) -> void {
 auto symmetricRange = std::uniform_int_distribution<i32>(-1, 1);
 
 auto SimulationController::organismSeeingDirection(Organism & organism, i32 index, Settings & settings) -> std::optional<Direction> {
-	auto && eyeReactions = organism.getPhenome().eyeReactions;
-	auto && eyes = organism.getPhenome().senses;
+	auto && eyeReactions = organism.phenome.eyeReactions;
+	auto && eyes = organism.phenome.senses;
 
 	if (eyeReactions.empty() || eyes.empty()) return std::nullopt;
 
 	for (auto && eye : eyes) {
-		for (auto i = 1; i <= settings.sightRange; ++i) {
-			auto eyeDirection = Direction(eye.senseCell.data()).rotate(organism.rotation);
+		auto eyeDirection = Direction(eye.senseCell.data()).rotate(organism.rotation);
+		auto eyePos = Rotation::rotate({ eye.x, eye.y }, organism.rotation);
 
-			auto seeX = eye.x + i * eyeDirection.x();
-			auto seeY = eye.y + i * eyeDirection.y();
+		for (auto i = 1; i <= settings.sightRange; ++i) {
+			auto seeX = eyePos.x + i * eyeDirection.x();
+			auto seeY = eyePos.y + i * eyeDirection.y();
 
 			if (!organismGrid.inBounds(seeX, seeY)) break;
 
-			auto && space = organismGrid.accessSafe(seeX, seeY);
+			auto && space = organismGrid.access(seeX, seeY);
 
 			if (space.filled() && space.index() != index) {
 				for (auto && reaction : eyeReactions) {
@@ -81,7 +81,7 @@ auto SimulationController::moveOrganisms(Settings & settings) -> void {
 
 	for (auto i = 0; i < organisms.size(); ++i) {
 		auto && organism = organisms.at(i);
-		auto moveTries = organism.getPhenome().moveTries;
+		auto moveTries = organism.phenome.moveTries;
 		if (moveTries == 0) continue;
 
 		if (moveTries < std::uniform_int_distribution(1, 2)(random)) continue;
@@ -113,13 +113,9 @@ auto SimulationController::moveOrganisms(Settings & settings) -> void {
 	}
 }
 
-auto SimulationController::doDamageAndKill(Settings & settings, std::vector<i32> & damages) -> void {
-	for (auto i = 0; i < organisms.size(); ++i) {
-		organisms[i].energy -= damages[i];
-	}
-
+auto SimulationController::checkOrganismsDie(Settings & settings) -> void {
 	std::erase_if(organisms, [&, this](Organism & organism) {
-		if (organism.energy < organism.getPhenome().survivalEnergy) {
+		if (organism.phenome.numAliveCells == 0) {
 			replaceOrganismWithFood(organism, settings);
 			return true;
 		}
@@ -129,7 +125,7 @@ auto SimulationController::doDamageAndKill(Settings & settings, std::vector<i32>
 
 auto SimulationController::organismsAgeAndDie(Settings & settings) -> void {
 	std::erase_if(organisms, [&, this](Organism & organism) {
-		if (++organism.age > organism.getPhenome().maxAge(settings.lifetimeFactor)) {
+		if (++organism.age > organism.phenome.maxAge(settings.lifetimeFactor)) {
 			replaceOrganismWithFood(organism, settings);
 			return true;
 		} else {
@@ -138,7 +134,7 @@ auto SimulationController::organismsAgeAndDie(Settings & settings) -> void {
 	});
 }
 
-auto SimulationController::replaceOrganismWithFood(const Organism & organism, Settings & settings) -> void {
+auto SimulationController::replaceOrganismWithFood(Organism & organism, Settings & settings) -> void {
 	auto && body = organism.body();
 	auto rotation = organism.rotation;
 
@@ -150,9 +146,7 @@ auto SimulationController::replaceOrganismWithFood(const Organism & organism, Se
 			if (cell.bodyPart() != BodyPart::NONE) {
 				auto && environmentCell = environment.getCell(x, y);
 				auto energy = (i32)(
-					(f32)(
-						settings.bodyPartCosts[cell.bodyPart() - 1] + (cell.isModified() ? settings.upgradedPartCosts[cell.bodyPart() - 1] : 0)
-					) * settings.foodEfficiency
+					(f32)cell.cost(settings) * settings.foodEfficiency
 				);
 
 				/* replace food, do not add on top */
@@ -166,14 +160,6 @@ auto SimulationController::replaceOrganismWithFood(const Organism & organism, Se
 			}
 		}
 	}
-}
-
-template<typename T>
-inline auto push32Bit(std::string & stream, T value) {
-	stream.push_back((char)(value >> 24));
-	stream.push_back((char)((value >> 16) & 0xff));
-	stream.push_back((char)((value >> 8) & 0xff));
-	stream.push_back((char)(value & 0xff));
 }
 
 auto SimulationController::serialize() -> json {
@@ -201,12 +187,12 @@ auto SimulationController::scatterFood(Food::Type type, i32 numFood, i32 energyD
         auto x = std::uniform_int_distribution(0, organismGrid.getWidth() - 1)(random);
         auto y = std::uniform_int_distribution(0, organismGrid.getHeight() - 1)(random);
 
-        if (!organismGrid.access(x, y).filled())
+        if (!organismGrid.accessUnsafe(x, y).filled())
             addFood(x, y, type, energyDefault);
     }
 }
 
-auto SimulationController::organismCellsTick(Settings & settings, std::vector<i32> & damages) -> void {
+auto SimulationController::organismCellsTick(Settings & settings) -> void {
 	for (auto index = 0; index < organisms.size(); ++index) {
 		auto && organism = organisms[index];
 		auto && body = organism.body();
@@ -218,13 +204,16 @@ auto SimulationController::organismCellsTick(Settings & settings, std::vector<i3
 				auto x = organism.x + i;
 
 				auto && bodyCell = body.access(i, j, rotation);
-				auto && environmentCell = environment.getCell(x, y);
+
+				/* dead cells have no functions */
+				if (bodyCell.dead()) continue;
 
 				if (bodyCell.bodyPart() == BodyPart::PHOTOSYNTHESIZER) {
+					auto && environmentCell = environment.getCell(x, y);
 					auto lightPercentage = (f32)environmentCell.getFactor(Factor::LIGHT) / 127.0_f32;
 
 					auto isOtherAround = [&](i32 deltaX, i32 deltaY) {
-						auto && other = organismGrid.accessSafe(x + deltaX, y + deltaY);
+						auto && other = organismGrid.access(x + deltaX, y + deltaY);
 						return (other.filled() && other.cell().bodyPart() == BodyPart::PHOTOSYNTHESIZER) ? 1 : 0;
 					};
 
@@ -240,11 +229,20 @@ auto SimulationController::organismCellsTick(Settings & settings, std::vector<i3
 
 				} else if (bodyCell.bodyPart() == BodyPart::MOUTH) {
 					auto tryEatAround = [&](i32 deltaX, i32 deltaY) {
-						auto && cell = environment.getCellSafe(x + deltaX, y + deltaY);
-						if (!cell.getHasFood()) return;
+						auto && environmentCell = environment.getCellSafe(x + deltaX, y + deltaY);
+						if (environmentCell.getHasFood()) {
+							organism.energy += environmentCell.getFood().getEnergy();
+							environmentCell.removeFood();
+						}
 
-						organism.energy += cell.getFood().getEnergy();
-						cell.removeFood();
+						auto && bodyCell = organismGrid.access(x + deltaX, y + deltaY);
+						if (bodyCell.filled() && bodyCell.index() != index && bodyCell.cell().dead()) {
+							auto && prey = organisms[bodyCell.index()];
+							auto && originalCell = bodyCell.getOriginalCell(prey);
+							originalCell = Body::Cell::makeEmpty();
+
+							organism.energy += (i32)((f32)originalCell.cost(settings) * settings.foodEfficiency);
+						}
 					};
 
 					tryEatAround(0, 0);
@@ -258,8 +256,8 @@ auto SimulationController::organismCellsTick(Settings & settings, std::vector<i3
 					auto damageAround = [&](i32 deltaX, i32 deltaY) {
 						auto spaceX = x + deltaX, spaceY = y + deltaY;
 
-						auto space = organismGrid.accessSafe(spaceX, spaceY);
-						if (!space.filled()) return;
+						auto space = organismGrid.access(spaceX, spaceY);
+						if (!space.filled() || space.cell().dead()) return;
 
 						auto defenderIndex = space.index();
 						if (defenderIndex == index) return;
@@ -270,7 +268,7 @@ auto SimulationController::organismCellsTick(Settings & settings, std::vector<i3
 						constexpr static i32 BLOCK_FULL_BUT_COOLER = 0x2;
 
 						auto armorDoesBlock = [&](i32 deltaX, i32 deltaY) -> i32 {
-							auto space = organismGrid.accessSafe(spaceX + deltaX, spaceY + deltaY);
+							auto space = organismGrid.access(spaceX + deltaX, spaceY + deltaY);
 							if (!space.filled() || space.index() != defenderIndex) return BLOCK_NONE;
 
 							auto isDirectlyAttacked = deltaX == 0 && deltaY == 0;
@@ -319,7 +317,18 @@ auto SimulationController::organismCellsTick(Settings & settings, std::vector<i3
 							blockLevel & 0x1 ? settings.weaponDamage - settings.armorPrevents :
 							settings.weaponDamage;
 
-						damages[defenderIndex] += damageDealt;
+						if (damageDealt > 0) {
+							auto && defender = organisms[defenderIndex];
+							defender.energy -= damageDealt;
+
+							if (defender.energy <= 0) {
+								defender.energy = 0;
+
+								auto && originalCell = space.getOriginalCell(defender);
+								originalCell.setDead(true);
+								defender.phenome.onRemoveCell(space.getX(), space.getY(), settings);
+							}
+						}
 					};
 
 					damageAround(1, 0);
@@ -337,14 +346,14 @@ auto SimulationController::organismsReproduce(Settings & settings) -> void {
 
     for (auto && organism : organisms) {
 		if (!organism.storedChild.has_value()) {
-			auto && phenome = organism.getPhenome();
-			auto bodyEnergy = phenome.survivalEnergy;
+			auto && phenome = organism.phenome;
+			auto bodyEnergy = phenome.bodyEnergy;
 
 			auto reproductionEnergy = settings.reproductionCost;
 			auto estimatedChildEnergy = bodyEnergy + settings.startingEnergy;
 			auto thresholdEnergy = settings.reproductionThreshold;
 
-			if (organism.energy >= bodyEnergy + reproductionEnergy + estimatedChildEnergy + thresholdEnergy) {
+			if (organism.energy >= reproductionEnergy + estimatedChildEnergy + thresholdEnergy) {
 				auto geneMap = GeneMap(phenome.genome);
 				auto childGenome = geneMap.smartMutateCopy(
 					phenome.genome,
@@ -356,17 +365,16 @@ auto SimulationController::organismsReproduce(Settings & settings) -> void {
 				organism.storedChild = std::make_optional<Phenome>(std::move(childGenome), Body(2), settings);
 			}
 		} else {
-			auto & childPhenome = organism.storedChild.value();
+			auto && childPhenome = organism.storedChild.value();
 
-			auto bodyEnergy = organism.getPhenome().survivalEnergy;
-			auto childBodyEnergy = childPhenome.survivalEnergy;
+			auto childBodyEnergy = childPhenome.bodyEnergy;
 
 			auto reproductionEnergy = settings.reproductionCost;
-			auto childEnergy = childBodyEnergy + settings.startingEnergy;
+			auto childEnergy = settings.startingEnergy;
 			auto thresholdEnergy = settings.reproductionThreshold;
 
-			if (organism.energy >= bodyEnergy + reproductionEnergy + childEnergy + thresholdEnergy) {
-				auto newOrganism = tryReproduce(childPhenome, organism, reproductionEnergy, childEnergy);
+			if (organism.energy >= reproductionEnergy + childBodyEnergy + childEnergy + thresholdEnergy) {
+				auto newOrganism = tryReproduce(childPhenome, organism, reproductionEnergy, childBodyEnergy, childEnergy);
 				if (newOrganism.has_value()) {
 					organism.storedChild.reset();
 
@@ -389,6 +397,7 @@ inline auto noMoreThan(i32 a, i32 b) -> i32 {
 	return a < b ? a : b;
 }
 
+//TODO make it more flexible
 auto SimulationController::findChildSpawnPoint(Organism & organism, Phenome & childPhenome) -> std::optional<Util::Coord> {
 	auto rotation = organism.rotation;
 
@@ -410,7 +419,7 @@ auto SimulationController::findChildSpawnPoint(Organism & organism, Phenome & ch
 	auto spawnUp = organism.y + up + 1 - childDown + 1;
 	auto spawnDown = organism.y + down - 1 - childUp - 1;
 
-	auto tries = noMoreThan(1 + organism.getPhenome().moveTries, 8);
+	auto tries = noMoreThan(1 + organism.phenome.moveTries, 8);
 
 	for (auto angle = 0; angle < tries; ++angle) {
 		auto direction = baseDirection.rotate(angle);
@@ -460,13 +469,13 @@ auto SimulationController::findChildSpawnPoint(Organism & organism, Phenome & ch
 	return std::nullopt;
 }
 
-auto SimulationController::tryReproduce(Phenome & childPhenome, Organism & organism, i32 reproductionEnergy, i32 childEnergy) -> std::optional<Organism> {
+auto SimulationController::tryReproduce(Phenome & childPhenome, Organism & organism, i32 reproductionEnergy, i32 childBodyEnergy, i32 childEnergy) -> std::optional<Organism> {
 	auto spawnPoint = findChildSpawnPoint(organism, childPhenome);
 	if (!spawnPoint.has_value()) return std::nullopt;
 
 	auto [x, y] = spawnPoint.value();
 
-	organism.energy -= (reproductionEnergy + childEnergy);
+	organism.energy -= (reproductionEnergy + childBodyEnergy + childEnergy);
 
 	return std::make_optional<Organism>(
 		std::move(childPhenome),

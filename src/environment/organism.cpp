@@ -17,19 +17,15 @@ Organism::Organism(Phenome && phenome, UUID uuid, i32 x, i32 y, Direction rotati
 	movementSearching(true),
 	ticksSinceCollision(0) {}
 
-auto Organism::getPhenome() const -> const Phenome & {
-	return phenome;
-}
-
 auto Organism::getGenome() const -> const Genome & {
 	return phenome.genome;
 }
 
-auto Organism::body() const -> const Body & {
+auto Organism::body() -> Body & {
 	return phenome.body;
 }
 
-auto Organism::serialize(bool detailed) const -> json {
+auto Organism::serialize(bool detailed) -> json {
 	auto && body = phenome.body;
 
 	auto nonDetailedPart = json {
@@ -50,12 +46,6 @@ auto Organism::serialize(bool detailed) const -> json {
 	auto mutationModifiers = json::array();
 	for (auto && mutationModifier : phenome.mutationModifiers) mutationModifiers.push_back(mutationModifier);
 
-	auto foodStats = json::array();
-	for (auto && foodStat : phenome.foodStats) foodStats.push_back(json {
-		{ "digestionBonus", foodStat.digestionBonus },
-		{ "absorptionBonus", foodStat.absoprtionBonus },
-	});
-
 	auto eyeReactions = json::array();
 	for (auto && eyeReaction : phenome.eyeReactions) eyeReactions.push_back(json {
 		{ "seeing", eyeReaction.seeing },
@@ -71,7 +61,6 @@ auto Organism::serialize(bool detailed) const -> json {
 	}
 
 	nonDetailedPart.push_back({ "mutationModifiers", mutationModifiers });
-	nonDetailedPart.push_back({ "foodStats", foodStats });
 	nonDetailedPart.push_back({ "eyeReactions", eyeReactions });
 	nonDetailedPart.push_back({ "genome", phenome.genome.toString() });
 	nonDetailedPart.push_back({ "body", Util::base64Encode(byteEncodedBody) });

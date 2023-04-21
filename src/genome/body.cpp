@@ -24,6 +24,10 @@ auto Body::Cell::modify(i32 modifier) -> void {
 	value |= ((modifier + 1) << 16);
 }
 
+auto Body::Cell::setDead(bool dead) -> void {
+	value |= (i32)dead << 24;
+}
+
 auto Body::Cell::makeEmpty() -> Body::Cell {
 	return Cell(0_u32);
 }
@@ -34,6 +38,14 @@ auto Body::Cell::isModified() const -> bool {
 
 auto Body::Cell::modifier() const -> i32 {
 	return (i32)((value >> 16) & 0xff) - 1;
+}
+
+auto Body::Cell::dead() const -> bool {
+	return (bool)((value >> 24) & 0xff);
+}
+
+auto Body::Cell::cost(Settings & settings) const -> i32 {
+	return settings.bodyPartCosts[bodyPart() - 1] + (isModified() ? 0 : settings.upgradedPartCosts[bodyPart() - 1]);
 }
 
 BodyBuilder::BodyBuilder() :
@@ -134,6 +146,8 @@ Body::Body(i32 edge):
     left(0), right(0), down(0), up(0), numCells(0)
 {}
 
+auto Body::outOfBounds = Cell::makeEmpty();
+
 /**
  * @param builder the builder for the body creation process
  * @param direction direction to add the body part in
@@ -182,7 +196,7 @@ auto Body::directAddCell(BodyBuilder & builder, Cell cell, i32 x, i32 y) -> void
 }
 
 /** may resize the canvas if out of bounds */
-auto Body::accessExpand(i32 x, i32 y, i32 expandBy) -> Cell {
+auto Body::accessExpand(i32 x, i32 y, i32 expandBy) -> Cell & {
     auto expandX = 0;
     auto expandY = 0;
 
@@ -201,18 +215,20 @@ auto Body::accessExpand(i32 x, i32 y, i32 expandBy) -> Cell {
     return canvas[indexOf(x, y)];
 }
 
-auto Body::safeAccess(i32 x, i32 y) const -> Cell {
-	if (x < canvasLeft() || x > canvasRight() || y < canvasDown() || y > canvasUp()) return Cell::makeEmpty();
-	return canvas[indexOf(x, y)];
-}
-
 auto Body::directAccess(i32 x, i32 y) -> Body::Cell & {
 	return canvas[indexOf(x, y)];
 }
 
-auto Body::access(i32 x, i32 y, Direction rotation) const -> Cell {
+auto Body::accessCoord(i32 x, i32 y, Direction rotation) -> AccessRecord {
 	auto [accessX, accessY] = Rotation::rotate({ x, y }, rotation);
-	return safeAccess(accessX, accessY);
+	if (accessX < canvasLeft() || accessX > canvasRight() || accessY < canvasDown() || accessY > canvasUp()) return { outOfBounds, accessX, accessY };
+	return { canvas[indexOf(accessX, accessY)], accessX, accessY };
+}
+
+auto Body::access(i32 x, i32 y, Direction rotation) -> Cell & {
+	auto [accessX, accessY] = Rotation::rotate({ x, y }, rotation);
+	if (accessX < canvasLeft() || accessX > canvasRight() || accessY < canvasDown() || accessY > canvasUp()) return outOfBounds;
+	return canvas[indexOf(accessX, accessY)];
 }
 
 auto Body::debugToString() const -> std::string {

@@ -14,19 +14,19 @@
 #include "bodyPart.h"
 #include "direction.h"
 #include "../environment/food.h"
+#include "environment/settings.h"
 
 /**
  * additional context needed to build a body from instructions
  */
 class BodyBuilder {
-private:
+public:
 	struct Insertion {
 		BodyPart bodyPart;
 		i32 x, y;
 	};
 	std::vector<Insertion> insertedOrder;
 
-public:
     BodyBuilder();
 
     i32 currentX, currentY;
@@ -40,8 +40,11 @@ class Body {
 public:
 	class Cell {
 	private:
+		/**
+		 * each 8 bytes represents something about the cell
+		 * [is dead] - [modifier] - [data] - [body part]
+		 */
 		u32 value;
-
 	public:
 		explicit Cell(u32 value);
 
@@ -49,11 +52,15 @@ public:
 		static auto make(BodyPart bodyPart, i32 data) -> Cell;
 
 		auto modify(i32 modifier) -> void;
+		auto setDead(bool dead) -> void;
 
-		auto bodyPart() const -> BodyPart;
-		auto data() const -> i32;
-		auto isModified() const -> bool;
-		auto modifier() const -> i32;
+		[[nodiscard]] auto bodyPart() const -> BodyPart;
+		[[nodiscard]] auto data() const -> i32;
+		[[nodiscard]] auto isModified() const -> bool;
+		[[nodiscard]] auto modifier() const -> i32;
+		[[nodiscard]] auto dead() const -> bool;
+
+		[[nodiscard]] auto cost(Settings & settings) const -> i32;
 	};
 private:
     /** width of total canvas, not extent of organism body parts */
@@ -76,17 +83,26 @@ private:
     auto canvasDown() const -> i32;
     auto canvasUp() const -> i32;
 
-	auto safeAccess(i32 x, i32 y) const -> Cell;
+	auto accessExpand(i32, i32, i32) -> Cell &;
 
 public:
 	Body(const Body & other) = default;
 	Body(Body && other) = default;
 	Body(i32 edge);
 
+	/**
+	 * I know this is unsafe but DO NOT modify this cell
+	 */
+	static Cell outOfBounds;
+
 	auto operator=(Body && other) noexcept -> Body & = default;
 
-    auto accessExpand(i32, i32, i32) -> Cell;
-    auto access(i32, i32, Direction rotation) const -> Cell;
+	struct AccessRecord {
+		Cell & cell;
+		i32 x, y;
+	};
+	auto accessCoord(i32, i32, Direction rotation) -> AccessRecord;
+    auto access(i32, i32, Direction rotation) -> Cell &;
 	auto directAccess(i32 x, i32 y) -> Cell &;
 
 	auto addCell(BodyBuilder &, Direction, Cell cell, i32 jumpAnchor) -> void;

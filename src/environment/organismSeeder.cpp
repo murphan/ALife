@@ -31,7 +31,7 @@ auto OrganismSeeder::insertInitialOrganisms(
 		auto gridY = (c / sideLength) - (sideLength / 2), gridX = (c % sideLength) - (sideLength / 2);
 
 		auto copiedPhenome = initialPhenome;
-		auto initialEnergy = copiedPhenome.survivalEnergy + settings.startingEnergy;
+		auto initialEnergy = settings.startingEnergy;
 
 		insertList.emplace_back(
 			std::move(copiedPhenome),

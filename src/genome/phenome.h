@@ -38,7 +38,8 @@ public:
 	Genome genome;
 	Body body;
 
-	i32 survivalEnergy;
+	i32 numAliveCells;
+	i32 bodyEnergy;
 
 	/**
 	 * these are not the actual mutation rates
@@ -47,8 +48,6 @@ public:
 	 * negative for a smaller rate, positive for a larger rate
 	 */
 	i32 mutationModifiers[3];
-
-	FoodStats foodStats[4];
 
 	/**
 	 * how many mover cells this organism has,
@@ -70,6 +69,9 @@ public:
 	auto operator=(Phenome && other) noexcept -> Phenome & = default;
 
 	auto maxAge(i32 lifetimeFactor) const -> i32;
+
+	auto onAddCell(i32 x, i32 y, Settings & settings) -> void;
+	auto onRemoveCell(i32 x, i32 y, Settings & settings) -> void;
 };
 
 #endif //ALIFE_PHENOME_H

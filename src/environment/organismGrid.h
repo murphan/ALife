@@ -15,18 +15,25 @@ class OrganismGrid {
 public:
 	class Space {
 	private:
+		/** points to the direct location of the cell in the organism */
+		i8 x, y;
 		u32 value;
+		/** cell is a copy of the original from the organism */
 		Body::Cell internalCell;
 
+		explicit Space(i8 x, i8 y, u32 value, Body::Cell & cell);
+
 	public:
-		explicit Space(u32 value, Body::Cell cell);
-
 		static auto makeEmpty() -> Space;
-		static auto makeCell(i32 index, Body::Cell cell) -> Space;
+		static auto makeCell(i8 x, i8 y, i32 index, Body::Cell & cell) -> Space;
 
-		auto filled() const -> bool;
-		auto index() const -> i32;
-		auto cell() const -> Body::Cell;
+		[[nodiscard]] auto filled() const -> bool;
+		[[nodiscard]] auto index() const -> i32;
+		[[nodiscard]] auto cell() const -> Body::Cell;
+		[[nodiscard]] auto getX() const -> i32;
+		[[nodiscard]] auto getY() const -> i32;
+
+		auto getOriginalCell(Organism & organism) -> Body::Cell &;
 	};
 
 private:
@@ -38,7 +45,7 @@ private:
 	auto indexOf(i32 x, i32 y) const -> i32;
 
 	auto internalSpaceAvailable(
-		const Body & body,
+		Body & body,
 		i32 index,
 		i32 centerX,
 		i32 centerY,
@@ -52,16 +59,18 @@ public:
 
 	auto inBounds(i32 x, i32 y) const -> bool;
 
-	auto placeOrganism(const Organism & organism, i32 index) -> void;
+	auto eraseOrganism(Organism & organism, i32 index) -> void;
 
-	auto canMoveOrganism(const Organism & organism, i32 index, i32 deltaX, i32 deltaY, i32 deltaRotation) -> bool;
+	auto placeOrganism(Organism & organism, i32 index) -> void;
+
+	auto canMoveOrganism(Organism & organism, i32 index, i32 deltaX, i32 deltaY, i32 deltaRotation) -> bool;
 
 	auto moveOrganism(Organism & organism, i32 index, i32 deltaX, i32 deltaY, i32 deltaRotation) -> void;
 
-	auto isSpaceAvailable(const Body & body, i32 x, i32 y, Direction rotation) -> bool;
+	auto isSpaceAvailable(Body & body, i32 x, i32 y, Direction rotation) -> bool;
 
+	auto accessUnsafe(i32 x, i32 y) -> Space &;
 	auto access(i32 x, i32 y) -> Space &;
-	auto accessSafe(i32 x, i32 y) const -> const Space &;
 
     auto getWidth() const -> i32;
 

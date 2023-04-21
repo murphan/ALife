@@ -26,19 +26,19 @@ private:
 
 	auto moveOrganisms(Settings & settings) -> void;
 
-	auto doDamageAndKill(Settings & settings, std::vector<i32> & damages) -> void;
+	auto checkOrganismsDie(Settings & settings) -> void;
 
 	auto organismsAgeAndDie(Settings & settings) -> void;
 
-	auto replaceOrganismWithFood(const Organism & organism, Settings & settings) -> void;
+	auto replaceOrganismWithFood(Organism & organism, Settings & settings) -> void;
 
-    auto organismCellsTick(Settings & settings, std::vector<i32> & damages) -> void;
+    auto organismCellsTick(Settings & settings) -> void;
 
     auto organismsReproduce(Settings & settings) -> void;
 
 	auto findChildSpawnPoint(Organism & organism, Phenome & childPhenome) -> std::optional<Util::Coord>;
 
-    auto tryReproduce(Phenome & childPhenome, Organism & organism, i32 reproductionEnergy, i32 childEnergy) -> std::optional<Organism>;
+    auto tryReproduce(Phenome & childPhenome, Organism & organism, i32 reproductionEnergy, i32 childBodyEnergy, i32 childEnergy) -> std::optional<Organism>;
 
 	auto updateFactors(Settings & settings) -> void;
 

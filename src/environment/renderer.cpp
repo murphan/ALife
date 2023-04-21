@@ -36,6 +36,16 @@ constexpr u32 bodyPartColors[] = {
 	0xede6da, /* Scaffolding */
 };
 
+constexpr u32 bodyPartDeadColors[] = {
+	0x705d41, /* Mouth */
+	0x316e6b, /* Mover */
+	0x425945, /* Photosynthesizer */
+	0x54333c, /* Weapon */
+	0x423b54, /* Armor */
+	0x4a5559, /* Eye */
+	0x63625f, /* Scaffolding */
+};
+
 constexpr u32 weaponUpgradeColors[] = {
 	0x820c29,
 	0xa24f64,
@@ -122,7 +132,7 @@ auto Renderer::render(Environment & environment, std::vector<Organism> & organis
 					insert3(
 						buffer,
 						bufferIndex(x, y) + 3,
-						bodyPartColors[cell.bodyPart() - 1]
+						cell.dead() ? bodyPartDeadColors[cell.bodyPart() - 1] : bodyPartColors[cell.bodyPart() - 1]
 					);
 					if (cell.isModified()) {
 						insert3(

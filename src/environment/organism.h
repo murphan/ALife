@@ -18,9 +18,9 @@ class Organism {
 private:
 	using json = nlohmann::json;
 
+public:
 	Phenome phenome;
 
-public:
 	UUID uuid;
 
 	i32 x, y;
@@ -40,11 +40,10 @@ public:
 
 	auto operator=(Organism && other) noexcept -> Organism & = default;
 
-	auto getPhenome() const -> const Phenome &;
 	auto getGenome() const -> const Genome &;
-	auto body() const -> const Body &;
+	auto body() -> Body &;
 
-	auto serialize(bool detailed) const -> json;
+	auto serialize(bool detailed) -> json;
 };
 
 #endif //ALIFE_ORGANISM_H
