@@ -11,16 +11,20 @@
 #include "organism.h"
 #include "environment.h"
 #include "settings.h"
+#include "organismGrid.h"
+#include "ids.h"
 
 class OrganismSeeder {
 public:
 	static auto insertInitialOrganisms(
 		std::vector<Organism> & insertList,
+		OrganismGrid & organismGrid,
 		const Environment & environment,
 		const Phenome & initialPhenome,
 		const Settings & settings,
 		i32 count,
-		std::default_random_engine & random
+		std::default_random_engine & random,
+		Ids & ids
 	) -> void;
 };
 

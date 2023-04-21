@@ -3,25 +3,33 @@
 //
 #include "organismGrid.h"
 
-OrganismGrid::Space::Space(i8 x, i8 y, u32 value, Body::Cell & cell) : x(x), y(y), value(value), internalCell(cell) {}
+OrganismGrid::Space::Space(i8 x, i8 y, u32 value, Body::Cell cell) : x(x), y(y), value(value), internalCell(cell) {}
 
 auto OrganismGrid::Space::makeEmpty() -> Space {
 	return Space(0, 0, 0, Body::outOfBounds);
 }
 
-auto OrganismGrid::Space::makeCell(i8 x, i8 y, i32 index, Body::Cell & cell) -> Space {
+auto OrganismGrid::Space::makeCell(i8 x, i8 y, i32 index, Body::Cell cell) -> Space {
 	return Space(x, y, index + 1, cell);
+}
+
+auto OrganismGrid::Space::makeFood(Body::Cell cell) -> OrganismGrid::Space {
+	return OrganismGrid::Space(0, 0, FOOD_VALUE, cell);
 }
 
 auto OrganismGrid::Space::filled() const -> bool {
 	return value != 0;
 }
 
+auto OrganismGrid::Space::isFood() const -> bool {
+	return value == FOOD_VALUE;
+}
+
 auto OrganismGrid::Space::index() const -> i32 {
 	return (i32)(value - 1);
 }
 
-auto OrganismGrid::Space::cell() const -> Body::Cell {
+auto OrganismGrid::Space::cell() -> Body::Cell & {
 	return internalCell;
 }
 
@@ -75,12 +83,6 @@ auto OrganismGrid::canMoveOrganism(Organism &organism, i32 index, i32 deltaX, i3
 		organism.y + deltaY,
 		organism.rotation.rotate(deltaRotation)
 	);
-}
-
-auto OrganismGrid::clear() -> void {
-	for (auto & space : grid) {
-		space = Space::makeEmpty();
-	}
 }
 
 auto OrganismGrid::placeOrganism(Organism & organism, i32 index) -> void {

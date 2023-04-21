@@ -13,7 +13,6 @@
 #include "genome/direction.h"
 #include "bodyPart.h"
 #include "direction.h"
-#include "../environment/food.h"
 #include "environment/settings.h"
 
 /**

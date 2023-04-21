@@ -85,7 +85,7 @@ constexpr static u8 META_WALL = 3;
 
 constexpr static u8 CIRCLE_FLAG = 1 << 7;
 
-auto Renderer::render(Environment & environment, std::vector<Organism> & organisms) -> std::vector<u8> {
+auto Renderer::render(Environment & environment, std::vector<Organism> & organisms, OrganismGrid & organismGrid) -> std::vector<u8> {
 	auto buffer = std::vector<u8>(environment.mapSize() * BYTES_PER_TILE);
 
 	auto bufferIndex = [&](i32 x, i32 y) {
@@ -94,56 +94,37 @@ auto Renderer::render(Environment & environment, std::vector<Organism> & organis
 
 	for (auto j = 0; j < environment.getHeight(); ++j) {
 		for (auto i = 0; i < environment.getWidth(); ++i) {
-			auto && cell = environment.getCell(i, j);
-			if (cell.getHasFood()) {
-				buffer[bufferIndex(i, j)] = META_FOOD | CIRCLE_FLAG;
+			auto && environmentCell = environment.getCell(i, j);
+			auto && gridCell = organismGrid.accessUnsafe(i, j);
+
+			if (gridCell.filled()) {
+				auto cell = gridCell.cell();
+				buffer[bufferIndex(i, j)] = (gridCell.isFood() ? META_FOOD : META_ORGANISM) | (cell.isModified() ? CIRCLE_FLAG : 0);
+				insert2(
+					buffer,
+					bufferIndex(i, j) + 1,
+					gridCell.index() //TODO make this the actual organism id... somehow we have to get that data back
+				);
 				insert3(
 					buffer,
-					bufferIndex(i, j) + 6,
-					foodColors[cell.getFood().getType()]
+					bufferIndex(i, j) + 3,
+					cell.dead() ? bodyPartDeadColors[cell.bodyPart() - 1] : bodyPartColors[cell.bodyPart() - 1]
 				);
-			}
-			insert3(
-				buffer,
-				bufferIndex(i, j) + 3,
-				getFactorsColor(environment.getCell(i, j))
-			);
-		}
-	}
-
-	for (auto index = 0; index < organisms.size(); ++index) {
-		auto && organism = organisms[index];
-		auto && body = organism.body();
-		auto rotation = organism.rotation;
-
-		for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
-			for (auto i = body.getLeft(rotation); i <= body.getRight(rotation); ++i) {
-				auto cell = body.access(i, j, rotation);
-
-				auto x = organism.x + i, y = organism.y + j;
-
-				if (cell.bodyPart() != BodyPart::NONE) {
-					buffer[bufferIndex(x, y)] = META_ORGANISM | (cell.isModified() ? CIRCLE_FLAG : 0);
-					insert2(
-						buffer,
-						bufferIndex(x, y) + 1,
-						index
-					);
+				if (cell.isModified()) {
 					insert3(
 						buffer,
-						bufferIndex(x, y) + 3,
-						cell.dead() ? bodyPartDeadColors[cell.bodyPart() - 1] : bodyPartColors[cell.bodyPart() - 1]
+						bufferIndex(i, j) + 6,
+						cell.bodyPart() == BodyPart::WEAPON ? weaponUpgradeColors[cell.modifier()] :
+						cell.bodyPart() == BodyPart::ARMOR ? armorUpgradeColors[cell.modifier()] :
+						scaffoldingUpgradeColor
 					);
-					if (cell.isModified()) {
-						insert3(
-							buffer,
-							bufferIndex(x, y) + 6,
-							cell.bodyPart() == BodyPart::WEAPON ? weaponUpgradeColors[cell.modifier()] :
-								cell.bodyPart() == BodyPart::ARMOR ? armorUpgradeColors[cell.modifier()] :
-								scaffoldingUpgradeColor
-						);
-					}
 				}
+			} else {
+				insert3(
+					buffer,
+					bufferIndex(i, j) + 3,
+					getFactorsColor(environmentCell)
+				);
 			}
 		}
 	}

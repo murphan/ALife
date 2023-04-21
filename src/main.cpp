@@ -16,6 +16,7 @@
 #include "environment/organismSeeder.h"
 #include "loop.h"
 #include "genome/initialGenome.h"
+#include "ids.h"
 
 auto main () -> int {
 	auto random = std::default_random_engine(std::random_device()());
@@ -63,12 +64,31 @@ auto main () -> int {
 		}
 	};
 
-	auto simulationController = SimulationController(Environment(200, 100), random);
-	simulationController.refreshFactors(settings);
+	auto ids = Ids(random);
+
+	constexpr auto WIDTH = 200, HEIGHT = 100;
+
+	auto simulationController = SimulationController(
+		Environment(WIDTH, HEIGHT),
+		OrganismGrid(WIDTH, HEIGHT),
+		random,
+		ids,
+		settings
+	);
+	simulationController.refreshFactors();
 
 	auto initialPhenome = Phenome(InitialGenome::create(), Body(2), settings);
 
-	OrganismSeeder::insertInitialOrganisms(simulationController.organisms, simulationController.environment, initialPhenome, settings, 80, random);
+	OrganismSeeder::insertInitialOrganisms(
+		simulationController.organisms,
+		simulationController.organismGrid,
+		simulationController.environment,
+		initialPhenome,
+		settings,
+		80,
+		random,
+		ids
+	);
 
 	auto simulationMutex = std::mutex();
 	auto lowPriorityMutex = std::mutex();
@@ -131,23 +151,25 @@ auto main () -> int {
 			socket.send(json.begin(), json.end());
 
 		} else if (parsedMessage.type == "request") {
-			if (!parsedMessage.body.contains("id")) return;
-			auto id = parsedMessage.body["id"];
-			if (!id.is_string()) return;
+			//TODO update to use new integer ids
 
-			auto idString = id.get<std::string>();
-			auto uuid = UUID::fromString(idString);
-			if (!uuid.has_value()) return;
-
-			auto * organism = simulationController.getOrganism(uuid.value());
-			if (organism == nullptr) {
-				auto json = MessageCreator::emptyOrganismRequestMessage().dump();
-				socket.send(json.begin(), json.end());
-				return;
-			}
-
-			auto json = MessageCreator::organismRequestMessage(organism->serialize(true)).dump();
-			socket.send(json.begin(), json.end());
+			//if (!parsedMessage.body.contains("id")) return;
+			//auto id = parsedMessage.body["id"];
+			//if (!id.is_string()) return;
+//
+			//auto idString = id.get<std::string>();
+			//auto uuid = UUID::fromString(idString);
+			//if (!uuid.has_value()) return;
+//
+			//auto * organism = simulationController.getOrganism(uuid.value());
+			//if (organism == nullptr) {
+			//	auto json = MessageCreator::emptyOrganismRequestMessage().dump();
+			//	socket.send(json.begin(), json.end());
+			//	return;
+			//}
+//
+			//auto json = MessageCreator::organismRequestMessage(organism->serialize(true)).dump();
+			//socket.send(json.begin(), json.end());
 
 		} else if (parsedMessage.type == "settings") {
 			try {
@@ -176,7 +198,7 @@ auto main () -> int {
 		lowPriorityLock();
 
 		if (controls.playing) {
-			simulationController.tick(settings);
+			simulationController.tick();
 		}
 
 		if (socket.isConnected() && controls.updateDisplay && controls.playing &&

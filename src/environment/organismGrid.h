@@ -15,25 +15,29 @@ class OrganismGrid {
 public:
 	class Space {
 	private:
+		constexpr static u32 FOOD_VALUE = ~0;
+
 		/** points to the direct location of the cell in the organism */
 		i8 x, y;
 		u32 value;
 		/** cell is a copy of the original from the organism */
 		Body::Cell internalCell;
 
-		explicit Space(i8 x, i8 y, u32 value, Body::Cell & cell);
+		explicit Space(i8 x, i8 y, u32 value, Body::Cell cell);
 
 	public:
 		static auto makeEmpty() -> Space;
-		static auto makeCell(i8 x, i8 y, i32 index, Body::Cell & cell) -> Space;
+		static auto makeCell(i8 x, i8 y, i32 index, Body::Cell cell) -> Space;
+		static auto makeFood(Body::Cell cell) -> Space;
 
 		[[nodiscard]] auto filled() const -> bool;
+		[[nodiscard]] auto isFood() const -> bool;
 		[[nodiscard]] auto index() const -> i32;
-		[[nodiscard]] auto cell() const -> Body::Cell;
+		[[nodiscard]] auto cell() -> Body::Cell &;
 		[[nodiscard]] auto getX() const -> i32;
 		[[nodiscard]] auto getY() const -> i32;
 
-		auto getOriginalCell(Organism & organism) -> Body::Cell &;
+		[[nodiscard]] auto getOriginalCell(Organism & organism) -> Body::Cell &;
 	};
 
 private:
@@ -55,8 +59,6 @@ private:
 public:
 	OrganismGrid(i32 width, i32 height);
 
-	auto clear() -> void;
-
 	auto inBounds(i32 x, i32 y) const -> bool;
 
 	auto eraseOrganism(Organism & organism, i32 index) -> void;
@@ -73,7 +75,6 @@ public:
 	auto access(i32 x, i32 y) -> Space &;
 
     auto getWidth() const -> i32;
-
     auto getHeight() const -> i32;
 };
 

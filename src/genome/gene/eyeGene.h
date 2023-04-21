@@ -7,7 +7,6 @@
 
 #include "types.h"
 #include "../gene.h"
-#include "../../environment/food.h"
 #include "../bodyPart.h"
 
 class EyeGene : public Gene {

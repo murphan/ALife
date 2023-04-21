@@ -57,18 +57,18 @@ auto BodyGene::writeBody(Genome & genome) -> void {
 
 /* factories */
 
-auto BodyGene::create(Direction dir, BodyPart bodyPart, Food::Type foodType) -> BodyGene {
-	return { dir, bodyPart, -1, -1, foodType };
+auto BodyGene::create(Direction dir, BodyPart bodyPart, i32 data) -> BodyGene {
+	return { dir, bodyPart, -1, -1, data };
 }
 
-auto BodyGene::createUseAnchor(Direction dir, BodyPart bodyPart, i32 anchor, Food::Type foodType) -> BodyGene {
-	return { dir, bodyPart, anchor, -1, foodType };
+auto BodyGene::createUseAnchor(Direction dir, BodyPart bodyPart, i32 anchor, i32 data) -> BodyGene {
+	return { dir, bodyPart, anchor, -1, data };
 }
 
-auto BodyGene::createSetAnchor(Direction dir, BodyPart bodyPart, i32 anchor, Food::Type foodType) -> BodyGene {
-	return { dir, bodyPart, -1, anchor, foodType };
+auto BodyGene::createSetAnchor(Direction dir, BodyPart bodyPart, i32 anchor, i32 data) -> BodyGene {
+	return { dir, bodyPart, -1, anchor, data };
 }
 
-auto BodyGene::createDuplicate(Direction dir, BodyPart bodyPart, Food::Type foodType) -> BodyGene {
-	return { dir, bodyPart, -1, -1, foodType };
+auto BodyGene::createDuplicate(Direction dir, BodyPart bodyPart, i32 data) -> BodyGene {
+	return { dir, bodyPart, -1, -1, data };
 }

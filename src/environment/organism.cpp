@@ -4,8 +4,8 @@
 
 #include "organism.h"
 
-Organism::Organism(Phenome && phenome, UUID uuid, i32 x, i32 y, Direction rotation, i32 energy, Direction movementDirection) :
-	uuid(uuid),
+Organism::Organism(Phenome && phenome, u32 id, i32 x, i32 y, Direction rotation, i32 energy, Direction movementDirection) :
+	id(id),
 	phenome(std::move(phenome)),
 	x(x),
 	y(y),
@@ -14,7 +14,6 @@ Organism::Organism(Phenome && phenome, UUID uuid, i32 x, i32 y, Direction rotati
 	storedChild(std::nullopt),
 	age(0),
 	movementDirection(movementDirection),
-	movementSearching(true),
 	ticksSinceCollision(0) {}
 
 auto Organism::getGenome() const -> const Genome & {
@@ -29,7 +28,7 @@ auto Organism::serialize(bool detailed) -> json {
 	auto && body = phenome.body;
 
 	auto nonDetailedPart = json {
-		{ "id", uuid.asString() },
+		{ "id", id },
 		{ "left", body.getLeft(rotation) },
 		{ "right", body.getRight(rotation) },
 		{ "down", body.getDown(rotation) },

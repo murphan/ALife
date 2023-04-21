@@ -11,57 +11,57 @@
 #include "organism.h"
 #include "organismGrid.h"
 #include "settings.h"
+#include "ids.h"
 
 using json = nlohmann::json;
 
 class SimulationController {
 private:
 	std::default_random_engine & random;
-
-	OrganismGrid organismGrid;
+	Ids & ids;
+	Settings & settings;
 
 	/* substep functions */
 
-	auto organismSeeingDirection(Organism & organism, i32 index, Settings & settings) -> std::optional<Direction>;
+	auto organismSeeingDirection(Organism & organism, i32 index) -> std::optional<Direction>;
 
-	auto moveOrganisms(Settings & settings) -> void;
+	auto shuffleOrganisms() -> void;
 
-	auto checkOrganismsDie(Settings & settings) -> void;
+	auto updateFactors() -> void;
 
-	auto organismsAgeAndDie(Settings & settings) -> void;
+	auto moveOrganisms() -> void;
 
-	auto replaceOrganismWithFood(Organism & organism, Settings & settings) -> void;
+	auto organismCellsTick() -> void;
 
-    auto organismCellsTick(Settings & settings) -> void;
+	auto checkOrganismsDie() -> void;
 
-    auto organismsReproduce(Settings & settings) -> void;
+	auto organismsReproduce() -> void;
+
+	auto organismsAgeAndDie() -> void;
+
+	/* helpers */
+
+	auto replaceOrganismWithFood(Organism & organism) -> void;
 
 	auto findChildSpawnPoint(Organism & organism, Phenome & childPhenome) -> std::optional<Util::Coord>;
 
     auto tryReproduce(Phenome & childPhenome, Organism & organism, i32 reproductionEnergy, i32 childBodyEnergy, i32 childEnergy) -> std::optional<Organism>;
 
-	auto updateFactors(Settings & settings) -> void;
-
-	auto tickFood(Settings & settings) -> void;
-
 public:
+	OrganismGrid organismGrid;
 	Environment environment;
 	std::vector<Organism> organisms;
 
 	int currentTick;
 
-    explicit SimulationController(Environment && environment, std::default_random_engine & random);
+    explicit SimulationController(Environment && environment, OrganismGrid && organismGrid, std::default_random_engine & random, Ids & ids, Settings & settings);
 
-	auto refreshFactors(Settings & settings) -> void;
-	auto tick(Settings & settings) -> void;
+	auto refreshFactors() -> void;
+	auto tick() -> void;
 
 	auto serialize() -> json;
 
-    auto addFood(i32 foodX, i32 foodY, Food::Type type, i32 energy) -> void;
-    auto scatterFood(Food::Type type, i32 numFood, i32 energyDefault) -> void;
-    auto howMuchFood() -> i32;
-
-	auto getOrganism(UUID & id) -> Organism *;
+	auto getOrganism(u32 id) -> Organism *;
 };
 
 #endif //ALIFE_SIMULATIONCONTROLLER_H

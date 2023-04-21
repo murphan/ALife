@@ -9,11 +9,11 @@ auto InitialGenome::create() -> Genome {
 	auto baseGenome = Genome();
 
 	Gene::write5(baseGenome, BodyPart::MOUTH);
-	Gene::write8(baseGenome, Food::FOOD0);
+	Gene::write8(baseGenome, 0);
 	baseGenome.writeGarbage(7, Genome::A);
-	BodyGene::create(Direction::RIGHT_UP, BodyPart::PHOTOSYNTHESIZER, Food::FOOD0).write(baseGenome);
+	BodyGene::create(Direction::RIGHT_UP, BodyPart::PHOTOSYNTHESIZER, 0).write(baseGenome);
 	baseGenome.writeGarbage(13, Genome::A);
-	BodyGene::create(Direction::RIGHT_DOWN, BodyPart::PHOTOSYNTHESIZER, Food::FOOD0).write(baseGenome);
+	BodyGene::create(Direction::RIGHT_DOWN, BodyPart::PHOTOSYNTHESIZER, 0).write(baseGenome);
 	baseGenome.writeGarbage(13);
 
 	return baseGenome;

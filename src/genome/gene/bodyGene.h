@@ -8,7 +8,6 @@
 #include "../gene.h"
 #include "../direction.h"
 #include "../bodyPart.h"
-#include "../../environment/food.h"
 
 class BodyGene : public Gene {
 protected:
@@ -33,10 +32,10 @@ public:
 
 	/* helper factories */
 
-	static auto create(Direction, BodyPart, Food::Type) -> BodyGene;
-	static auto createDuplicate(Direction, BodyPart, Food::Type) -> BodyGene;
-	static auto createUseAnchor(Direction, BodyPart, i32, Food::Type) -> BodyGene;
-	static auto createSetAnchor(Direction, BodyPart, i32, Food::Type) -> BodyGene;
+	static auto create(Direction, BodyPart, i32 data) -> BodyGene;
+	static auto createDuplicate(Direction, BodyPart, i32 data) -> BodyGene;
+	static auto createUseAnchor(Direction, BodyPart, i32, i32 data) -> BodyGene;
+	static auto createSetAnchor(Direction, BodyPart, i32, i32 data) -> BodyGene;
 };
 
 #endif //ALIFE_BODYGENE_H

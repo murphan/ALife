@@ -10,7 +10,6 @@
 #include "genome/genome.h"
 #include "genome/phenome.h"
 #include "genome/body.h"
-#include "environment/food.h"
 #include "uuid.h"
 #include "json.hpp"
 
@@ -21,7 +20,7 @@ private:
 public:
 	Phenome phenome;
 
-	UUID uuid;
+	u32 id;
 
 	i32 x, y;
 	Direction rotation;
@@ -29,14 +28,13 @@ public:
 	i32 energy;
 	i32 age;
 
-	bool movementSearching;
 	i32 ticksSinceCollision;
 	Direction movementDirection;
 
 	std::optional<Phenome> storedChild;
 
 	Organism(Organism && other) = default;
-	Organism(Phenome && phenome, UUID uuid, i32 x, i32 y, Direction rotation, i32 energy, Direction movementDirection);
+	Organism(Phenome && phenome, u32 id, i32 x, i32 y, Direction rotation, i32 energy, Direction movementDirection);
 
 	auto operator=(Organism && other) noexcept -> Organism & = default;
 

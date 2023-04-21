@@ -7,7 +7,6 @@
 
 #include "types.h"
 
-#include "food.h"
 #include "factor.h"
 
 /**
@@ -19,7 +18,6 @@ class MapCell {
 private:
     i8 factors[3];
 	bool hasWall;
-    std::optional<Food> food;
 
 public:
 	MapCell();
@@ -29,15 +27,9 @@ public:
     auto getFactor(Factor factor) const -> i8;
 	auto setFactor(Factor factor, i8 value) -> void;
 
-    auto setFood(Food newFood) -> void;
 	auto setHasWall(bool hasWall) -> void;
 
 	auto getHasWall() const -> bool;
-	auto getHasFood() const -> bool;
-
-	auto getFood() -> Food &;
-
-    auto removeFood() -> void;
 };
 
 #endif //ALIFE_MAPCELL_H

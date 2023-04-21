@@ -5,11 +5,13 @@
 
 auto OrganismSeeder::insertInitialOrganisms(
 	std::vector<Organism> & insertList,
+	OrganismGrid & organismGrid,
 	const Environment & environment,
 	const Phenome & initialPhenome,
 	const Settings & settings,
 	i32 count,
-	std::default_random_engine & random
+	std::default_random_engine & random,
+	Ids & ids
 ) -> void {
 	insertList.reserve(count);
 
@@ -33,15 +35,19 @@ auto OrganismSeeder::insertInitialOrganisms(
 		auto copiedPhenome = initialPhenome;
 		auto initialEnergy = settings.startingEnergy;
 
+		auto index = insertList.size();
+
 		insertList.emplace_back(
 			std::move(copiedPhenome),
-			UUID::generateRandom(),
+			ids.newId(),
 			centerX + gridX * spaceWide - offsetX,
 			centerY + gridY * spaceTall - offsetY,
 			Direction::RIGHT,
 			initialEnergy,
 			std::uniform_int_distribution(0, 7)(random)
 		);
+
+		organismGrid.placeOrganism(insertList[insertList.size() - 1], index);
 	}
 }
 
