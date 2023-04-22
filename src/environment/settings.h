@@ -44,11 +44,6 @@ public:
 	 */
 	f32 foodEfficiency;
 	/*
-	 * how long before a food is removed
-	 * suggested range: 1-512
-	 */
-	i32 maxFoodAge;
-	/*
 	 * chance that a mutation happens
 	 * suggested range: 0-0.1
 	 */

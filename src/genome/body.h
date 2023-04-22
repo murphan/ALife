@@ -40,24 +40,29 @@ public:
 	class Cell {
 	private:
 		/**
-		 * each 8 bytes represents something about the cell
-		 * [is dead] - [modifier] - [data] - [body part]
+		 * 11 | 10 bits | [age]
+		 * 10 |  1 bits | [is dead]
+		 *  7 |  3 bits | [modifier]
+		 *  4 |  3 bits | [data]
+		 *  0 |  4 bits | [body part]
 		 */
 		u32 value;
 	public:
 		explicit Cell(u32 value);
 
 		static auto makeEmpty() -> Cell;
-		static auto make(BodyPart bodyPart, i32 data) -> Cell;
+		static auto make(BodyPart bodyPart, i32 data, i32 age) -> Cell;
 
 		auto modify(i32 modifier) -> void;
 		auto setDead(bool dead) -> void;
+		auto setAge(i32 age) -> void;
 
 		[[nodiscard]] auto bodyPart() const -> BodyPart;
 		[[nodiscard]] auto data() const -> i32;
 		[[nodiscard]] auto isModified() const -> bool;
 		[[nodiscard]] auto modifier() const -> i32;
 		[[nodiscard]] auto dead() const -> bool;
+		[[nodiscard]] auto age() const -> i32;
 
 		[[nodiscard]] auto cost(Settings & settings) const -> i32;
 	};
@@ -68,8 +73,6 @@ private:
     i32 originX, originY;
     /** organism's body parts */
     std::vector<Cell> canvas;
-
-	i32 numCells;
 
 	/** bounds of the organism in the canvas, inclusive on both ends */
 	i32 left, right, down, up;
@@ -108,8 +111,6 @@ public:
 	auto directAddCell(BodyBuilder & builder, Cell cell, i32 x, i32 y) -> void;
 
     auto debugToString() const -> std::string;
-
-	auto getNumCells() const -> i32;
 
 	auto getWidth() const -> i32;
 	auto getHeight() const -> i32;

@@ -12,7 +12,6 @@ Organism::Organism(Phenome && phenome, u32 id, i32 x, i32 y, Direction rotation,
 	rotation(rotation),
 	energy(energy),
 	storedChild(std::nullopt),
-	age(0),
 	movementDirection(movementDirection),
 	ticksSinceCollision(0) {}
 
@@ -37,7 +36,6 @@ auto Organism::serialize(bool detailed) -> json {
 		{ "x", x },
 		{ "y", y },
 		{ "energy", energy },
-		{ "age", age },
 	};
 
 	if (!detailed) return nonDetailedPart;
@@ -65,4 +63,9 @@ auto Organism::serialize(bool detailed) -> json {
 	nonDetailedPart.push_back({ "body", Util::base64Encode(byteEncodedBody) });
 	auto && completeParts = nonDetailedPart;
 	return completeParts;
+}
+
+auto Organism::addEnergy(i32 delta) -> void {
+	energy += delta;
+	if (energy < 0) energy = 0;
 }

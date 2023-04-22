@@ -6,7 +6,7 @@
 OrganismGrid::Space::Space(i8 x, i8 y, u32 value, Body::Cell cell) : x(x), y(y), value(value), internalCell(cell) {}
 
 auto OrganismGrid::Space::makeEmpty() -> Space {
-	return Space(0, 0, 0, Body::outOfBounds);
+	return Space(0, 0, 0, Body::Cell::makeEmpty());
 }
 
 auto OrganismGrid::Space::makeCell(i8 x, i8 y, i32 index, Body::Cell cell) -> Space {

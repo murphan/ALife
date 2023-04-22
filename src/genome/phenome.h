@@ -38,6 +38,8 @@ public:
 	Genome genome;
 	Body body;
 
+	/** cells this organism had originally */
+	i32 maxCells;
 	i32 numAliveCells;
 	i32 bodyEnergy;
 
@@ -68,7 +70,7 @@ public:
 	Phenome(Phenome && other) = default;
 	auto operator=(Phenome && other) noexcept -> Phenome & = default;
 
-	auto maxAge(i32 lifetimeFactor) const -> i32;
+	auto maxAge(Settings & settings) const -> i32;
 
 	auto onAddCell(i32 x, i32 y, Settings & settings) -> void;
 	auto onRemoveCell(i32 x, i32 y, Settings & settings) -> void;

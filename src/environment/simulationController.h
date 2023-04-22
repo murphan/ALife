@@ -29,6 +29,8 @@ private:
 
 	auto updateFactors() -> void;
 
+	auto ageOrganismCells() -> void;
+
 	auto moveOrganisms() -> void;
 
 	auto organismCellsTick() -> void;
@@ -37,9 +39,9 @@ private:
 
 	auto organismsReproduce() -> void;
 
-	auto organismsAgeAndDie() -> void;
-
 	/* helpers */
+
+	auto updateOrganismIndices() -> void;
 
 	auto replaceOrganismWithFood(Organism & organism) -> void;
 

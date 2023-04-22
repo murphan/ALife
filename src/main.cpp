@@ -25,11 +25,10 @@ auto main () -> int {
 	auto settings = Settings {
 		.lifetimeFactor = 100,
 		.photosynthesisFactor = 1,
-		.startingEnergy = 34,
-		.reproductionCost = 8,
-		.reproductionThreshold = 19,
-		.foodEfficiency = 1.0_f32,
-		.maxFoodAge = 256,
+		.startingEnergy = 31,
+		.reproductionCost = 15,
+		.reproductionThreshold = 21,
+		.foodEfficiency = 0.9_f32,
 		.baseMutationRates = {
 			0.005,
 			0.005,
@@ -38,7 +37,7 @@ auto main () -> int {
 		.mutationFactor = 1.5,
 		.sightRange = 8,
 		.weaponDamage = 32,
-		.armorPrevents = 28,
+		.armorPrevents = 32,
 		.bodyPartCosts = {
 			16, /* MOUTH */
 			16, /* MOVER */
@@ -52,8 +51,8 @@ auto main () -> int {
 			0, /* MOUTH */
 			0, /* MOVER */
 			0, /* PHOTOSYNTHESIZER */
-			4, /* WEAPON */
-			6, /* ARMOR */
+			1, /* WEAPON */
+			1, /* ARMOR */
 			0, /* EYE */
 			2, /* SCAFFOLD */
 		},
@@ -66,7 +65,7 @@ auto main () -> int {
 
 	auto ids = Ids(random);
 
-	constexpr auto WIDTH = 200, HEIGHT = 100;
+	constexpr auto WIDTH = 250, HEIGHT = 150;
 
 	auto simulationController = SimulationController(
 		Environment(WIDTH, HEIGHT),

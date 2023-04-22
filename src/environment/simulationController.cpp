@@ -1,4 +1,5 @@
 
+#include <iostream>
 #include "environment/simulationController.h"
 #include "renderer.h"
 #include "../genome/geneMap.h"
@@ -22,7 +23,11 @@ SimulationController::SimulationController(
 auto SimulationController::tick() -> void {
 	shuffleOrganisms();
 
+	updateOrganismIndices();
+
 	updateFactors();
+
+	ageOrganismCells();
 
 	moveOrganisms();
 
@@ -32,9 +37,15 @@ auto SimulationController::tick() -> void {
 
     organismsReproduce();
 
-	organismsAgeAndDie();
+	updateOrganismIndices();
 
 	++currentTick;
+}
+
+inline auto killCell(Organism & organism, Body::Cell & bodyCell, OrganismGrid::Space & gridCell, Settings & settings) -> void {
+	bodyCell.setDead(true);
+	gridCell.cell() = bodyCell;
+	organism.phenome.onRemoveCell(gridCell.getX(), gridCell.getY(), settings);
 }
 
 auto SimulationController::shuffleOrganisms() -> void {
@@ -43,8 +54,9 @@ auto SimulationController::shuffleOrganisms() -> void {
 	std::sort(organisms.begin(), organisms.end(), [](Organism & left, Organism & right) {
 		return left.phenome.moveTries > right.phenome.moveTries;
 	});
+}
 
-	/* update indices in the organism grid */
+auto SimulationController::updateOrganismIndices() -> void {
 	for (auto index = 0; index < organisms.size(); ++index) {
 		organismGrid.placeOrganism(organisms[index], index);
 	}
@@ -87,13 +99,9 @@ auto randomDirection = std::uniform_int_distribution(0, 7);
 
 auto SimulationController::moveOrganisms() -> void {
 	for (auto i = 0; i < organisms.size(); ++i) {
-		organismGrid.placeOrganism(organisms.at(i), i);
-	}
-
-	for (auto i = 0; i < organisms.size(); ++i) {
 		auto && organism = organisms.at(i);
 		auto moveTries = organism.phenome.moveTries;
-		if (moveTries == 0) continue;
+		if (moveTries == 0) continue; //organism.energy == 0 ||
 
 		if (moveTries < std::uniform_int_distribution(1, 2)(random)) continue;
 
@@ -111,14 +119,13 @@ auto SimulationController::moveOrganisms() -> void {
 			auto deltaX = direction.x(), deltaY = direction.y();
 			auto deltaRotation = (j == 0 && organism.ticksSinceCollision < 12) ? 0 : symmetricRange(random);
 
+			organism.addEnergy(-1);
+
 			if (organismGrid.canMoveOrganism(organism, i, deltaX, deltaY, deltaRotation)) {
 				organismGrid.moveOrganism(organism, i, deltaX, deltaY, deltaRotation);
 				organism.movementDirection = direction;
-
-				organism.energy -= moveTries;
-				if (organism.energy < 0) organism.energy = 0;
-
 				break;
+
 			} else if (!lockedOn) {
 				organism.movementDirection = randomDirection(random);
 			}
@@ -132,27 +139,29 @@ auto SimulationController::moveOrganisms() -> void {
 }
 
 auto SimulationController::checkOrganismsDie() -> void {
-	//TODO we have to update indices in the organismgrid whenever we do this
 	std::erase_if(organisms, [&, this](Organism & organism) {
-		if (organism.phenome.numAliveCells == 0) {
+		auto && body = organism.body();
+		auto rotation = organism.rotation;
+		auto isAlive = false;
+
+		for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
+			for (auto i = body.getLeft(rotation); i <= body.getRight(rotation); ++i) {
+				auto && cell = body.access(i, j, rotation);
+
+				if (cell.bodyPart() != BodyPart::NONE && !cell.dead()) isAlive = true;
+			}
+		}
+
+		if (!isAlive) {
+			// numAliveCells can't be trusted for some reason........
+			if (organism.phenome.numAliveCells != 0) {
+				auto putBreakpointHere = organism.phenome.numAliveCells;
+			}
 			replaceOrganismWithFood(organism);
 			ids.removeId(organism.id);
 			return true;
 		}
 		return false;
-	});
-}
-
-// TODO combine this with the other killing function
-auto SimulationController::organismsAgeAndDie() -> void {
-	std::erase_if(organisms, [&, this](Organism & organism) {
-		if (++organism.age > organism.phenome.maxAge(settings.lifetimeFactor)) {
-			replaceOrganismWithFood(organism);
-			ids.removeId(organism.id);
-			return true;
-		} else {
-			return false;
-		}
 	});
 }
 
@@ -166,7 +175,6 @@ auto SimulationController::replaceOrganismWithFood(Organism & organism) -> void 
 			auto bodyCell = body.access(i, j, rotation);
 
 			if (bodyCell.bodyPart() != BodyPart::NONE) {
-				bodyCell.setDead(true);
 				organismGrid.accessUnsafe(x, y) = OrganismGrid::Space::makeFood(bodyCell);
 			}
 		}
@@ -188,6 +196,35 @@ auto SimulationController::serialize() -> json {
 		{ "organisms", organismsArray },
 	};
 }
+auto SimulationController::ageOrganismCells() -> void {
+	for (auto && organism : organisms) {
+		auto && body = organism.body();
+		auto rotation = organism.rotation;
+
+		for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
+			for (auto i = body.getLeft(rotation); i <= body.getRight(rotation); ++i) {
+				auto y = organism.y + j;
+				auto x = organism.x + i;
+
+				auto && [bodyCell, directX, directY] = body.accessCoord(i, j, rotation);
+				auto && gridCell = organismGrid.accessUnsafe(x, y);
+
+				if (bodyCell.bodyPart() == BodyPart::NONE || bodyCell.dead()) continue;
+
+				static auto fiftyFifty = std::uniform_int_distribution<i32>(0, 1);
+				if (fiftyFifty(random) == 1) {
+					auto newAge = bodyCell.age() + 1;
+					bodyCell.setAge(newAge);
+					gridCell.cell() = bodyCell;
+
+					if (newAge >= organism.phenome.maxAge(settings)) {
+						killCell(organism, bodyCell, gridCell, settings);
+					}
+				}
+			}
+		}
+	}
+}
 
 auto SimulationController::organismCellsTick() -> void {
 	for (auto index = 0; index < organisms.size(); ++index) {
@@ -200,10 +237,9 @@ auto SimulationController::organismCellsTick() -> void {
 				auto y = organism.y + j;
 				auto x = organism.x + i;
 
-				auto && bodyCell = body.access(i, j, rotation);
+				auto && [bodyCell, directX, directY] = body.accessCoord(i, j, rotation);
 
-				/* dead cells have no functions */
-				if (bodyCell.dead()) continue;
+				if (bodyCell.bodyPart() == BodyPart::NONE || bodyCell.dead()) continue;
 
 				if (bodyCell.bodyPart() == BodyPart::PHOTOSYNTHESIZER) {
 					auto && environmentCell = environment.getCell(x, y);
@@ -222,19 +258,19 @@ auto SimulationController::organismCellsTick() -> void {
 					if (
 						std::uniform_real_distribution<f32>(0.0_f32, 1.0_f32)(random) <
 						lightPercentage * (1.0_f32 - ((f32)othersAround * 0.25_f32))
-					) organism.energy += settings.photosynthesisFactor;
+					) organism.addEnergy(settings.photosynthesisFactor);
 
 				} else if (bodyCell.bodyPart() == BodyPart::MOUTH) {
 					auto tryEatAround = [&](i32 deltaX, i32 deltaY) {
 						auto && gridCell = organismGrid.access(x + deltaX, y + deltaY);
 						/* organisms can eat dead cells, part of a living organism or not */
-						if (gridCell.filled() && gridCell.index() != index && gridCell.cell().dead()) {
+						if (gridCell.filled() && gridCell.index() != index && gridCell.cell().dead() && gridCell.cell().bodyPart() != BodyPart::NONE) {
 							auto eatGridCell = [&]() {
 								auto energy = (i32)((f32)gridCell.cell().cost(settings) * settings.foodEfficiency);
 
 								gridCell = OrganismGrid::Space::makeEmpty();
 
-								organism.energy += energy;
+								organism.addEnergy(energy);
 							};
 
 							if (gridCell.isFood()) {
@@ -324,17 +360,10 @@ auto SimulationController::organismCellsTick() -> void {
 
 						if (damageDealt > 0) {
 							auto && defender = organisms[defenderIndex];
-							defender.energy -= damageDealt;
+							defender.addEnergy(-damageDealt);
 
-							if (defender.energy <= 0) {
-								defender.energy = 0;
-
-								auto && originalCell = space.getOriginalCell(defender);
-
-								space.cell().setDead(true);
-								originalCell.setDead(true);
-
-								defender.phenome.onRemoveCell(space.getX(), space.getY(), settings);
+							if (defender.energy == 0) {
+								killCell(defender, space.getOriginalCell(defender), space, settings);
 							}
 						}
 					};
@@ -483,7 +512,7 @@ auto SimulationController::tryReproduce(Phenome & childPhenome, Organism & organ
 
 	auto [x, y] = spawnPoint.value();
 
-	organism.energy -= (reproductionEnergy + childBodyEnergy + childEnergy);
+	organism.addEnergy(-(reproductionEnergy + childBodyEnergy + childEnergy));
 
 	return std::make_optional<Organism>(
 		std::move(childPhenome),
@@ -525,4 +554,3 @@ auto SimulationController::refreshFactors() -> void {
 		}
 	}
 }
-

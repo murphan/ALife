@@ -7,41 +7,58 @@
 
 Body::Cell::Cell(u32 value): value(value) {}
 
-
-auto Body::Cell::bodyPart() const -> BodyPart {
-	return (BodyPart)(value & 0xff);
-}
-
-auto Body::Cell::data() const -> i32 {
-	return (i32)((value >> 8) & 0xff);
-}
-
-auto Body::Cell::make(BodyPart bodyPart, i32 data) -> Cell {
-	return Cell((data << 8) | bodyPart);
-}
-
-auto Body::Cell::modify(i32 modifier) -> void {
-	value |= ((modifier + 1) << 16);
-}
-
-auto Body::Cell::setDead(bool dead) -> void {
-	value |= (i32)dead << 24;
+inline auto nBits(i32 n) -> u32 {
+	return (1 << n) - 1;
 }
 
 auto Body::Cell::makeEmpty() -> Body::Cell {
 	return Cell(0_u32);
 }
 
+auto Body::Cell::make(BodyPart bodyPart, i32 data, i32 age) -> Cell {
+	return Cell(((age & nBits(10)) << 11) | ((data & nBits(3)) << 4) | (bodyPart & nBits(4)));
+}
+
+/* mutators */
+
+auto Body::Cell::modify(i32 modifier) -> void {
+	value &= ~(nBits(3) << 7);
+	value |= ((modifier + 1) & nBits(3)) << 7;
+}
+
+auto Body::Cell::setDead(bool dead) -> void {
+	value |= (dead ? 1 : 0) << 10;
+}
+
+auto Body::Cell::setAge(i32 age) -> void {
+	value &= ~(nBits(10) << 11);
+	value |= (age & nBits(10)) << 11;
+}
+
+/* getters */
+
+auto Body::Cell::bodyPart() const -> BodyPart {
+	return (BodyPart)(value & nBits(4));
+}
+
+auto Body::Cell::data() const -> i32 {
+	return (i32)((value >> 4) & nBits(3));
+}
+
 auto Body::Cell::isModified() const -> bool {
-	return ((value >> 16) & 0xff) != 0;
+	return ((value >> 7) & nBits(3)) != 0;
 }
 
 auto Body::Cell::modifier() const -> i32 {
-	return (i32)((value >> 16) & 0xff) - 1;
+	return (i32)((value >> 7) & nBits(3)) - 1;
 }
 
 auto Body::Cell::dead() const -> bool {
-	return (bool)((value >> 24) & 0xff);
+	return (bool)((value >> 10) & nBits(1));
+}
+
+auto Body::Cell::age() const -> i32 {
+	return (i32)((value >> 11) & nBits(10));
 }
 
 auto Body::Cell::cost(Settings & settings) const -> i32 {
@@ -143,7 +160,7 @@ Body::Body(i32 edge):
     width(edge * 2 + 1), height(edge * 2 + 1),
 	originX(edge), originY(edge),
 	canvas(width * height, Cell::makeEmpty()),
-    left(0), right(0), down(0), up(0), numCells(0)
+    left(0), right(0), down(0), up(0)
 {}
 
 auto Body::outOfBounds = Cell::makeEmpty();
@@ -191,8 +208,6 @@ auto Body::directAddCell(BodyBuilder & builder, Cell cell, i32 x, i32 y) -> void
 
 	if (y < down) down = y;
 	else if (y > up) up = y;
-
-	++numCells;
 }
 
 /** may resize the canvas if out of bounds */
@@ -243,10 +258,6 @@ auto Body::debugToString() const -> std::string {
     }
 
     return string;
-}
-
-auto Body::getNumCells() const -> i32 {
-	return numCells;
 }
 
 auto Body::getWidth() const -> i32 {

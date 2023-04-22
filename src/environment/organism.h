@@ -26,7 +26,6 @@ public:
 	Direction rotation;
 
 	i32 energy;
-	i32 age;
 
 	i32 ticksSinceCollision;
 	Direction movementDirection;
@@ -42,6 +41,8 @@ public:
 	auto body() -> Body &;
 
 	auto serialize(bool detailed) -> json;
+
+	auto addEnergy(i32 delta) -> void;
 };
 
 #endif //ALIFE_ORGANISM_H

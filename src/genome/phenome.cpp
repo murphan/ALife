@@ -45,6 +45,7 @@ auto Phenome::onAddCell(i32 x, i32 y, Settings & settings) -> void {
 	bodyEnergy += cell.cost(settings);
 
 	++numAliveCells;
+	if (numAliveCells > maxCells) maxCells = numAliveCells;
 }
 
 auto Phenome::onRemoveCell(i32 x, i32 y, Settings & settings) -> void {
@@ -67,6 +68,7 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 	mutationModifiers { 0, 0, 0 },
 	genome(std::move(inGenome)),
 	body(std::move(inBody)),
+	maxCells(0),
 	numAliveCells(0),
 	bodyEnergy(0),
 	moveTries(0),
@@ -82,7 +84,7 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 
 	/* default organism for too-short genome */
 	if (geneMap.segments.empty() || !geneMap.segments[0].isCoding) {
-		auto cell = Body::Cell::make(BodyPart::MOUTH, 0);
+		auto cell = Body::Cell::make(BodyPart::MOUTH, 0, 0);
 		body.directAddCell(bodyBuilder, cell, 0, 0);
 
 	/* read center cell section */
@@ -91,7 +93,7 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 		auto bodyPart = (BodyPart)Gene::read5(initialGene, 0);
 		auto data = Gene::read8(initialGene, 3);
 
-		auto cell = Body::Cell::make(bodyPart, data);
+		auto cell = Body::Cell::make(bodyPart, data, 0);
 		body.directAddCell(bodyBuilder, cell, 0, 0);
 	}
 
@@ -103,7 +105,7 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 
 		if (segment.type == Genome::A) {
 			auto bodyGene = BodyGene(gene);
-			auto cell = Body::Cell::make(bodyGene.bodyPart, bodyGene.data);
+			auto cell = Body::Cell::make(bodyGene.bodyPart, bodyGene.data, 0);
 
 			body.addCell(
 				bodyBuilder,
@@ -160,6 +162,6 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 	}
 }
 
-auto Phenome::maxAge(i32 lifetimeFactor) const -> i32 {
-	return body.getNumCells() * lifetimeFactor;
+auto Phenome::maxAge(Settings & settings) const -> i32 {
+	return (maxCells * settings.lifetimeFactor) / 2;
 }
