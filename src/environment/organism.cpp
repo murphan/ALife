@@ -4,7 +4,7 @@
 
 #include "organism.h"
 
-Organism::Organism(Phenome && phenome, UUID uuid, i32 x, i32 y, Direction rotation, i32 energy) :
+Organism::Organism(Phenome && phenome, UUID uuid, i32 x, i32 y, Direction rotation, i32 energy, Direction movementDirection) :
 	uuid(uuid),
 	phenome(std::move(phenome)),
 	x(x),
@@ -12,7 +12,10 @@ Organism::Organism(Phenome && phenome, UUID uuid, i32 x, i32 y, Direction rotati
 	rotation(rotation),
 	energy(energy),
 	storedChild(std::nullopt),
-	age(0) {}
+	age(0),
+	movementDirection(movementDirection),
+	movementSearching(true),
+	ticksSinceCollision(0) {}
 
 auto Organism::getPhenome() const -> const Phenome & {
 	return phenome;
@@ -71,7 +74,7 @@ auto Organism::serialize(bool detailed) const -> json {
 	byteEncodedBody.reserve(body.getWidth() * body.getHeight());
 	for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
 		for (auto i = body.getLeft(rotation); i <= body.getRight(rotation); ++i) {
-			byteEncodedBody.push_back((char)body.access(i, j, rotation));
+			byteEncodedBody.push_back((char)body.access(i, j, rotation).bodyPart());
 		}
 	}
 

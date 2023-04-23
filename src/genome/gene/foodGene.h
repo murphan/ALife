@@ -35,6 +35,8 @@ protected:
 	auto writeBody(Genome & genome) -> void override;
 
 public:
+	static const i32 LENGTH;
+
 	Food::Type foodType;
 
 	explicit FoodGene(GenomeView & view);

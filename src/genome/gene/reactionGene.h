@@ -13,6 +13,8 @@ protected:
 	auto writeBody(Genome & genome) -> void override;
 
 public:
+	static const i32 LENGTH;
+
 	enum ActionType {
 		TOWARD,
 		WANDER,
@@ -20,7 +22,7 @@ public:
 		AWAY,
 	};
 
-	static const char * actionNames[3];
+	static const char * actionNames[4];
 
 	i32 priority;
 	ActionType actionType;
@@ -32,14 +34,6 @@ public:
 };
 
 class EyeGene : public ReactionGene {
-private:
-	/**
-	 * internally stored as an int 0-3
-	 * if the seeingThing is food, each corresponds to a specific food type
-	 * if the seeingThing is creature, 0-1: friendly, 2-3: hostile
-	 */
-	i32 modifier;
-
 public:
 	enum SeeingThing {
 		WALL,
@@ -47,7 +41,7 @@ public:
 		CREATURE,
 	};
 
-	constexpr static const char * SEEING_THING_NAMES[4] = {
+	constexpr static const char * SEEING_THING_NAMES[3] = {
 		"Wall",
 		"Food",
 		"Creature"
@@ -55,6 +49,7 @@ public:
 
 	SeeingThing seeingThing;
 	bool specific;
+	i32 modifier;
 
 	explicit EyeGene(GenomeView & view);
 	EyeGene(SeeingThing, bool, i32, i32, ActionType);

@@ -21,7 +21,7 @@ auto OrganismGrid::internalSpaceAvailable(const Body & body, i32 index, i32 cent
 
 			if (!inBounds(x, y)) return false;
 
-			auto cell = body.access(i, j, rotation);
+			auto cell = body.access(i, j, rotation).bodyPart();
 
 			if (cell != BodyPart::NONE) {
 				auto gridSpace = grid[indexOf(x, y)];
@@ -50,7 +50,7 @@ auto OrganismGrid::placeOrganism(const Organism & organism, i32 index) -> void {
 			auto y = organism.y + j;
 			auto x = organism.x + i;
 
-			auto cell = body.access(i, j, rotation);
+			auto cell = body.access(i, j, rotation).bodyPart();
 
 			if (cell != BodyPart::NONE) {
 				grid[indexOf(x, y)].makeBodyPart(index, cell);
@@ -86,7 +86,7 @@ auto OrganismGrid::moveOrganism(Organism & organism, i32 index, i32 deltaX, i32 
 			auto y = organism.y + j + deltaY;
 			auto x = organism.x + i + deltaX;
 
-			auto cell = body.access(i, j, newRotation);
+			auto cell = body.access(i, j, newRotation).bodyPart();
 
 			if (cell != BodyPart::NONE) {
 				grid[indexOf(x, y)].makeBodyPart(index, cell);

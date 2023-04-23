@@ -8,33 +8,35 @@
 #include "../gene.h"
 #include "../direction.h"
 #include "../bodyPart.h"
+#include "../../environment/food.h"
 
 class BodyGene : public Gene {
 protected:
 	auto writeBody(Genome & genome) -> void override;
 
 public:
+	static const i32 LENGTH;
+
 	Direction direction;
-	/** 1 - 16 */
 	BodyPart bodyPart;
-	bool duplicate;
 	i32 usingAnchor;
 	i32 setAnchor;
+	Food::Type foodType;
 
 	auto usesAnchor() const -> bool;
 	auto setsAnchor() const -> bool;
 
 	auto headerBase() -> Genome::Base override;
 
-	BodyGene(Direction direction, BodyPart bodyPart, i32 usingAnchor, i32 setAnchor, bool duplicate);
+	BodyGene(Direction direction, BodyPart bodyPart, i32 usingAnchor, i32 setAnchor, Food::Type foodType);
 	explicit BodyGene(GenomeView & view);
 
 	/* helper factories */
 
-	static auto create(Direction, BodyPart) -> BodyGene;
-	static auto createDuplicate(Direction, BodyPart) -> BodyGene;
-	static auto createUseAnchor(Direction, BodyPart, i32) -> BodyGene;
-	static auto createSetAnchor(Direction, BodyPart, i32) -> BodyGene;
+	static auto create(Direction, BodyPart, Food::Type) -> BodyGene;
+	static auto createDuplicate(Direction, BodyPart, Food::Type) -> BodyGene;
+	static auto createUseAnchor(Direction, BodyPart, i32, Food::Type) -> BodyGene;
+	static auto createSetAnchor(Direction, BodyPart, i32, Food::Type) -> BodyGene;
 };
 
 #endif //ALIFE_BODYGENE_H
