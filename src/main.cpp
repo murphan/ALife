@@ -16,26 +16,46 @@
 #include "environment/organismSeeder.h"
 #include "loop.h"
 #include "genome/initialGenome.h"
+#include "ids.h"
 
 auto main () -> int {
 	auto random = std::default_random_engine(std::random_device()());
 
-	auto controls = Controls { .playing=true, .fps=20, .updateDisplay=true };
+	auto controls = Controls { .playing=false, .fps=20, .updateDisplay=true };
 	auto settings = Settings {
-		.lifetimeFactor = 64,
-		.energyFactor = 16,
+		.lifetimeFactor = 100,
 		.photosynthesisFactor = 1,
-		.startingEnergy = 4,
-		.reproductionCost = 1,
-		.reproductionThreshold = 2,
-		.foodEfficiency = 1.0_f32,
-		.maxFoodAge = 100000000,
+		.startingEnergy = 31,
+		.reproductionCost = 15,
+		.reproductionThreshold = 21,
+		.foodEfficiency = 0.9_f32,
 		.baseMutationRates = {
 			0.005,
 			0.005,
 			0.005,
 		},
 		.mutationFactor = 1.5,
+		.sightRange = 8,
+		.weaponDamage = 32,
+		.armorPrevents = 32,
+		.bodyPartCosts = {
+			16, /* MOUTH */
+			16, /* MOVER */
+			16, /* PHOTOSYNTHESIZER */
+			16, /* WEAPON */
+			16, /* ARMOR */
+			8, /* EYE */
+			2, /* SCAFFOLD */
+		},
+		.upgradedPartCosts = {
+			0, /* MOUTH */
+			0, /* MOVER */
+			0, /* PHOTOSYNTHESIZER */
+			1, /* WEAPON */
+			1, /* ARMOR */
+			0, /* EYE */
+			2, /* SCAFFOLD */
+		},
 		.factorNoises = {
 			Noise(Factor::TEMPERATURE, false, -1.0_f32, 0.01_f32, 100.0_f32, 1.0_f32),
 			Noise(Factor::LIGHT, false, 0.35_f32, 0.0_f32, 50.0_f32, 1.0_f32),
@@ -43,12 +63,30 @@ auto main () -> int {
 		}
 	};
 
-	auto simulationController = SimulationController(Environment(120, 80), random);
-	simulationController.refreshFactors(settings);
+	auto ids = Ids(random);
 
-	auto initialPhenome = Phenome(InitialGenome::create(), Body(2));
+	constexpr auto WIDTH = 250, HEIGHT = 150;
 
-	OrganismSeeder::insertInitialOrganisms(simulationController.organisms, simulationController.environment, initialPhenome, settings, 80, random);
+	auto simulationController = SimulationController(
+		Environment(WIDTH, HEIGHT),
+		OrganismGrid(WIDTH, HEIGHT),
+		random,
+		ids,
+		settings
+	);
+	simulationController.refreshFactors();
+
+	auto initialPhenome = Phenome(InitialGenome::create(), Body(2), settings);
+
+	OrganismSeeder::insertInitialOrganisms(
+		simulationController.organisms,
+		simulationController.environment,
+		initialPhenome,
+		settings,
+		80,
+		random,
+		ids
+	);
 
 	auto simulationMutex = std::mutex();
 	auto lowPriorityMutex = std::mutex();
@@ -111,23 +149,25 @@ auto main () -> int {
 			socket.send(json.begin(), json.end());
 
 		} else if (parsedMessage.type == "request") {
-			if (!parsedMessage.body.contains("id")) return;
-			auto id = parsedMessage.body["id"];
-			if (!id.is_string()) return;
+			//TODO update to use new integer ids
 
-			auto idString = id.get<std::string>();
-			auto uuid = UUID::fromString(idString);
-			if (!uuid.has_value()) return;
-
-			auto * organism = simulationController.getOrganism(uuid.value());
-			if (organism == nullptr) {
-				auto json = MessageCreator::emptyOrganismRequestMessage().dump();
-				socket.send(json.begin(), json.end());
-				return;
-			}
-
-			auto json = MessageCreator::organismRequestMessage(organism->serialize(true)).dump();
-			socket.send(json.begin(), json.end());
+			//if (!parsedMessage.body.contains("id")) return;
+			//auto id = parsedMessage.body["id"];
+			//if (!id.is_string()) return;
+//
+			//auto idString = id.get<std::string>();
+			//auto uuid = UUID::fromString(idString);
+			//if (!uuid.has_value()) return;
+//
+			//auto * organism = simulationController.getOrganism(uuid.value());
+			//if (organism == nullptr) {
+			//	auto json = MessageCreator::emptyOrganismRequestMessage().dump();
+			//	socket.send(json.begin(), json.end());
+			//	return;
+			//}
+//
+			//auto json = MessageCreator::organismRequestMessage(organism->serialize(true)).dump();
+			//socket.send(json.begin(), json.end());
 
 		} else if (parsedMessage.type == "settings") {
 			try {
@@ -156,7 +196,7 @@ auto main () -> int {
 		lowPriorityLock();
 
 		if (controls.playing) {
-			simulationController.tick(settings);
+			simulationController.tick();
 		}
 
 		if (socket.isConnected() && controls.updateDisplay && controls.playing &&

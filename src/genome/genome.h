@@ -72,12 +72,6 @@ public:
 	auto writeGarbage(i32 n, Base avoidEnd) -> void;
 	auto writeGarbage(i32 n) -> void;
 
-    auto mutateCopy(
-        f32 substitutionChance,
-        f32 insertionChance,
-        f32 deletionChance
-    ) const -> Genome;
-
     static auto editDistance(Genome &, Genome &) -> std::vector<i32>;
 
     static auto mutateCombine(

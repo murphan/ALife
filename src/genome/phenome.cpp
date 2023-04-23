@@ -3,36 +3,16 @@
 //
 
 #include <algorithm>
+
 #include "genomeView.h"
 #include "genome/gene/bodyGene.h"
-#include "genome/gene/foodGene.h"
 
+#include "genome/gene/upgradeGene.h"
+#include "geneMap.h"
 #include "phenome.h"
 
-Sense::Sense(i32 x, i32 y, BodyPart senseCell, Direction direction) :
-	x(x), y(y), senseCell(senseCell), direction(direction) {}
-
-/**
- * INTERNAL USE FOR GENOME DECODER
- * points i to after the pattern
- * @return the base value of double pattern found, or -1 if end reached
- */
-auto seekDoubles(const Genome & genome, i32 & i) -> i32 {
-    if (i >= genome.size() - 1) return -1;
-
-    auto last = genome.get(i);
-    for (++i; i < genome.size(); ++i) {
-        auto current = genome.get(i);
-        if (last == current) {
-            ++i;
-            return last;
-        }
-
-        last = current;
-    }
-
-    return -1;
-}
+Sense::Sense(i32 x, i32 y, Body::Cell * senseCell) :
+	x(x), y(y), senseCell(senseCell) {}
 
 /**
  * INTERNAL USE FOR GENOME DECODER
@@ -49,102 +29,135 @@ auto readNBases(const Genome & genome, i32 & i, i32 length) -> GenomeView {
 	return view;
 }
 
-Phenome::Phenome(Genome && inGenome, Body && inBody):
+inline auto readSegment(const Genome & genome, GeneMap::Segment segment) -> GenomeView {
+	return GenomeView { &genome, segment.begin, segment.length() };
+}
+
+auto Phenome::onAddCell(Body::Cell & cell, i32 x, i32 y, Settings & settings) -> void {
+	if (cell.bodyPart() == BodyPart::MOVER) ++moveTries;
+
+	else if (cell.bodyPart() == BodyPart::EYE) {
+		senses.emplace_back(x, y, &cell);
+	}
+
+	bodyEnergy += cell.cost(settings);
+
+	++numAliveCells;
+	if (numAliveCells > maxCells) maxCells = numAliveCells;
+}
+
+auto Phenome::onRemoveCell(Body::Cell & cell, Settings & settings) -> void {
+	if (cell.bodyPart() == BodyPart::MOVER) --moveTries;
+
+	else if (cell.bodyPart() == BodyPart::EYE) {
+		std::erase_if(senses, [&](Sense & sense) {
+			return sense.senseCell == &cell;
+		});
+	}
+
+	bodyEnergy -= cell.cost(settings);
+
+	--numAliveCells;
+}
+
+Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 	mutationModifiers { 0, 0, 0 },
 	genome(std::move(inGenome)),
 	body(std::move(inBody)),
-	foodStats(),
+	maxCells(0),
+	numAliveCells(0),
+	bodyEnergy(0),
 	moveTries(0),
 	senses(),
-	eyeReactions(),
-	environmentReactions()
+	eyeReactions()
 {
 	if (genome.size() == 0) return;
 
 	auto bodyBuilder = BodyBuilder();
 
-    auto index = 0;
+	auto upgradeGenes = std::vector<UpgradeGene>();
+	auto geneMap = GeneMap(genome);
 
-	auto onAddPart = [&](i32 x, i32 y, BodyPart bodyPart) {
-		if (bodyPart == BodyPart::MOVER) ++moveTries;
+	/* default organism for too-short genome */
+	if (geneMap.segments.empty() || !geneMap.segments[0].isCoding) {
+		auto cell = Body::Cell::make(BodyPart::MOUTH, 0, 0);
+		body.directAddCell(bodyBuilder, cell, 0, 0);
 
-		else if (bodyPart == BodyPart::EYE) {
-			senses.emplace_back(x, y, bodyPart, Sense::determineDirection(x, y));
-		}
-	};
+	/* read center cell section */
+	} else {
+		auto initialGene = readSegment(genome, geneMap.segments[0]);
+		auto bodyPart = (BodyPart)(Gene::read7(initialGene, 0) + 1);
+		auto data = Gene::read8(initialGene, 3);
 
-	auto initialGene = readNBases(genome, index, 6);
-	if (!initialGene.empty()) {
-		auto center = (BodyPart)Gene::read5(initialGene, 0);
-		auto foodType = (Food::Type)Gene::read4(initialGene, 3);
-
-		body.directAddCell(Body::Cell(center, foodType), 0, 0);
-		onAddPart(0, 0, center);
+		auto cell = Body::Cell::make(bodyPart, data, 0);
+		body.directAddCell(bodyBuilder, cell, 0, 0);
 	}
 
-    while (true) {
-		auto geneType = seekDoubles(genome, index);
+	for (auto i = 1; i < geneMap.segments.size(); ++i) {
+		auto segment = geneMap.segments[i];
+		if (!segment.isCoding) continue;
 
-        if (geneType == Genome::A) {
-	        auto gene = readNBases(genome, index, BodyGene::LENGTH);
-	        if (gene.empty()) return;
+		auto gene = readSegment(genome, segment.startOffset(2));
 
-	        auto bodyGene = BodyGene(gene);
+		if (segment.type == Genome::A) {
+			auto bodyGene = BodyGene(gene);
+			auto cell = Body::Cell::make(bodyGene.bodyPart, bodyGene.data, 0);
 
-			body.addCell(bodyBuilder, bodyGene.direction, Body::Cell(bodyGene.bodyPart, bodyGene.foodType), bodyGene.usingAnchor);
-			onAddPart(bodyBuilder.currentX, bodyBuilder.currentY, bodyGene.bodyPart);
+			body.addCell(
+				bodyBuilder,
+				bodyGene.direction,
+				cell,
+				bodyGene.usingAnchor
+			);
 
-	        if (bodyGene.setsAnchor()) {
-		        bodyBuilder.anchors[bodyGene.setAnchor] = { bodyBuilder.currentX, bodyBuilder.currentY };
-	        }
+			if (bodyGene.setsAnchor()) {
+				bodyBuilder.anchors[bodyGene.setAnchor] = {
+					bodyBuilder.currentX, bodyBuilder.currentY,
+				};
+			}
 
-		} else if (geneType == Genome::B) {
-	        auto gene = readNBases(genome, index, ReactionGene::LENGTH);
-	        if (gene.empty()) break;
-
+		} else if (segment.type == Genome::B) {
 			eyeReactions.emplace_back(gene);
 
-		} else if (geneType == Genome::C) {
-			auto gene = readNBases(genome, index, FoodGene::LENGTH);
-			if (gene.empty()) break;
+		} else if (segment.type == Genome::C) {
+			upgradeGenes.emplace_back(gene);
 
-			auto foodGene = FoodGene(gene);
-			auto & foodStat = foodStats[foodGene.foodType];
-			foodStat.digestionBonus += foodGene.digestionBonus();
-	        foodStat.absoprtionBonus += foodGene.absorptionBonus();
-
-		} else if (geneType == Genome::D) {
-			auto gene = readNBases(genome, index, MutationRateGene::LENGTH);
-			if (gene.empty()) break;
-
+		} else if (segment.type == Genome::D) {
 			auto change = MutationRateGene(gene).getChange();
 			mutationModifiers[0] += change;
-	        mutationModifiers[1] += change;
-	        mutationModifiers[2] += change;
-
-        } else {
-	        break;
+			mutationModifiers[1] += change;
+			mutationModifiers[2] += change;
 		}
-    }
+	}
 
-	auto descendingPriority = [](ReactionGene & left, ReactionGene & right) {
-		return left.priority > right.priority;
-	};
+	/* apply upgrade genes */
+	{
+		std::sort(upgradeGenes.begin(), upgradeGenes.end(), [](UpgradeGene & left, UpgradeGene & right) { return left.getBodyPart() < right.getBodyPart(); });
 
-	std::sort(eyeReactions.begin(), eyeReactions.end(), descendingPriority);
-	std::sort(environmentReactions.begin(), environmentReactions.end(), descendingPriority);
+		auto onBodyPart = BodyPart::MOUTH;
+		auto lastFoundIndex = 0;
+		for (auto && upgradeGene : upgradeGenes) {
+			if (upgradeGene.getBodyPart() != onBodyPart) {
+				onBodyPart = upgradeGene.getBodyPart();
+				lastFoundIndex = 0;
+			}
 
-	/* somehow the genome was too small to have an initial body part */
-	if (body.getNumCells() == 0) {
-		body.directAddCell(Body::Cell(BodyPart::MOUTH, Food::FOOD0), 0, 0);
-		onAddPart(0, 0, BodyPart::MOUTH);
+			auto coord = bodyBuilder.getNextCellofType(onBodyPart, lastFoundIndex);
+			if (!coord.has_value()) continue;
+
+			auto [x, y] = coord.value();
+
+			body.directAccess(x, y).modify(upgradeGene.getModifier());
+			bodyEnergy += settings.upgradedPartCosts[onBodyPart];
+		}
+	}
+
+	/* calculate cell based stats */
+	for (auto && insertion : bodyBuilder.insertedOrder) {
+		onAddCell(body.directAccess(insertion.x, insertion.y), insertion.x, insertion.y, settings);
 	}
 }
 
-auto Phenome::maxAge(i32 lifetimeFactor) const -> i32 {
-	return body.getNumCells() * lifetimeFactor;
-}
-
-auto Phenome::survivalEnergy(const Settings & settings) const -> i32 {
-	return body.getNumCells() * settings.energyFactor;
+auto Phenome::maxAge(Settings & settings) const -> i32 {
+	return (maxCells * settings.lifetimeFactor) / 2;
 }

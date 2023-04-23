@@ -8,12 +8,16 @@
 #include <vector>
 #include "../types.h"
 
+#include "organismGrid.h"
 #include "environment.h"
 #include "organism.h"
 
 class Renderer {
 public:
-	static auto render(Environment & environment, std::vector<Organism> & organisms) -> std::vector<u8>;
+	static auto render(
+		Environment & environment,
+		std::vector<Organism> & organisms
+	) -> std::vector<u8>;
 };
 
 #endif //ALIFE_RENDERER_H

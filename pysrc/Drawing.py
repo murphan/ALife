@@ -34,7 +34,8 @@ def render_grid(render_info: RenderInfo):
                 Control_EnvironmentGUI.EnvironmentControl.fill_cell(x, y, color_1, circle=True)
 
             Global_access.ENVIRONMENT_GRID[x][y]["environment"] = cell
-            if meta_type == Global_access.TILE_TYPE_ORGANISM:
-                Global_access.ENVIRONMENT_GRID[x][y]["organism"] = uuids[organism_index]
-            else:
-                Global_access.ENVIRONMENT_GRID[x][y]["organism"] = None
+            # TODO accidentally sending the wrong length organisms list or something
+            #if meta_type == Global_access.TILE_TYPE_ORGANISM:
+            #    Global_access.ENVIRONMENT_GRID[x][y]["organism"] = uuids[organism_index]
+            #else:
+            #    Global_access.ENVIRONMENT_GRID[x][y]["organism"] = None

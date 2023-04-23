@@ -33,13 +33,38 @@ constexpr u32 bodyPartColors[] = {
 	0xe31045, /* Weapon */
 	0x4e2ba6, /* Armor */
 	0x74c2e3, /* Eye */
+	0xede6da, /* Scaffolding */
 };
 
+constexpr u32 bodyPartDeadColors[] = {
+	0x705d41, /* Mouth */
+	0x316e6b, /* Mover */
+	0x425945, /* Photosynthesizer */
+	0x54333c, /* Weapon */
+	0x423b54, /* Armor */
+	0x4a5559, /* Eye */
+	0x63625f, /* Scaffolding */
+};
+
+constexpr u32 weaponUpgradeColors[] = {
+	0x820c29,
+	0xa24f64,
+	0xe9b2c0,
+};
+
+constexpr u32 armorUpgradeColors[] = {
+	0x220b5d,
+	0x5a23e7,
+	0xc8bde6,
+};
+
+constexpr u32 scaffoldingUpgradeColor = 0xf0c47a;
+
 constexpr u32 foodColors[] = {
-	0xfafa16,
-	0xfa6c07,
-	0xd10a0a,
-	0xf00ce1,
+	0x8d9400,
+	0x945900,
+	0x940000,
+	0x940059,
 };
 
 inline auto insert3(std::vector<u8> & buffer, i32 index, u32 value) -> void {
@@ -61,54 +86,66 @@ constexpr static u8 META_WALL = 3;
 constexpr static u8 CIRCLE_FLAG = 1 << 7;
 
 auto Renderer::render(Environment & environment, std::vector<Organism> & organisms) -> std::vector<u8> {
-	auto buffer = std::vector<u8>(environment.mapSize() * BYTES_PER_TILE);
+	auto buffer = std::vector<u8>(environment.mapSize() * BYTES_PER_TILE, 0);
 
 	auto bufferIndex = [&](i32 x, i32 y) {
 		return (y * environment.getWidth() + x) * BYTES_PER_TILE;
 	};
 
-	for (auto j = 0; j < environment.getHeight(); ++j) {
-		for (auto i = 0; i < environment.getWidth(); ++i) {
-			auto && cell = environment.getCell(i, j);
-			if (cell.getHasFood()) {
-				buffer[bufferIndex(i, j)] = META_FOOD | CIRCLE_FLAG;
+	for (auto y = 0; y < environment.getHeight(); ++y) {
+		for (auto x = 0; x < environment.getWidth(); ++x) {
+			auto && mapCell = environment.accessUnsafe(x, y);
+			auto && food = mapCell.food;
+
+			if (food.filled()) {
+				buffer[bufferIndex(x, y)] = META_FOOD;
 				insert3(
 					buffer,
-					bufferIndex(i, j) + 6,
-					foodColors[cell.getFood().getType()]
+					bufferIndex(x, y) + 3,
+					food.dead() ? bodyPartDeadColors[food.bodyPart() - 1] : bodyPartColors[food.bodyPart() - 1]
+				);
+			} else {
+				insert3(
+					buffer,
+					bufferIndex(x, y) + 3,
+					getFactorsColor(mapCell)
 				);
 			}
-			insert3(
-				buffer,
-				bufferIndex(i, j) + 3,
-				getFactorsColor(environment.getCell(i, j))
-			);
 		}
 	}
 
-	for (auto index = 0; index < organisms.size(); ++index) {
-		auto && organism = organisms[index];
+	for (auto && organism : organisms) {
 		auto && body = organism.body();
 		auto rotation = organism.rotation;
 
 		for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
 			for (auto i = body.getLeft(rotation); i <= body.getRight(rotation); ++i) {
-				auto cell = body.access(i, j, rotation).bodyPart();
+				auto && cell = body.access(i, j, rotation);
 
-				auto x = organism.x + i, y = organism.y + j;
+				auto x = organism.x + i;
+				auto y = organism.y + j;
 
-				if (cell != BodyPart::NONE) {
-					buffer[bufferIndex(x, y)] = META_ORGANISM;
+				if (cell.filled()) {
+					buffer[bufferIndex(x, y)] = META_ORGANISM | (cell.isModified() ? CIRCLE_FLAG : 0);
 					insert2(
 						buffer,
 						bufferIndex(x, y) + 1,
-						index
+						organism.id
 					);
 					insert3(
 						buffer,
 						bufferIndex(x, y) + 3,
-						bodyPartColors[cell - 1]
+						cell.dead() ? bodyPartDeadColors[cell.bodyPart() - 1] : bodyPartColors[cell.bodyPart() - 1]
 					);
+					if (cell.isModified()) {
+						insert3(
+							buffer,
+							bufferIndex(x, y) + 6,
+							cell.bodyPart() == BodyPart::WEAPON ? weaponUpgradeColors[cell.modifier()] :
+							cell.bodyPart() == BodyPart::ARMOR ? armorUpgradeColors[cell.modifier()] :
+							scaffoldingUpgradeColor
+						);
+					}
 				}
 			}
 		}

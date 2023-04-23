@@ -9,23 +9,31 @@
 #include "types.h"
 
 #include "organism.h"
-
+#include "environment.h"
 
 class OrganismGrid {
 public:
 	class Space {
 	private:
+		constexpr static u32 FOOD_VALUE = ~0;
+
+		Body::Cell * reference;
 		u32 value;
 
+		explicit Space(Body::Cell * reference, u32 value);
+
 	public:
-		Space(u32 value);
+		static auto makeEmpty() -> Space;
+		static auto makeCell(Body::Cell * reference, i32 index) -> Space;
+		static auto makeFood(Body::Cell * reference) -> Space;
 
-		auto makeEmpty() -> void;
-		auto makeBodyPart(i32 tempId, BodyPart bodyPart) -> void;
+		[[nodiscard]] auto isFilled() const -> bool;
+		[[nodiscard]] auto isCell() const -> bool;
+		[[nodiscard]] auto isFood() const -> bool;
 
-		auto getFilled() const -> bool;
-		auto getIndex() const -> i32;
-		auto getBodyPart() const -> BodyPart;
+		[[nodiscard]] auto index() const -> i32;
+
+		[[nodiscard]] auto cell() const -> Body::Cell &;
 	};
 
 private:
@@ -34,83 +42,37 @@ private:
 	i32 width, height;
 	std::vector<Space> grid;
 
-	auto inBounds(i32 x, i32 y) const -> bool;
 	auto indexOf(i32 x, i32 y) const -> i32;
 
 	auto internalSpaceAvailable(
-		const Body & body,
+		Body & body,
 		i32 index,
 		i32 centerX,
 		i32 centerY,
 		Direction rotation
 	) -> bool;
 
-	template <Util::Function<void, BodyPart, u32> OnHit>
-	auto internalSpaceAvailableCollide(
-		const Body & body,
-		i32 index,
-		i32 centerX,
-		i32 centerY,
-		Direction rotation,
-		OnHit onHit
-	) -> bool {
-		auto spaceAvailable = true;
-
-		for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
-			for (auto i = body.getLeft(rotation); i <= body.getRight(rotation); ++i) {
-				auto y = centerY + j;
-				auto x = centerX + i;
-
-				if (!inBounds(x, y)) {
-					spaceAvailable = false;
-				} else {
-					auto cell = body.access(i, j, rotation).bodyPart();
-
-					if (cell != BodyPart::NONE) {
-						auto gridSpace = grid[indexOf(x, y)];
-						/* don't encroach onto an existing other organism */
-						if (
-							gridSpace.getFilled() &&
-								gridSpace.getIndex() != index
-						) {
-							spaceAvailable = false;
-							onHit(cell, gridSpace);
-						}
-					}
-				}
-			}
-		}
-
-		return spaceAvailable;
-	};
-
 public:
 	OrganismGrid(i32 width, i32 height);
 
 	auto clear() -> void;
 
-	auto placeOrganism(const Organism & organism, i32 index) -> void;
+	auto inBounds(i32 x, i32 y) const -> bool;
 
-	template <Util::Function<void, BodyPart, Space> OnHit>
-	auto canMoveOrganism(const Organism & organism, i32 index, i32 deltaX, i32 deltaY, i32 deltaRotation, OnHit onHit) -> bool {
-		return internalSpaceAvailableCollide(
-			organism.body(),
-			index, organism.x + deltaX,
-			organism.y + deltaY,
-			organism.rotation.rotate(deltaRotation),
-			onHit
-		);
-	}
+	auto eraseOrganism(Organism & organism, i32 index) -> void;
+
+	auto placeOrganism(Organism & organism, i32 index) -> void;
+
+	auto canMoveOrganism(Organism & organism, i32 index, i32 deltaX, i32 deltaY, i32 deltaRotation) -> bool;
 
 	auto moveOrganism(Organism & organism, i32 index, i32 deltaX, i32 deltaY, i32 deltaRotation) -> void;
 
-	auto isSpaceAvailable(const Body & body, i32 x, i32 y, Direction rotation) -> bool;
+	auto isSpaceAvailable(Body & body, i32 x, i32 y, Direction rotation) -> bool;
 
+	auto accessUnsafe(i32 x, i32 y) -> Space &;
 	auto access(i32 x, i32 y) -> Space &;
-	auto accessSafe(i32 x, i32 y) const -> const Space &;
 
     auto getWidth() const -> i32;
-
     auto getHeight() const -> i32;
 };
 
