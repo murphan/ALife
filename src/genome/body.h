@@ -46,9 +46,20 @@ public:
 		 *  4 |  3 bits | [data]
 		 *  0 |  4 bits | [body part]
 		 */
-		u32 value;
+		//u32 value;
+
+		BodyPart bodyPart_;
+		i32 data_;
+		i32 age_;
+		bool dead_;
+		i32 modifier_;
+
 	public:
-		explicit Cell(u32 value);
+		explicit Cell(BodyPart bodyPart_,
+		i32 data_,
+		i32 age_,
+		bool dead_,
+		i32 modifier_);
 
 		static auto makeEmpty() -> Cell;
 		static auto make(BodyPart bodyPart, i32 data, i32 age) -> Cell;
@@ -57,6 +68,8 @@ public:
 		auto setDead(bool dead) -> void;
 		auto setAge(i32 age) -> void;
 
+		[[nodiscard]] auto empty() const -> bool;
+		[[nodiscard]] auto filled() const -> bool;
 		[[nodiscard]] auto bodyPart() const -> BodyPart;
 		[[nodiscard]] auto data() const -> i32;
 		[[nodiscard]] auto isModified() const -> bool;

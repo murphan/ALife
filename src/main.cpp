@@ -80,7 +80,6 @@ auto main () -> int {
 
 	OrganismSeeder::insertInitialOrganisms(
 		simulationController.organisms,
-		simulationController.organismGrid,
 		simulationController.environment,
 		initialPhenome,
 		settings,

@@ -21,8 +21,8 @@ class Environment {
     public:
         Environment(i32 width, i32 height);
 
-        auto getCell(i32 x, i32 y) -> MapCell &;
-		auto getCellSafe(i32 x, i32 y) -> MapCell &;
+        auto accessUnsafe(i32 x, i32 y) -> MapCell &;
+		auto access(i32 x, i32 y) -> MapCell &;
 
 		auto mapSize() const -> i32;
 		auto getWidth() const -> i32;

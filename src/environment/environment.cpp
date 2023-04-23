@@ -5,11 +5,11 @@ Environment::Environment(i32 width, i32 height) : emptyCell(), width(width), hei
 	emptyCell.setHasWall(true);
 }
 
-auto Environment::getCell(int x, int y) -> MapCell & {
+auto Environment::accessUnsafe(int x, int y) -> MapCell & {
     return map[y * width + x];
 }
 
-auto Environment::getCellSafe(i32 x, i32 y) -> MapCell & {
+auto Environment::access(i32 x, i32 y) -> MapCell & {
 	if (x < 0 || x >= width || y < 0 || y >= height) return emptyCell;
 	return map[y * width + x];
 }

@@ -11,7 +11,7 @@
 #include "geneMap.h"
 #include "phenome.h"
 
-Sense::Sense(i32 x, i32 y, Body::Cell senseCell) :
+Sense::Sense(i32 x, i32 y, Body::Cell * senseCell) :
 	x(x), y(y), senseCell(senseCell) {}
 
 /**
@@ -33,13 +33,11 @@ inline auto readSegment(const Genome & genome, GeneMap::Segment segment) -> Geno
 	return GenomeView { &genome, segment.begin, segment.length() };
 }
 
-auto Phenome::onAddCell(i32 x, i32 y, Settings & settings) -> void {
-	auto cell = body.directAccess(x, y);
-
+auto Phenome::onAddCell(Body::Cell & cell, i32 x, i32 y, Settings & settings) -> void {
 	if (cell.bodyPart() == BodyPart::MOVER) ++moveTries;
 
 	else if (cell.bodyPart() == BodyPart::EYE) {
-		senses.emplace_back(x, y, cell);
+		senses.emplace_back(x, y, &cell);
 	}
 
 	bodyEnergy += cell.cost(settings);
@@ -48,14 +46,12 @@ auto Phenome::onAddCell(i32 x, i32 y, Settings & settings) -> void {
 	if (numAliveCells > maxCells) maxCells = numAliveCells;
 }
 
-auto Phenome::onRemoveCell(i32 x, i32 y, Settings & settings) -> void {
-	auto cell = body.directAccess(x, y);
-
+auto Phenome::onRemoveCell(Body::Cell & cell, Settings & settings) -> void {
 	if (cell.bodyPart() == BodyPart::MOVER) --moveTries;
 
 	else if (cell.bodyPart() == BodyPart::EYE) {
 		std::erase_if(senses, [&](Sense & sense) {
-			return sense.x == x && sense.y == y;
+			return sense.senseCell == &cell;
 		});
 	}
 
@@ -90,7 +86,7 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 	/* read center cell section */
 	} else {
 		auto initialGene = readSegment(genome, geneMap.segments[0]);
-		auto bodyPart = (BodyPart)Gene::read5(initialGene, 0);
+		auto bodyPart = (BodyPart)(Gene::read7(initialGene, 0) + 1);
 		auto data = Gene::read8(initialGene, 3);
 
 		auto cell = Body::Cell::make(bodyPart, data, 0);
@@ -158,7 +154,7 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 
 	/* calculate cell based stats */
 	for (auto && insertion : bodyBuilder.insertedOrder) {
-		onAddCell(insertion.x, insertion.y, settings);
+		onAddCell(body.directAccess(insertion.x, insertion.y), insertion.x, insertion.y, settings);
 	}
 }
 

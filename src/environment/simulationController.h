@@ -41,8 +41,6 @@ private:
 
 	/* helpers */
 
-	auto updateOrganismIndices() -> void;
-
 	auto replaceOrganismWithFood(Organism & organism) -> void;
 
 	auto findChildSpawnPoint(Organism & organism, Phenome & childPhenome) -> std::optional<Util::Coord>;
@@ -55,6 +53,8 @@ public:
 	std::vector<Organism> organisms;
 
 	int currentTick;
+
+	auto renderOrganismGrid() -> void;
 
     explicit SimulationController(Environment && environment, OrganismGrid && organismGrid, std::default_random_engine & random, Ids & ids, Settings & settings);
 

@@ -9,7 +9,7 @@
 #include "types.h"
 
 #include "organism.h"
-
+#include "environment.h"
 
 class OrganismGrid {
 public:
@@ -17,27 +17,23 @@ public:
 	private:
 		constexpr static u32 FOOD_VALUE = ~0;
 
-		/** points to the direct location of the cell in the organism */
-		i8 x, y;
+		Body::Cell * reference;
 		u32 value;
-		/** cell is a copy of the original from the organism */
-		Body::Cell internalCell;
 
-		explicit Space(i8 x, i8 y, u32 value, Body::Cell cell);
+		explicit Space(Body::Cell * reference, u32 value);
 
 	public:
 		static auto makeEmpty() -> Space;
-		static auto makeCell(i8 x, i8 y, i32 index, Body::Cell cell) -> Space;
-		static auto makeFood(Body::Cell cell) -> Space;
+		static auto makeCell(Body::Cell * reference, i32 index) -> Space;
+		static auto makeFood(Body::Cell * reference) -> Space;
 
-		[[nodiscard]] auto filled() const -> bool;
+		[[nodiscard]] auto isFilled() const -> bool;
+		[[nodiscard]] auto isCell() const -> bool;
 		[[nodiscard]] auto isFood() const -> bool;
-		[[nodiscard]] auto index() const -> i32;
-		[[nodiscard]] auto cell() -> Body::Cell &;
-		[[nodiscard]] auto getX() const -> i32;
-		[[nodiscard]] auto getY() const -> i32;
 
-		[[nodiscard]] auto getOriginalCell(Organism & organism) -> Body::Cell &;
+		[[nodiscard]] auto index() const -> i32;
+
+		[[nodiscard]] auto cell() const -> Body::Cell &;
 	};
 
 private:
@@ -58,6 +54,8 @@ private:
 
 public:
 	OrganismGrid(i32 width, i32 height);
+
+	auto clear() -> void;
 
 	auto inBounds(i32 x, i32 y) const -> bool;
 

@@ -18,7 +18,6 @@ class OrganismSeeder {
 public:
 	static auto insertInitialOrganisms(
 		std::vector<Organism> & insertList,
-		OrganismGrid & organismGrid,
 		const Environment & environment,
 		const Phenome & initialPhenome,
 		const Settings & settings,

@@ -8,6 +8,7 @@
 #include "types.h"
 
 #include "factor.h"
+#include "genome/body.h"
 
 /**
  * Map Cells are the grid that cmake up the map
@@ -20,9 +21,9 @@ private:
 	bool hasWall;
 
 public:
+	Body::Cell food;
+
 	MapCell();
-	MapCell(i8 factor0, i8 factor1, i8 factor2);
-	explicit MapCell(i8 factors[3]);
 
     auto getFactor(Factor factor) const -> i8;
 	auto setFactor(Factor factor, i8 value) -> void;

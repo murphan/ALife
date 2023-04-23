@@ -23,9 +23,9 @@ class Sense {
 public:
 	i32 x;
 	i32 y;
-	Body::Cell senseCell;
+	Body::Cell * senseCell;
 
-	Sense(i32 x, i32 y, Body::Cell senseCell);
+	Sense(i32 x, i32 y, Body::Cell * senseCell);
 };
 
 struct FoodStats {
@@ -72,8 +72,8 @@ public:
 
 	auto maxAge(Settings & settings) const -> i32;
 
-	auto onAddCell(i32 x, i32 y, Settings & settings) -> void;
-	auto onRemoveCell(i32 x, i32 y, Settings & settings) -> void;
+	auto onAddCell(Body::Cell & cell, i32 x, i32 y, Settings & settings) -> void;
+	auto onRemoveCell(Body::Cell & cell, Settings & settings) -> void;
 };
 
 #endif //ALIFE_PHENOME_H

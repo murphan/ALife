@@ -23,7 +23,7 @@ SimulationController::SimulationController(
 auto SimulationController::tick() -> void {
 	shuffleOrganisms();
 
-	updateOrganismIndices();
+	renderOrganismGrid();
 
 	updateFactors();
 
@@ -37,15 +37,12 @@ auto SimulationController::tick() -> void {
 
     organismsReproduce();
 
-	updateOrganismIndices();
-
 	++currentTick;
 }
 
-inline auto killCell(Organism & organism, Body::Cell & bodyCell, OrganismGrid::Space & gridCell, Settings & settings) -> void {
-	bodyCell.setDead(true);
-	gridCell.cell() = bodyCell;
-	organism.phenome.onRemoveCell(gridCell.getX(), gridCell.getY(), settings);
+inline auto killCell(Organism & organism, Body::Cell & cell, Settings & settings) -> void {
+	organism.phenome.onRemoveCell(cell, settings);
+	cell.setDead(true);
 }
 
 auto SimulationController::shuffleOrganisms() -> void {
@@ -56,9 +53,21 @@ auto SimulationController::shuffleOrganisms() -> void {
 	});
 }
 
-auto SimulationController::updateOrganismIndices() -> void {
+auto SimulationController::renderOrganismGrid() -> void {
+	organismGrid.clear();
+
 	for (auto index = 0; index < organisms.size(); ++index) {
 		organismGrid.placeOrganism(organisms[index], index);
+	}
+
+	for (auto y = 0; y < environment.getHeight(); ++y) {
+		for (auto x = 0; x < environment.getWidth(); ++x) {
+			auto && food = environment.accessUnsafe(x, y).food;
+
+			if (food.filled()) {
+				organismGrid.accessUnsafe(x, y) = OrganismGrid::Space::makeFood(&food);
+			}
+		}
 	}
 }
 
@@ -71,7 +80,7 @@ auto SimulationController::organismSeeingDirection(Organism & organism, i32 inde
 	if (eyeReactions.empty() || eyes.empty()) return std::nullopt;
 
 	for (auto && eye : eyes) {
-		auto eyeDirection = Direction(eye.senseCell.data()).rotate(organism.rotation);
+		auto eyeDirection = Direction(eye.senseCell->data()).rotate(organism.rotation);
 		auto eyePos = Rotation::rotate({ eye.x, eye.y }, organism.rotation);
 
 		for (auto i = 1; i <= settings.sightRange; ++i) {
@@ -82,7 +91,11 @@ auto SimulationController::organismSeeingDirection(Organism & organism, i32 inde
 
 			auto && space = organismGrid.access(seeX, seeY);
 
-			if (space.filled() && space.index() != index) {
+			/* is this good enough for organisms to actually use it?????????? ;) */
+			if (space.isFood()) {
+				return std::make_optional<Direction>(eyeDirection);
+
+			} else if (space.isCell() && space.index() != index) {
 				for (auto && reaction : eyeReactions) {
 					if (space.cell().bodyPart() == reaction.seeing) {
 						return std::make_optional<Direction>(reaction.actionType == EyeGene::ActionType::TOWARD ? eyeDirection : eyeDirection.opposite());
@@ -98,14 +111,14 @@ auto SimulationController::organismSeeingDirection(Organism & organism, i32 inde
 auto randomDirection = std::uniform_int_distribution(0, 7);
 
 auto SimulationController::moveOrganisms() -> void {
-	for (auto i = 0; i < organisms.size(); ++i) {
-		auto && organism = organisms.at(i);
+	for (auto index = 0; index < organisms.size(); ++index) {
+		auto && organism = organisms.at(index);
 		auto moveTries = organism.phenome.moveTries;
-		if (moveTries == 0) continue; //organism.energy == 0 ||
+		if (moveTries == 0 || organism.energy == 0) continue;
 
 		if (moveTries < std::uniform_int_distribution(1, 2)(random)) continue;
 
-		auto seeingDirection = organismSeeingDirection(organism, i);
+		auto seeingDirection = organismSeeingDirection(organism, index);
 		auto lockedOn = seeingDirection.has_value();
 
 		//TODO this section can be cleaned up
@@ -121,8 +134,8 @@ auto SimulationController::moveOrganisms() -> void {
 
 			organism.addEnergy(-1);
 
-			if (organismGrid.canMoveOrganism(organism, i, deltaX, deltaY, deltaRotation)) {
-				organismGrid.moveOrganism(organism, i, deltaX, deltaY, deltaRotation);
+			if (organismGrid.canMoveOrganism(organism, index, deltaX, deltaY, deltaRotation)) {
+				organismGrid.moveOrganism(organism, index, deltaX, deltaY, deltaRotation);
 				organism.movementDirection = direction;
 				break;
 
@@ -144,19 +157,7 @@ auto SimulationController::checkOrganismsDie() -> void {
 		auto rotation = organism.rotation;
 		auto isAlive = false;
 
-		for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
-			for (auto i = body.getLeft(rotation); i <= body.getRight(rotation); ++i) {
-				auto && cell = body.access(i, j, rotation);
-
-				if (cell.bodyPart() != BodyPart::NONE && !cell.dead()) isAlive = true;
-			}
-		}
-
-		if (!isAlive) {
-			// numAliveCells can't be trusted for some reason........
-			if (organism.phenome.numAliveCells != 0) {
-				auto putBreakpointHere = organism.phenome.numAliveCells;
-			}
+		if (organism.phenome.numAliveCells == 0) {
 			replaceOrganismWithFood(organism);
 			ids.removeId(organism.id);
 			return true;
@@ -172,17 +173,17 @@ auto SimulationController::replaceOrganismWithFood(Organism & organism) -> void 
 	for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
 		for (auto i = body.getLeft(rotation); i <= body.getRight(rotation); ++i) {
 			auto y = organism.y + j, x = organism.x + i;
-			auto bodyCell = body.access(i, j, rotation);
+			auto && bodyCell = body.access(i, j, rotation);
 
-			if (bodyCell.bodyPart() != BodyPart::NONE) {
-				organismGrid.accessUnsafe(x, y) = OrganismGrid::Space::makeFood(bodyCell);
+			if (bodyCell.filled()) {
+				environment.accessUnsafe(x, y).food = bodyCell;
 			}
 		}
 	}
 }
 
 auto SimulationController::serialize() -> json {
-	auto renderedBuffer = Renderer::render(environment, organisms, organismGrid);
+	auto renderedBuffer = Renderer::render(environment, organisms);
 
 	auto organismsArray = json::array();
 	for (auto && organism : organisms)
@@ -196,6 +197,9 @@ auto SimulationController::serialize() -> json {
 		{ "organisms", organismsArray },
 	};
 }
+
+static auto fiftyFifty = std::uniform_int_distribution<i32>(0, 1);
+
 auto SimulationController::ageOrganismCells() -> void {
 	for (auto && organism : organisms) {
 		auto && body = organism.body();
@@ -203,22 +207,16 @@ auto SimulationController::ageOrganismCells() -> void {
 
 		for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
 			for (auto i = body.getLeft(rotation); i <= body.getRight(rotation); ++i) {
-				auto y = organism.y + j;
-				auto x = organism.x + i;
+				auto && cell = body.access(i, j, rotation);
 
-				auto && [bodyCell, directX, directY] = body.accessCoord(i, j, rotation);
-				auto && gridCell = organismGrid.accessUnsafe(x, y);
+				if (cell.empty() || cell.dead()) continue;
 
-				if (bodyCell.bodyPart() == BodyPart::NONE || bodyCell.dead()) continue;
-
-				static auto fiftyFifty = std::uniform_int_distribution<i32>(0, 1);
 				if (fiftyFifty(random) == 1) {
-					auto newAge = bodyCell.age() + 1;
-					bodyCell.setAge(newAge);
-					gridCell.cell() = bodyCell;
+					auto newAge = cell.age() + 1;
+					cell.setAge(newAge);
 
 					if (newAge >= organism.phenome.maxAge(settings)) {
-						killCell(organism, bodyCell, gridCell, settings);
+						killCell(organism, cell, settings);
 					}
 				}
 			}
@@ -237,17 +235,17 @@ auto SimulationController::organismCellsTick() -> void {
 				auto y = organism.y + j;
 				auto x = organism.x + i;
 
-				auto && [bodyCell, directX, directY] = body.accessCoord(i, j, rotation);
+				auto && cell = body.access(i, j, rotation);
 
-				if (bodyCell.bodyPart() == BodyPart::NONE || bodyCell.dead()) continue;
+				if (cell.empty() || cell.dead()) continue;
 
-				if (bodyCell.bodyPart() == BodyPart::PHOTOSYNTHESIZER) {
-					auto && environmentCell = environment.getCell(x, y);
+				if (cell.bodyPart() == BodyPart::PHOTOSYNTHESIZER) {
+					auto && environmentCell = environment.accessUnsafe(x, y);
 					auto lightPercentage = (f32)environmentCell.getFactor(Factor::LIGHT) / 127.0_f32;
 
 					auto isOtherAround = [&](i32 deltaX, i32 deltaY) {
-						auto && other = organismGrid.access(x + deltaX, y + deltaY);
-						return (other.filled() && other.cell().bodyPart() == BodyPart::PHOTOSYNTHESIZER) ? 1 : 0;
+						auto && space = organismGrid.access(x + deltaX, y + deltaY);
+						return (space.isCell() && space.cell().bodyPart() == BodyPart::PHOTOSYNTHESIZER) ? 1 : 0;
 					};
 
 					auto othersAround = isOtherAround(0, 1) +
@@ -260,29 +258,17 @@ auto SimulationController::organismCellsTick() -> void {
 						lightPercentage * (1.0_f32 - ((f32)othersAround * 0.25_f32))
 					) organism.addEnergy(settings.photosynthesisFactor);
 
-				} else if (bodyCell.bodyPart() == BodyPart::MOUTH) {
+				} else if (cell.bodyPart() == BodyPart::MOUTH) {
 					auto tryEatAround = [&](i32 deltaX, i32 deltaY) {
-						auto && gridCell = organismGrid.access(x + deltaX, y + deltaY);
+						auto && space = organismGrid.access(x + deltaX, y + deltaY);
+
 						/* organisms can eat dead cells, part of a living organism or not */
-						if (gridCell.filled() && gridCell.index() != index && gridCell.cell().dead() && gridCell.cell().bodyPart() != BodyPart::NONE) {
-							auto eatGridCell = [&]() {
-								auto energy = (i32)((f32)gridCell.cell().cost(settings) * settings.foodEfficiency);
+						if (space.isFilled() && space.index() != index && space.cell().dead()) {
+							auto energy = (i32)((f32)space.cell().cost(settings) * settings.foodEfficiency);
+							organism.addEnergy(energy);
 
-								gridCell = OrganismGrid::Space::makeEmpty();
-
-								organism.addEnergy(energy);
-							};
-
-							if (gridCell.isFood()) {
-								eatGridCell();
-
-							} else {
-								auto && prey = organisms[gridCell.index()];
-								auto && originalCell = gridCell.getOriginalCell(prey);
-								originalCell = Body::Cell::makeEmpty();
-
-								eatGridCell();
-							}
+							space.cell() = Body::Cell::makeEmpty();
+							space = OrganismGrid::Space::makeEmpty();
 						}
 					};
 
@@ -291,15 +277,14 @@ auto SimulationController::organismCellsTick() -> void {
 					tryEatAround(0, 1);
 					tryEatAround(-1, 0);
 					tryEatAround(0, -1);
-				} else if (bodyCell.bodyPart() == BodyPart::WEAPON) {
-					auto superAttack = !bodyCell.isModified() ? -1 : bodyCell.modifier();
+				} else if (cell.bodyPart() == BodyPart::WEAPON) {
+					auto superAttack = !cell.isModified() ? -1 : cell.modifier();
 
 					auto damageAround = [&](i32 deltaX, i32 deltaY) {
 						auto spaceX = x + deltaX, spaceY = y + deltaY;
 
 						auto && space = organismGrid.access(spaceX, spaceY);
-						if (!space.filled() || space.cell().dead()) return;
-
+						if (!space.isCell() || space.cell().dead()) return;
 						auto defenderIndex = space.index();
 						if (defenderIndex == index) return;
 
@@ -309,8 +294,8 @@ auto SimulationController::organismCellsTick() -> void {
 						constexpr static i32 BLOCK_FULL_BUT_COOLER = 0x2;
 
 						auto armorDoesBlock = [&](i32 deltaX, i32 deltaY) -> i32 {
-							auto space = organismGrid.access(spaceX + deltaX, spaceY + deltaY);
-							if (!space.filled() || space.index() != defenderIndex) return BLOCK_NONE;
+							auto && space = organismGrid.access(spaceX + deltaX, spaceY + deltaY);
+							if (!space.isCell() || space.index() != defenderIndex || space.cell().dead()) return BLOCK_NONE;
 
 							auto isDirectlyAttacked = deltaX == 0 && deltaY == 0;
 							auto bodyPart = space.cell().bodyPart();
@@ -363,7 +348,7 @@ auto SimulationController::organismCellsTick() -> void {
 							defender.addEnergy(-damageDealt);
 
 							if (defender.energy == 0) {
-								killCell(defender, space.getOriginalCell(defender), space, settings);
+								killCell(defender, space.cell(), settings);
 							}
 						}
 					};
@@ -546,7 +531,7 @@ auto SimulationController::updateFactors() -> void {
 auto SimulationController::refreshFactors() -> void {
 	for (auto y = 0; y < environment.getHeight(); ++y) {
 		for (auto x = 0; x < environment.getWidth(); ++x) {
-			auto && cell = environment.getCell(x, y);
+			auto && cell = environment.accessUnsafe(x, y);
 
 			cell.setFactor(Factor::TEMPERATURE, settings.factorNoises[Factor::TEMPERATURE].getValue(x, y));
 			cell.setFactor(Factor::LIGHT, settings.factorNoises[Factor::LIGHT].getValue(x, y));

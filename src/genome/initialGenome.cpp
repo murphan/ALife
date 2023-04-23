@@ -8,7 +8,7 @@
 auto InitialGenome::create() -> Genome {
 	auto baseGenome = Genome();
 
-	Gene::write5(baseGenome, BodyPart::MOUTH);
+	Gene::write7(baseGenome, BodyPart::MOUTH - 1);
 	Gene::write8(baseGenome, 0);
 	baseGenome.writeGarbage(7, Genome::A);
 	BodyGene::create(Direction::RIGHT_UP, BodyPart::PHOTOSYNTHESIZER, 0).write(baseGenome);
