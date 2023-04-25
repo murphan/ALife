@@ -19,8 +19,12 @@ auto Util::outer(f32 x) -> i32 {
 	return x > 0 ? (i32)ceil(x) : (i32)floor(x);
 }
 
-auto Util::positiveMod(i32 i, i32 n) -> i32 {
-	return (i % n + n) % n;
+auto Util::positiveMod(i32 a, i32 b) -> i32 {
+	return (a % b + b) % b;
+}
+
+auto Util::positiveMod(f32 a, f32 b) -> f32 {
+	return fmod((fmod(a, b) + b), b);
 }
 
 Util::Coord::Coord(i32 x, i32 y): x(x), y(y) {}

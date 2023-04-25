@@ -56,10 +56,11 @@ def handle_environment_data(environment_data_map):
     height = environment_data_map["height"]
     width = environment_data_map["width"]
 
-    Global_access.new_frame = {
+    Global_access.latest_frame = {
         "size": (width, height),
         "buffer": base64.b64decode(environment_data_map["grid"]),
         "uuids": environment_data_map["organisms"],
+        "should_render": True,
     }
 
 

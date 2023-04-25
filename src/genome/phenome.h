@@ -9,9 +9,12 @@
 
 #include <vector>
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 #include "types.h"
 #include "genome/genome.h"
-#include "genome/gene/reactionGene.h"
+#include "genome/gene/eyeGene.h"
 #include "body.h"
 #include "genome/gene/mutationRateGene.h"
 #include "../environment/settings.h"
@@ -20,9 +23,9 @@ class Sense {
 public:
 	i32 x;
 	i32 y;
-	BodyPart senseCell;
+	Body::Cell * senseCell;
 
-	Sense(i32 x, i32 y, BodyPart senseCell);
+	Sense(i32 x, i32 y, Body::Cell * senseCell);
 };
 
 struct FoodStats {
@@ -35,6 +38,11 @@ public:
 	Genome genome;
 	Body body;
 
+	/** cells this organism had originally */
+	i32 maxCells;
+	i32 numAliveCells;
+	i32 bodyEnergy;
+
 	/**
 	 * these are not the actual mutation rates
 	 * the mutations rates are calculated later
@@ -42,8 +50,6 @@ public:
 	 * negative for a smaller rate, positive for a larger rate
 	 */
 	i32 mutationModifiers[3];
-
-	FoodStats foodStats[4];
 
 	/**
 	 * how many mover cells this organism has,
@@ -57,17 +63,17 @@ public:
 	std::vector<Sense> senses;
 
 	std::vector<EyeGene> eyeReactions;
-	std::vector<EnvironmentGene> environmentReactions;
 
-	explicit Phenome(Genome && inGenome, Body && inBody);
+	explicit Phenome(Genome && inGenome, Body && inBody, Settings & settings);
 
 	Phenome(const Phenome & other) = default;
 	Phenome(Phenome && other) = default;
 	auto operator=(Phenome && other) noexcept -> Phenome & = default;
 
-	auto survivalEnergy(const Settings & settings) const -> i32;
+	auto maxAge(Settings & settings) const -> i32;
 
-	auto maxAge(i32 lifetimeFactor) const -> i32;
+	auto onAddCell(Body::Cell & cell, i32 x, i32 y, Settings & settings) -> void;
+	auto onRemoveCell(Body::Cell & cell, Settings & settings) -> void;
 };
 
 #endif //ALIFE_PHENOME_H

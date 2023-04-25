@@ -7,6 +7,8 @@ from threading import Lock
 import Drawing
 import pygame
 
+from pysrc.Setup_EnvironmentGUI import SetupEnvironment
+
 # This is only set to be 1 when the program is exiting. Do not use unless ending execution
 EXIT = 0
 
@@ -49,16 +51,14 @@ updateDisplay = True
 # Used for environment sizing
 WINDOW_HEIGHT = 770
 WINDOW_WIDTH = 1500
-CELL_SIZE = 10
-environment_size = 0, 0  # Set these to 0 when ready to make environment dynamically sized
-block_height = 10  # TODO: set these to 0 when ready to make environment dynamic sizeable
-block_width = 10  # TODO: set these to 0 when ready to make environment dynamic sizeable
+ENVIRONMENT_BOX: (int, int, int, int) = None
+environment_size = 0, 0
 
 # variables used frequently in the environment
 SCREEN = None
 CLICK_TYPE = "Organism"
 ENVIRONMENT_GRID = []
-new_frame: Drawing.RenderInfo = None
+latest_frame: Drawing.RenderInfo = None
 
 TILE_TYPE_EMPTY = 0
 TILE_TYPE_ORGANISM = 1
@@ -69,6 +69,7 @@ BUFFER_SIZE = 4096
 
 # The Mutex needing to be acquired in order to update information
 mutex = Lock()
+
 
 def define_grid(width: int, height: int):
     """
@@ -81,21 +82,11 @@ def define_grid(width: int, height: int):
     :param height: height of the environment
     :param type: int
     """
-    global environment_size, ENVIRONMENT_GRID, WINDOW_WIDTH, WINDOW_HEIGHT, CELL_SIZE, SCREEN
+    global environment_size, ENVIRONMENT_GRID, WINDOW_WIDTH, WINDOW_HEIGHT, SCREEN
 
     # no need to reallocate memory
     if environment_size[0] == width and environment_size[1] == height:
         return
-
-    CELL_SIZE = int(1500.0 / width)
-    new_window_width = CELL_SIZE * width
-    new_window_height = CELL_SIZE * height
-
-    if WINDOW_WIDTH != new_window_width or WINDOW_HEIGHT != new_window_height:
-        SCREEN = pygame.display.set_mode((new_window_width, new_window_height))
-
-    WINDOW_WIDTH = new_window_width
-    WINDOW_HEIGHT = new_window_height
 
     ENVIRONMENT_GRID = [
         [
@@ -106,14 +97,7 @@ def define_grid(width: int, height: int):
     ]
 
     environment_size = width, height
-
-
-def set_block_size():
-    mutex.acquire()
-    global block_width, WINDOW_WIDTH, block_height, WINDOW_HEIGHT, environment_size
-    block_width = int(WINDOW_WIDTH / environment_size[0])
-    block_height = int((WINDOW_HEIGHT - 50) / environment_size[1])
-    mutex.release()
+    SetupEnvironment.set_environment_box(WINDOW_WIDTH, WINDOW_HEIGHT)
 
 
 def update_grid(x, y):
@@ -153,13 +137,6 @@ def change_click_type(new_click_type):
     mutex.acquire()
     global CLICK_TYPE
     CLICK_TYPE = new_click_type
-    mutex.release()
-
-
-def set_screen(screen):
-    mutex.acquire()
-    global SCREEN
-    SCREEN = screen
     mutex.release()
 
 

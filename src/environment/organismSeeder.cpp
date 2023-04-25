@@ -8,7 +8,9 @@ auto OrganismSeeder::insertInitialOrganisms(
 	const Environment & environment,
 	const Phenome & initialPhenome,
 	const Settings & settings,
-	i32 count
+	i32 count,
+	std::default_random_engine & random,
+	Ids & ids
 ) -> void {
 	insertList.reserve(count);
 
@@ -30,16 +32,16 @@ auto OrganismSeeder::insertInitialOrganisms(
 		auto gridY = (c / sideLength) - (sideLength / 2), gridX = (c % sideLength) - (sideLength / 2);
 
 		auto copiedPhenome = initialPhenome;
-		auto initialEnergy = copiedPhenome.survivalEnergy(settings) +
-			(i32)((f32)copiedPhenome.survivalEnergy(settings) * settings.startingEnergy);
+		auto initialEnergy = settings.startingEnergy;
 
 		insertList.emplace_back(
 			std::move(copiedPhenome),
-			UUID::generateRandom(),
+			ids.newId(),
 			centerX + gridX * spaceWide - offsetX,
 			centerY + gridY * spaceTall - offsetY,
 			Direction::RIGHT,
-			initialEnergy
+			initialEnergy,
+			std::uniform_int_distribution(0, 7)(random)
 		);
 	}
 }

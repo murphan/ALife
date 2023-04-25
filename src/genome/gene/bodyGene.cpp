@@ -4,6 +4,8 @@
 
 #include "bodyGene.h"
 
+const auto BodyGene::LENGTH = 15;
+
 auto BodyGene::usesAnchor() const -> bool {
 	return usingAnchor != -1;
 }
@@ -16,63 +18,57 @@ auto BodyGene::headerBase() -> Genome::Base {
 	return Genome::A;
 }
 
-BodyGene::BodyGene(Direction direction, BodyPart bodyPart, i32 usingAnchor, i32 setAnchor, bool duplicate) :
-	direction(direction), bodyPart(bodyPart), usingAnchor(usingAnchor), setAnchor(setAnchor), duplicate(duplicate) {}
+BodyGene::BodyGene(Direction direction, BodyPart bodyPart, i32 usingAnchor, i32 setAnchor, i32 data) :
+	direction(direction), bodyPart(bodyPart), usingAnchor(usingAnchor), setAnchor(setAnchor), data(data) {}
 
 BodyGene::BodyGene(GenomeView & view) :
-	direction(read5(view, 0) - 2),
+	bodyPart((BodyPart)(read7(view, 0) + 1)),
+	direction(read8(view, 3)),
 	usingAnchor(-1),
 	setAnchor(-1),
-	duplicate(false),
-	bodyPart((BodyPart)(read5(view, 4) + 1))
+	data(read8(view, 12))
 {
-	if (view[2] == Genome::B) {
-		usingAnchor = view[3];
-	} else if (view[2] == Genome::C) {
-		setAnchor = view[3];
-	} else if (view[2] == Genome::D) {
-		duplicate = true;
+	auto special = read3(view, 6);
+
+	if (special == 1) {
+		usingAnchor = read4(view, 9);
+	} else if (special == 2) {
+		setAnchor = read4(view, 9);
 	}
 }
 
 auto BodyGene::writeBody(Genome & genome) -> void {
-	write5(genome, direction.normalized() + 2);
+	write7(genome, bodyPart - 1);
+	write8(genome, direction.value());
 
-	/* modifier */
 	if (usesAnchor()) {
-		genome.write(Genome::B);
-		genome.write((Genome::Base)usingAnchor);
-
+		write3(genome, 1);
+		write4(genome, usingAnchor);
 	} else if (setsAnchor()) {
-		genome.write(Genome::C);
-		genome.write((Genome::Base)setAnchor);
-
-	} else if (duplicate) {
-		genome.write(Genome::D);
-		genome.write(Genome::A);
-
+		write3(genome, 2);
+		write4(genome, setAnchor);
 	} else {
-		genome.write(Genome::A);
-		genome.write(Genome::A);
+		write3(genome, 0);
+		write4(genome, 0);
 	}
 
-	write5(genome, bodyPart - 1);
+	write8(genome, data);
 }
 
 /* factories */
 
-auto BodyGene::create(Direction dir, BodyPart bodyPart) -> BodyGene {
-	return { dir, bodyPart, -1, -1, false };
+auto BodyGene::create(Direction dir, BodyPart bodyPart, i32 data) -> BodyGene {
+	return { dir, bodyPart, -1, -1, data };
 }
 
-auto BodyGene::createUseAnchor(Direction dir, BodyPart bodyPart, i32 anchor) -> BodyGene {
-	return { dir, bodyPart, anchor, -1, false };
+auto BodyGene::createUseAnchor(Direction dir, BodyPart bodyPart, i32 anchor, i32 data) -> BodyGene {
+	return { dir, bodyPart, anchor, -1, data };
 }
 
-auto BodyGene::createSetAnchor(Direction dir, BodyPart bodyPart, i32 anchor) -> BodyGene {
-	return { dir, bodyPart, -1, anchor, false };
+auto BodyGene::createSetAnchor(Direction dir, BodyPart bodyPart, i32 anchor, i32 data) -> BodyGene {
+	return { dir, bodyPart, -1, anchor, data };
 }
 
-auto BodyGene::createDuplicate(Direction dir, BodyPart bodyPart) -> BodyGene {
-	return { dir, bodyPart, -1, -1, true };
+auto BodyGene::createDuplicate(Direction dir, BodyPart bodyPart, i32 data) -> BodyGene {
+	return { dir, bodyPart, -1, -1, data };
 }

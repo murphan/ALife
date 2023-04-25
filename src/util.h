@@ -23,7 +23,8 @@ namespace Util {
 		Coord(i32, i32);
 	};
 
-	auto positiveMod(i32 i, i32 n) -> i32;
+	auto positiveMod(i32 a, i32 b) -> i32;
+	auto positiveMod(f32 a, f32 b) -> f32;
 
     auto printGrid(std::vector<i32> &, i32 width) -> void;
 

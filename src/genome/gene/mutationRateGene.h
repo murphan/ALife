@@ -12,29 +12,19 @@ class MutationRateGene : public Gene {
 protected:
 	auto writeBody(Genome & genome) -> void override;
 
-public:
-	enum MutationType {
-		SUBSTITUTION = 0,
-		INSERTION = 1,
-		DELETION = 2,
-		NONE = 3,
-	};
-
 private:
-	MutationType types[4];
-	/* 0 for down, 1 for up */
-	i32 changes[4];
+	i32 change;
 
 public:
+	static const i32 LENGTH;
+
 	explicit MutationRateGene(GenomeView & view);
 
-	struct Entry { MutationType type; i32 change; };
-	MutationRateGene(std::initializer_list<Entry> && list);
+	explicit MutationRateGene(i32 change);
 
 	auto headerBase() -> Genome::Base override;
 
-	struct Results { i32 substitution; i32 insertion; i32 deletion; };
-	auto getResults() -> Results;
+	auto getChange() -> i32;
 };
 
 #endif //ALIFE_MUTATIONRATEGENE_H

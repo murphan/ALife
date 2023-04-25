@@ -19,42 +19,30 @@ public:
 	 */
 	i32 lifetimeFactor;
 	/*
-	 * the fundamental unit of energy, how much energy each cell is "worth"
-	 * "body energy" refers to the number of cells * the energy factor
-	 * suggested range: 1-128
-	 */
-	i32 energyFactor;
-	/*
 	 * how much energy a photosynthesis cell generates each tick when it receives light
 	 * suggseted range: 1-16
 	 */
 	i32 photosynthesisFactor;
 	/*
-	 * percentage of body energy that organism's start with in addition to survival energy
-	 * suggested range: 0-1
+	 * energy that an organism is born with
+	 * suggested range: 1-128
 	 */
-	f32 startingEnergy;
+	i32 startingEnergy;
 	/*
-	 * percentage of body energy that an organism has to expend on top of expending all the energy that goes into the child
-	 * suggested range: 0-1
+	 * energy expended on reproduction
+	 * suggested range: 1-128
 	 */
-	f32 reproductionCost;
+	i32 reproductionCost;
 	/*
-	 * percentage of body energy that the parent has to have remaining in addition to their survival energy
-	 * after they produce a child
-	 * suggested range: 0-1
+	 * energy that must be kept after reproducing
+	 * suggested range: 1-128
 	 */
-	f32 reproductionThreshold;
+	i32 reproductionThreshold;
 	/*
 	 * percentage of each cell's energy that gets transferred to the food when an organism dies
 	 * suggested range: 0-1
 	 */
 	f32 foodEfficiency;
-	/*
-	 * how long before a food is removed
-	 * suggested range: 1-512
-	 */
-	i32 maxFoodAge;
 	/*
 	 * chance that a mutation happens
 	 * suggested range: 0-0.1
@@ -66,6 +54,13 @@ public:
 	 * suggested range: 1.0-2.0
 	 */
 	f32 mutationFactor;
+	i32 sightRange;
+	i32 weaponDamage;
+	i32 armorPrevents;
+
+	i32 bodyPartCosts[7];
+	/* not all parts can be upgraded, but list them anyway */
+	i32 upgradedPartCosts[7];
 
 	Noise factorNoises[3];
 
