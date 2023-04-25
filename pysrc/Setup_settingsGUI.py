@@ -17,6 +17,15 @@ CLICK_TYPES = ["Wall",
                "Organism",
                "Food"]
 
+# These are place holder colors and descriptions
+COLORS = {"red": "Eye cell",
+          "blue": "Mouth cell",
+          "green": "Photosynthesis cell",
+          "brown": "Attack cell",
+          "black": "Shield cell",
+          "yellow": "Hand Cell",
+          "orange": "The other cell"}
+
 
 class SetupSettings:
     """
@@ -69,8 +78,8 @@ class SetupSettings:
 
         --------------------------------------------------------------
         |               |                |             |             |
-        |      fps      |  reproduction  |    size     |   Click     |
-        |               |      rates     |             |   Type      |
+        |      fps      |  reproduction  |   colors    |   Click     |
+        |               |      rates     |   guide     |   Type      |
         |               |                |             |             |
         --------------------------------------------------------------
         |                  |                      |                  |
@@ -82,10 +91,10 @@ class SetupSettings:
         """
         middle_top_frame = tkinter.Frame(self.window, bg=LIGHT_GREEN)
         middle_bottom_frame = tkinter.Frame(self.window, bg=LIGHT_GREEN)
-        speed_frame = tkinter.Frame(middle_top_frame, bg=LIGHT_GREEN, borderwidth=50)
-        repro_frame = tkinter.Frame(middle_top_frame, bg=LIGHT_GREEN, borderwidth=50)
-        size_frame = tkinter.Frame(middle_top_frame, bg=LIGHT_GREEN, borderwidth=50)
-        click_type_frame = tkinter.Frame(middle_top_frame, bg=LIGHT_GREEN, borderwidth=50)
+        speed_frame = tkinter.Frame(middle_top_frame, bg=LIGHT_GREEN, borderwidth=25)
+        repro_frame = tkinter.Frame(middle_top_frame, bg=LIGHT_GREEN, borderwidth=25)
+        size_frame = tkinter.Frame(middle_top_frame, bg=LIGHT_GREEN, borderwidth=25)
+        click_type_frame = tkinter.Frame(middle_top_frame, bg=LIGHT_GREEN, borderwidth=25)
 
         temp_frame = tkinter.Frame(middle_bottom_frame, bg=LIGHT_GREEN, borderwidth=75)
         light_frame = tkinter.Frame(middle_bottom_frame, bg=LIGHT_GREEN, borderwidth=75)
@@ -147,32 +156,33 @@ class SetupSettings:
         repro_frame.pack(side=LEFT)
 
         # Set up the size configuration options
-        size_title_frame = tkinter.Frame(size_frame, bg=LIGHT_GREEN)
-        size_title_frame.pack(side=TOP, expand=True)
-        size_title_label = Label(size_title_frame, text="Size", background=LIGHT_GREEN)
-        size_title_label.config(font=("Arial", 12))
-        size_title_label.pack(side=TOP)
+        color_title_frame = tkinter.Frame(size_frame, bg=LIGHT_GREEN)
+        color_title_frame.pack(side=TOP, expand=True)
+        color_title_label = Label(color_title_frame, text="Color Guide", background=LIGHT_GREEN)
+        color_title_label.config(font=("Arial", 12))
+        color_title_label.pack(side=TOP)
 
-        width_frame = tkinter.Frame(size_frame, bg=LIGHT_GREEN)
-        width_text_label = Label(width_frame, text="Width(don't use *yet)", background="White")
-        width_text_label.config(font=("Arial", 12))
-        width_text_label.pack(side=LEFT)
-        width_input = ttk.Spinbox(width_frame, from_=50.0, to=77.0,increment=1.0,
-                                  state='readonly', wrap=True, command=lambda event:
-                                  Control_Environment.EnvironmentControl.set_width(self, width_input.get()))
-        width_input.pack(side=LEFT)
-        width_frame.pack(side=TOP)
+        color_guide_frame = tkinter.Frame(size_frame, bg=LIGHT_GREEN)
 
-        height_frame = tkinter.Frame(size_frame, bg=LIGHT_GREEN)
-        height_text_label = Label(height_frame, text="Height(don't use *yet)", background="White")
-        height_text_label.config(font=("Arial", 12))
-        height_text_label.pack(side=LEFT)
-        height_input = ttk.Spinbox(height_frame, from_=100.0, to=150.0, increment=1.0,
-                                   state='readonly', width=19, wrap=True, command=lambda event:
-                                   Control_Environment.EnvironmentControl.set_height(self, height_input.get()))
-        height_input.pack(side=LEFT)
-        height_frame.pack(side=BOTTOM)
+        block_size = 25
+        color_tile_frame = tkinter.Frame(color_guide_frame, bg="blue")
+        canvas = Canvas(color_tile_frame, height=block_size * len(COLORS), width=block_size, bg=LIGHT_GREEN)
+        i = 0
+        for key, value in COLORS.items():
+            canvas.create_rectangle(0, 0 + (block_size * i),
+                                    block_size, block_size + (block_size * i), outline="black", fill=key, width=3)
+            i+=1
+        canvas.pack(side=TOP)
 
+        color_tile_frame.pack(side=LEFT)
+
+        color_label_frame = tkinter.Frame(color_guide_frame, bg=LIGHT_GREEN)
+        for key, value in COLORS.items():
+            tkinter.Label(color_label_frame, text=value, bg=LIGHT_GREEN).pack(side=TOP)
+
+        color_label_frame.pack(side=LEFT)
+
+        color_guide_frame.pack(side=TOP)
         size_frame.pack(side=LEFT)
 
         # Setup Click type section
@@ -492,3 +502,8 @@ class SetupSettings:
             self.temp_depth.config(state=DISABLED, takefocus=0)
             self.temp_scale.config(state=DISABLED, takefocus=0)
             self.temp_value.set(Global_access.temperature)
+
+
+if __name__ == "__main__":
+    settings = SetupSettings()
+    settings.start(settings)
