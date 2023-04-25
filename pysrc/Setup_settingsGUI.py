@@ -18,14 +18,15 @@ CLICK_TYPES = ["Wall",
                "Food"]
 
 # These are place holder colors and descriptions
-COLORS = {"red": "Eye cell",
-          "blue": "Mouth cell",
-          "green": "Photosynthesis cell",
-          "brown": "Attack cell",
-          "black": "Shield cell",
-          "yellow": "Hand Cell",
-          "orange": "The other cell"}
-
+CELL_DESCRIPTIONS = {
+    "#f2960c": "Mouth cell",
+    "#11f0e8": "Mover cell",
+    "#086603": "Photosynthesis cell",
+    "#e31045": "Weapon cell",
+    "#4e2ba6": "Shield cell",
+    "#74c2e3": "Eye cell",
+    "#ede6da": "Scaffolding cell"
+}
 
 class SetupSettings:
     """
@@ -55,8 +56,8 @@ class SetupSettings:
         window.title("Settings")
         # window.state('zoomed') this is annoying
         window.configure(bg=LIGHT_GREEN)
-        window.geometry("1000x500")
-        window.minsize(1500, 785)
+        window.geometry("1500x900")
+        window.minsize(1500, 900)
 
         self.window = window
 
@@ -166,9 +167,9 @@ class SetupSettings:
 
         block_size = 25
         color_tile_frame = tkinter.Frame(color_guide_frame, bg="blue")
-        canvas = Canvas(color_tile_frame, height=block_size * len(COLORS), width=block_size, bg=LIGHT_GREEN)
+        canvas = Canvas(color_tile_frame, height=block_size * len(CELL_DESCRIPTIONS), width=block_size, bg=LIGHT_GREEN)
         i = 0
-        for key, value in COLORS.items():
+        for key, value in CELL_DESCRIPTIONS.items():
             canvas.create_rectangle(0, 0 + (block_size * i),
                                     block_size, block_size + (block_size * i), outline="black", fill=key, width=3)
             i+=1
@@ -177,7 +178,7 @@ class SetupSettings:
         color_tile_frame.pack(side=LEFT)
 
         color_label_frame = tkinter.Frame(color_guide_frame, bg=LIGHT_GREEN)
-        for key, value in COLORS.items():
+        for key, value in CELL_DESCRIPTIONS.items():
             tkinter.Label(color_label_frame, text=value, bg=LIGHT_GREEN).pack(side=TOP)
 
         color_label_frame.pack(side=LEFT)
