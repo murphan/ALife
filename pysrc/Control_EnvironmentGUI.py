@@ -1,11 +1,8 @@
-import sys
-from tkinter import *
-import pygame
 import json
 
+import Environment_cell
 import Global_access
 import Organism_cell
-import Environment_cell
 
 
 class EnvironmentControl:
@@ -252,38 +249,6 @@ class EnvironmentControl:
                 new_cell = Environment_cell.EnvironmentCell(0, 0, 0, 0, -1, 0, 0, 0)
                 Global_access.ENVIRONMENT_GRID[coord[0]][coord[1]]["environment"] = new_cell
                 self.send_message(conn, "new_filled", (coord[0], coord[1], "wall"))
-
-    @staticmethod
-    def fill_cell(x, y, color, circle = False):
-        """
-        This will fill in a cell when the information is passed from c++
-        Grid coords are different in python than they are in c++.
-        This converts from the c++ coordinate style to python
-
-        :param x: x coordinate
-        :type x: int
-
-        :param y: y coordinate
-        :type y: int
-
-        :param color: color to fill cell with
-        :type color: Global_access.color
-        """
-        y = int(Global_access.environment_size[1] - y - 1)
-        cell_size = Global_access.CELL_SIZE
-
-        if circle:
-            pygame.draw.circle(
-                Global_access.SCREEN,
-                color,
-                (x * cell_size + (cell_size / 2), y * cell_size + (cell_size / 2)), (cell_size / 2)
-            )
-        else:
-            pygame.draw.rect(
-                Global_access.SCREEN,
-                color,
-                (x * cell_size, y * cell_size, cell_size, cell_size)
-            )
 
     def click_type(self, clicked_type):
         """

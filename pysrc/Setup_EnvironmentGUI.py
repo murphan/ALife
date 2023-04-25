@@ -1,12 +1,7 @@
-import os
-from multiprocessing import Process
-import sys
-import socket
-import pygame
 import random
 
-import Control_EnvironmentGUI
-import Setup_settingsGUI
+import pygame
+
 import Global_access
 
 CLOCK = None
@@ -19,11 +14,9 @@ class SetupEnvironment:
     def __init__(self):
         global CLOCK
         pygame.init()
-        Global_access.set_screen(
-            pygame.display.set_mode(
-                size=(Global_access.WINDOW_WIDTH, Global_access.WINDOW_HEIGHT),
-            )
-        )
+
+        SetupEnvironment.set_screen_sizes(Global_access.WINDOW_WIDTH, Global_access.WINDOW_HEIGHT)
+
         CLOCK = pygame.time.Clock()
         Global_access.SCREEN.fill(Global_access.BLACK)
 
@@ -32,8 +25,58 @@ class SetupEnvironment:
 
         self.create_buttons()
 
-        # Global_access.set_environment_size(Global_access.WINDOW_WIDTH / 10, (Global_access.WINDOW_HEIGHT - 50) / 10)
-        # Global_access.define_grid(Global_access.environment_size[0], Global_access.environment_size[1])
+    @staticmethod
+    def set_screen_sizes(width: int, height: int):
+        Global_access.WINDOW_WIDTH = width
+        Global_access.WINDOW_HEIGHT = height
+
+        SetupEnvironment.set_environment_box(width, height)
+
+        # Global_access.new_frame = True
+        Global_access.SCREEN = pygame.display.set_mode(
+            size=(width, height),
+            flags=pygame.RESIZABLE,
+        )
+
+    @staticmethod
+    def set_environment_box(width: int, height: int):
+        grid_width, grid_height = Global_access.environment_size
+        Global_access.ENVIRONMENT_BOX = SetupEnvironment.get_bounds(
+            1.0 if grid_width == 0 or grid_height == 0 else float(grid_width) / grid_height,
+            width,
+            height,
+        )
+
+    @staticmethod
+    def get_bounds(aspect: float, window_width: int, window_height: int) -> (int, int, int, int):
+        """
+        produces the largest, centered, box of aspect ratio :param aspect (width / height)
+        that fits within :param window_width * :param window_height
+        """
+        window_aspect = float(window_width) / window_height
+
+        # window is too wide
+        if window_aspect > aspect:
+            h = window_height
+            w = int(aspect * window_height)
+            y = 0
+            x = (window_width - w) / 2
+
+            return x, y, w, h
+
+        # window is too tall
+        else:
+            w = window_width
+            h = int((1 / aspect) * window_width)
+            x = 0
+            y = (window_height - h) / 2
+
+            return x, y, w, h
+
+    def on_window_resize(self, event: pygame.event):
+        self.set_screen_sizes(event.w, event.h)
+        if Global_access.latest_frame is not None:
+            Global_access.latest_frame["should_render"] = True
 
     def create_buttons(self):
         self.play_pause_button = Button(

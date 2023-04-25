@@ -1,5 +1,6 @@
+import pygame
+
 import Environment_cell
-import Control_EnvironmentGUI
 import Global_access
 
 RenderInfo = {"size": (int, int), "buffer": bytes, "uuids": list[str]}
@@ -28,14 +29,41 @@ def render_grid(render_info: RenderInfo):
 
             cell = Environment_cell.EnvironmentCell(0, 0, 0, meta_type, 0, 0, 0)
 
-            Control_EnvironmentGUI.EnvironmentControl.fill_cell(x, y, color_0)
+            fill_cell(x, y, color_0)
 
             if draw_circle:
-                Control_EnvironmentGUI.EnvironmentControl.fill_cell(x, y, color_1, circle=True)
+                fill_cell(x, y, color_1, circle=True)
 
             Global_access.ENVIRONMENT_GRID[x][y]["environment"] = cell
-            # TODO accidentally sending the wrong length organisms list or something
-            #if meta_type == Global_access.TILE_TYPE_ORGANISM:
-            #    Global_access.ENVIRONMENT_GRID[x][y]["organism"] = uuids[organism_index]
-            #else:
-            #    Global_access.ENVIRONMENT_GRID[x][y]["organism"] = None
+
+            # if meta_type == Global_access.TILE_TYPE_ORGANISM:
+            #     Global_access.ENVIRONMENT_GRID[x][y]["organism"] = uuids[organism_index]
+            # else:
+            #     Global_access.ENVIRONMENT_GRID[x][y]["organism"] = None
+
+
+def fill_cell(x: int, y: int, color: (int, int, int), circle: bool = False):
+    y = int(Global_access.environment_size[1] - y - 1)
+    cell_size = float(Global_access.ENVIRONMENT_BOX[2]) / Global_access.environment_size[0]
+
+    if circle:
+        pygame.draw.circle(
+            Global_access.SCREEN,
+            color,
+            (
+                Global_access.ENVIRONMENT_BOX[0] + x * cell_size + (cell_size / 2),
+                Global_access.ENVIRONMENT_BOX[1] + y * cell_size + (cell_size / 2),
+            ),
+            (cell_size / 2)
+        )
+    else:
+        pygame.draw.rect(
+            Global_access.SCREEN,
+            color,
+            (
+                Global_access.ENVIRONMENT_BOX[0] + x * cell_size,
+                Global_access.ENVIRONMENT_BOX[1] + y * cell_size,
+                cell_size,
+                cell_size,
+            )
+        )

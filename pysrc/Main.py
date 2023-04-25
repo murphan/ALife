@@ -1,10 +1,10 @@
 import os
+import socket
+import sys
 import time
 from threading import Thread
-from multiprocessing import Process
-import sys
-import socket
 from tkinter import messagebox
+
 # Hides a console message from the pygame module
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 import pygame
@@ -48,11 +48,6 @@ class Management:
 
     def main_loop(self):
         while True:
-            if Global_access.new_frame is not None:
-                Global_access.SCREEN.fill(Global_access.BLACK)
-                Drawing.render_grid(Global_access.new_frame)
-                self.EnvironmentGui.create_buttons()
-
             if Global_access.EXIT == 1:
                 self.conn.close()
                 pygame.quit()
@@ -71,10 +66,16 @@ class Management:
                         self.EnvironmentGui.create_buttons()
                     else:  # Display on the environment that a square was clicked
                         self.EnvironmentControl.square_clicked(event, self.EnvironmentGui, self.conn)
+                if event.type == pygame.VIDEORESIZE:
+                    self.EnvironmentGui.on_window_resize(event)
+
+            if Global_access.latest_frame is not None and Global_access.latest_frame["should_render"]:
+                Global_access.SCREEN.fill(Global_access.BLACK)
+                Drawing.render_grid(Global_access.latest_frame)
+                self.EnvironmentGui.create_buttons()
+                Global_access.latest_frame["should_render"] = False
 
             pygame.display.update()
-
-            Global_access.new_frame = None
 
             time.sleep(0.01)
 
