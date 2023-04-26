@@ -33,8 +33,6 @@ public:
 	explicit EyeGene(GenomeView & view);
 	EyeGene(BodyPart, ActionType);
 
-	auto headerBase() -> Genome::Base override;
-
 	auto writeBody(Genome & genome) -> void final;
 };
 

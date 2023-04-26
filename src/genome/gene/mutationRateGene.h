@@ -22,8 +22,6 @@ public:
 
 	explicit MutationRateGene(i32 change);
 
-	auto headerBase() -> Genome::Base override;
-
 	auto getChange() -> i32;
 };
 

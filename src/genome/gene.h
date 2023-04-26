@@ -5,6 +5,7 @@
 #ifndef ALIFE_GENE_H
 #define ALIFE_GENE_H
 
+#include <array>
 #include "genomeView.h"
 #include "genome.h"
 
@@ -18,27 +19,12 @@ protected:
 	virtual auto writeBody(Genome & genome) -> void = 0;
 
 public:
-	virtual auto headerBase() -> Genome::Base = 0;
-
-	auto write(Genome & genome) -> void;
-
-	/* reader/writer utility */
-
-	static auto write2(Genome & genome, i32 value) -> void;
-	static auto write3(Genome & genome, i32 value) -> void;
-	static auto write4(Genome & genome, i32 value) -> void;
-	static auto write5(Genome & genome, i32 value) -> void;
-	static auto write6(Genome & genome, i32 value) -> void;
-	static auto write7(Genome & genome, i32 value) -> void;
-	static auto write8(Genome & genome, i32 value) -> void;
-
-	static auto read2(GenomeView & genome, i32 offset) -> i32;
-	static auto read3(GenomeView & genome, i32 offset) -> i32;
-	static auto read4(GenomeView & genome, i32 offset) -> i32;
-	static auto read5(GenomeView & genome, i32 offset) -> i32;
-	static auto read6(GenomeView & genome, i32 offset) -> i32;
-	static auto read7(GenomeView & genome, i32 offset) -> i32;
-	static auto read8(GenomeView & genome, i32 offset) -> i32;
+	enum Type {
+		BODY,
+		EYE,
+		UPGRADE,
+		MUTATION,
+	};
 };
 
 #endif //ALIFE_GENE_H

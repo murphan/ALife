@@ -57,7 +57,7 @@ Genome::Genome(std::string && string) : code(), length((i32)string.length()) {
 /**
  * accesses a base at an index in the code
  */
-auto Genome::get(i32 index) const -> Base {
+auto Genome::operator[](i32 index) const -> Base {
 	/*
 	 * bases are packed in big endian order
 	 *
@@ -81,7 +81,7 @@ auto Genome::toString() const -> std::string {
 	string.reserve(length);
 
 	for (auto i = 0; i < length; ++i) {
-		auto base = get(i);
+		auto base = operator[](i);
 		string.push_back(baseName[base]);
 	}
 
@@ -127,7 +127,7 @@ auto Genome::editDistance(Genome & genomeX, Genome & genomeY) -> std::vector<i32
      */
     for (auto y = 1; y < height; ++y) {
         for (auto x = 1; x < width; ++x) {
-            if (genomeX.get(x - 1) == genomeY.get(y - 1)) {
+            if (genomeX[x - 1] == genomeY[y - 1]) {
                 grid[y * width + x] = grid[(y - 1) * width + (x - 1)];
             } else {
                 auto a = grid[(y - 1) * width + x];
@@ -159,7 +159,7 @@ auto Genome::mutateCombine(
     }
 
     using Pair = std::tuple<Genome &, Genome &>;
-    auto [ shorter, longer ] = first.size() < second.size() ? Pair { first, second } : Pair { second, first };
+    auto && [ shorter, longer ] = first.size() < second.size() ? Pair { first, second } : Pair { second, first };
 
     auto grid = longer.editDistance(longer, shorter);
 
@@ -264,9 +264,9 @@ auto Genome::mutateCombine(
 			/* select from a parent at random */
 			i32 selectedBase;
 			if (std::uniform_int_distribution<i32>(0, 2)(random) == 0)
-				selectedBase = longer.get(level[i].x - 1);
+				selectedBase = longer[level[i].x - 1];
 			else
-				selectedBase = second.get(level[i].y - 1);
+				selectedBase = second[level[i].y - 1];
 
 			if (chance(random) < substitutionChance)
 				genome.write((Base)((selectedBase + std::uniform_int_distribution<i32>(1, 3)(random)) % 4));
@@ -310,41 +310,18 @@ inline auto makeNotEither(Genome::Base base, i32 avoid0, i32 avoid1) -> Genome::
 	throw std::exception("impossible to reach");
 }
 
-auto Genome::writeGarbage(i32 n, Base avoidEnd) -> void {
-	internalwriteGarbage(n, avoidEnd);
-}
+auto random = std::default_random_engine(std::random_device()());
+auto randomBase = std::uniform_int_distribution<i32>(Genome::C, Genome::D);
+auto randomHeaderBase = std::uniform_int_distribution<i32>(Genome::A, Genome::B);
 
 auto Genome::writeGarbage(i32 n) -> void {
-	internalwriteGarbage(n, -1);
-}
-
-auto Genome::internalwriteGarbage(i32 n, i32 avoidEnd) -> void {
-	auto device = std::random_device();
-	auto random = std::default_random_engine(device());
-
-	auto last = std::uniform_int_distribution<i32>(0, 3)(random);
-	if (n == 1) last = makeNotEither((Base) last, avoidEnd, avoidEnd);
-
-	write((Base) last);
-
-	auto otherRange = std::uniform_int_distribution<i32>(1, 3);
-	for (auto i = 1; i < n; ++i) {
-		auto current = (last + otherRange(random)) % 4;
-		if (i == n - 1) current = makeNotEither((Base) current, (Base) last, avoidEnd);
-		write((Base) current);
-		last = current;
+	for (auto i = 0; i < n; ++i) {
+		write((Base) randomBase(random));
 	}
 }
 
-#ifdef DEBUG
-Genome::Genome(const Genome & other) : code(other.code), length(other.length) {
-    std::cout << "copied genome C";
+auto Genome::writeHeader() -> void {
+	write((Base) randomHeaderBase(random));
+	write((Base) randomHeaderBase(random));
+	write((Base) randomHeaderBase(random));
 }
-
-auto Genome::operator=(const Genome & other) -> Genome & {
-    code = other.code;
-    length = other.length;
-    std::cout << "copied genome =";
-    return *this;
-}
-#endif

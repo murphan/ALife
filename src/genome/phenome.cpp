@@ -10,6 +10,7 @@
 #include "genome/gene/upgradeGene.h"
 #include "geneMap.h"
 #include "phenome.h"
+#include "geneWriter.h"
 
 Sense::Sense(i32 x, i32 y, Body::Cell * senseCell) :
 	x(x), y(y), senseCell(senseCell) {}
@@ -86,8 +87,8 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 	/* read center cell section */
 	} else {
 		auto initialGene = readSegment(genome, geneMap.segments[0]);
-		auto bodyPart = (BodyPart)(Gene::read7(initialGene, 0) + 1);
-		auto data = Gene::read8(initialGene, 3);
+		auto bodyPart = (BodyPart)(GeneWriter::read7(initialGene, 0) + 1);
+		auto data = GeneWriter::read8(initialGene, 3);
 
 		auto cell = Body::Cell::make(bodyPart, data, 0);
 		body.directAddCell(bodyBuilder, cell, 0, 0);
@@ -97,9 +98,9 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 		auto segment = geneMap.segments[i];
 		if (!segment.isCoding) continue;
 
-		auto gene = readSegment(genome, segment.startOffset(2));
+		auto gene = readSegment(genome, segment.startOffset(6));
 
-		if (segment.type == Genome::A) {
+		if (segment.type == Gene::BODY) {
 			auto bodyGene = BodyGene(gene);
 			auto cell = Body::Cell::make(bodyGene.bodyPart, bodyGene.data, 0);
 
@@ -116,13 +117,13 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 				};
 			}
 
-		} else if (segment.type == Genome::B) {
+		} else if (segment.type == Gene::EYE) {
 			eyeReactions.emplace_back(gene);
 
-		} else if (segment.type == Genome::C) {
+		} else if (segment.type == Gene::UPGRADE) {
 			upgradeGenes.emplace_back(gene);
 
-		} else if (segment.type == Genome::D) {
+		} else if (segment.type == Gene::MUTATION) {
 			auto change = MutationRateGene(gene).getChange();
 			mutationModifiers[0] += change;
 			mutationModifiers[1] += change;

@@ -3,6 +3,7 @@
 //
 
 #include "bodyGene.h"
+#include "genome/geneWriter.h"
 
 const auto BodyGene::LENGTH = 15;
 
@@ -14,45 +15,41 @@ auto BodyGene::setsAnchor() const -> bool {
 	return setAnchor != -1;
 }
 
-auto BodyGene::headerBase() -> Genome::Base {
-	return Genome::A;
-}
-
 BodyGene::BodyGene(Direction direction, BodyPart bodyPart, i32 usingAnchor, i32 setAnchor, i32 data) :
 	direction(direction), bodyPart(bodyPart), usingAnchor(usingAnchor), setAnchor(setAnchor), data(data) {}
 
 BodyGene::BodyGene(GenomeView & view) :
-	bodyPart((BodyPart)(read7(view, 0) + 1)),
-	direction(read8(view, 3)),
+	bodyPart((BodyPart)(GeneWriter::read7(view, 0) + 1)),
+	direction(GeneWriter::read8(view, 3)),
 	usingAnchor(-1),
 	setAnchor(-1),
-	data(read8(view, 12))
+	data(GeneWriter::read8(view, 12))
 {
-	auto special = read3(view, 6);
+	auto special = GeneWriter::read3(view, 6);
 
 	if (special == 1) {
-		usingAnchor = read4(view, 9);
+		usingAnchor = GeneWriter::read4(view, 9);
 	} else if (special == 2) {
-		setAnchor = read4(view, 9);
+		setAnchor = GeneWriter::read4(view, 9);
 	}
 }
 
 auto BodyGene::writeBody(Genome & genome) -> void {
-	write7(genome, bodyPart - 1);
-	write8(genome, direction.value());
+	GeneWriter::write7(genome, bodyPart - 1);
+	GeneWriter::write8(genome, direction.value());
 
 	if (usesAnchor()) {
-		write3(genome, 1);
-		write4(genome, usingAnchor);
+		GeneWriter::write3(genome, 1);
+		GeneWriter::write4(genome, usingAnchor);
 	} else if (setsAnchor()) {
-		write3(genome, 2);
-		write4(genome, setAnchor);
+		GeneWriter::write3(genome, 2);
+		GeneWriter::write4(genome, setAnchor);
 	} else {
-		write3(genome, 0);
-		write4(genome, 0);
+		GeneWriter::write3(genome, 0);
+		GeneWriter::write4(genome, 0);
 	}
 
-	write8(genome, data);
+	GeneWriter::write8(genome, data);
 }
 
 /* factories */
