@@ -112,7 +112,7 @@ auto randomDirection = std::uniform_int_distribution(0, 7);
 
 auto SimulationController::moveOrganisms() -> void {
 	for (auto index = 0; index < organisms.size(); ++index) {
-		auto && organism = organisms.at(index);
+		auto && organism = organisms[index];
 		auto moveTries = organism.phenome.moveTries;
 		if (moveTries == 0 || organism.energy == 0) continue;
 
@@ -130,9 +130,9 @@ auto SimulationController::moveOrganisms() -> void {
 			if (lockedOn) organism.ticksSinceCollision = 0;
 
 			auto deltaX = direction.x(), deltaY = direction.y();
-			auto deltaRotation = (j == 0 && organism.ticksSinceCollision < 12) ? 0 : symmetricRange(random);
+			auto deltaRotation = (j == 0 && organism.ticksSinceCollision < organism.phenome.moveLength) ? 0 : symmetricRange(random);
 
-			organism.addEnergy(-1);
+			organism.addEnergy(-settings.moveCost);
 
 			if (organismGrid.canMoveOrganism(organism, index, deltaX, deltaY, deltaRotation)) {
 				organismGrid.moveOrganism(organism, index, deltaX, deltaY, deltaRotation);
@@ -144,7 +144,7 @@ auto SimulationController::moveOrganisms() -> void {
 			}
 		}
 
-		if (++organism.ticksSinceCollision > 12) {
+		if (++organism.ticksSinceCollision > organism.phenome.moveLength) {
 			organism.ticksSinceCollision = 0;
 			organism.movementDirection = randomDirection(random);
 		}

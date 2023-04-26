@@ -14,13 +14,13 @@ auto InitialGenome::create() -> Genome {
 	baseGenome.writeGarbage(21);
 
 	baseGenome.writeHeader();
-	GeneWriter::write4(baseGenome, Gene::BODY);
+	GeneWriter::write5(baseGenome, Gene::BODY);
 	BodyGene::create(Direction::RIGHT_UP, BodyPart::PHOTOSYNTHESIZER, 0).writeBody(baseGenome);
 
 	baseGenome.writeGarbage(21);
 
 	baseGenome.writeHeader();
-	GeneWriter::write4(baseGenome, Gene::BODY);
+	GeneWriter::write5(baseGenome, Gene::BODY);
 	BodyGene::create(Direction::RIGHT_DOWN, BodyPart::PHOTOSYNTHESIZER, 0).writeBody(baseGenome);
 
 	baseGenome.writeGarbage(21);

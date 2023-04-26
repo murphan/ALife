@@ -57,6 +57,8 @@ public:
 	 */
 	i32 moveTries;
 
+	i32 moveLength;
+
 	/**
 	 * indices of the sense cells within the body for quick lookup
 	 */

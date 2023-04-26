@@ -13,7 +13,8 @@ Organism::Organism(Phenome && phenome, u32 id, i32 x, i32 y, Direction rotation,
 	energy(energy),
 	storedChild(std::nullopt),
 	movementDirection(movementDirection),
-	ticksSinceCollision(0) {}
+	ticksSinceCollision(0),
+	choosingNewDirection(false) {}
 
 auto Organism::getGenome() const -> const Genome & {
 	return phenome.genome;

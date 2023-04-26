@@ -11,6 +11,7 @@
 #include "geneMap.h"
 #include "phenome.h"
 #include "geneWriter.h"
+#include "genome/gene/movementGene.h"
 
 Sense::Sense(i32 x, i32 y, Body::Cell * senseCell) :
 	x(x), y(y), senseCell(senseCell) {}
@@ -69,6 +70,7 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 	numAliveCells(0),
 	bodyEnergy(0),
 	moveTries(0),
+	moveLength(settings.baseMoveLength),
 	senses(),
 	eyeReactions()
 {
@@ -128,6 +130,11 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 			mutationModifiers[0] += change;
 			mutationModifiers[1] += change;
 			mutationModifiers[2] += change;
+		} else if (segment.type == Gene::MOVEMENT) {
+			auto change = MovementGene(gene).getChange();
+
+			moveLength += change;
+			if (moveLength < 1) moveLength = 1;
 		}
 	}
 

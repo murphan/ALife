@@ -3,7 +3,7 @@
 //
 #include "geneWriter.h"
 
-auto GeneWriter::getBase(i32 sequence, i32 bases, i32 index) -> Genome::Base {
+inline auto getBase(i32 sequence, i32 bases, i32 index) -> Genome::Base {
 	return (Genome::Base)((sequence >> ((bases - index - 1) * 2)) & 3);
 }
 

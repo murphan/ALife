@@ -28,6 +28,7 @@ public:
 	i32 energy;
 
 	i32 ticksSinceCollision;
+	bool choosingNewDirection;
 	Direction movementDirection;
 
 	std::optional<Phenome> storedChild;

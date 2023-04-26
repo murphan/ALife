@@ -24,6 +24,7 @@ public:
 		EYE,
 		UPGRADE,
 		MUTATION,
+		MOVEMENT,
 	};
 };
 

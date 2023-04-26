@@ -75,8 +75,6 @@ namespace GeneWriter {
 
 	constexpr auto encode8Table = generateDecodedTable<8>(decode8Table);
 
-	auto getBase(i32 sequence, i32 bases, i32 index) -> Genome::Base;
-
 	auto write2(Genome & genome, i32 value) -> void;
 	auto write3(Genome & genome, i32 value) -> void;
 	auto write4(Genome & genome, i32 value) -> void;

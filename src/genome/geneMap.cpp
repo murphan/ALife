@@ -7,6 +7,7 @@
 #include "gene/mutationRateGene.h"
 #include "gene/eyeGene.h"
 #include "geneWriter.h"
+#include "genome/gene/movementGene.h"
 
 /**
  * GENE HEADERS: any combination of three base pairs of A or B
@@ -24,7 +25,7 @@ inline auto findGeneHeader(const Genome & genome, const i32 startIndex) -> i32 {
 
 	auto isGood = [](Genome::Base base) -> bool { return base == Genome::A || base == Genome::B; };
 
-	for (auto index = startIndex + 2; index < genome.size() - 1; ++index) {
+	for (auto index = startIndex + 2; index < genome.size() - 3; ++index) {
 		auto current = genome[index];
 		if (isGood(minus2) && isGood(minus1) && isGood(current)) {
 			return index - 2;
@@ -74,12 +75,13 @@ GeneMap::GeneMap(const Genome & genome): segments() {
 			pushJunkSegment(lastStart, genome.size());
 			break;
 		} else {
-			auto geneType = (Gene::Type)GeneWriter::read4(genome, index + 3);
+			auto geneType = (Gene::Type)GeneWriter::read5(genome, index + 3);
 			auto geneLength = 6 + (
 				geneType == Gene::BODY ? BodyGene::LENGTH :
 				geneType == Gene::EYE ? EyeGene::LENGTH :
 				geneType == Gene::UPGRADE ? UpgradeGene::LENGTH :
 				geneType == Gene::MUTATION ? MutationRateGene::LENGTH :
+				geneType == Gene::MOVEMENT ? MovementGene::LENGTH :
 				-1
             );
 
