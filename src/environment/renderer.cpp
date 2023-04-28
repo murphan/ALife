@@ -97,18 +97,18 @@ auto Renderer::render(Environment & environment, std::vector<Organism> & organis
 			auto && mapCell = environment.accessUnsafe(x, y);
 			auto && food = mapCell.food;
 
+			insert3(
+				buffer,
+				bufferIndex(x, y) + 3,
+				getFactorsColor(mapCell)
+			);
+
 			if (food.filled()) {
 				buffer[bufferIndex(x, y)] = META_FOOD | (food.broken() ? CIRCLE_FLAG : 0);
 				insert3(
 					buffer,
 					bufferIndex(x, y) + (food.broken() ? 6 : 3),
 					food.dead() ? bodyPartDeadColors[food.bodyPart() - 1] : bodyPartColors[food.bodyPart() - 1]
-				);
-			} else {
-				insert3(
-					buffer,
-					bufferIndex(x, y) + 3,
-					getFactorsColor(mapCell)
 				);
 			}
 		}
