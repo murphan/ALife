@@ -4,6 +4,9 @@
 #include "renderer.h"
 #include "../genome/geneMap.h"
 #include "genome/rotation.h"
+#include "environment/cell/mouth.h"
+#include "environment/cell/weapon.h"
+#include "environment/cell/photosynthesizer.h"
 
 SimulationController::SimulationController(
 	Environment && environment,
@@ -38,11 +41,6 @@ auto SimulationController::tick() -> void {
     organismsReproduce();
 
 	++currentTick;
-}
-
-inline auto killCell(Organism & organism, Body::Cell & cell, Settings & settings) -> void {
-	organism.phenome.onRemoveCell(cell, settings);
-	cell.setDead(true);
 }
 
 auto SimulationController::shuffleOrganisms() -> void {
@@ -212,7 +210,7 @@ auto SimulationController::ageOrganismCells() -> void {
 					cell.setAge(newAge);
 
 					if (newAge >= organism.phenome.maxAge(settings)) {
-						killCell(organism, cell, settings);
+						Weapon::killCell(organism, cell, settings);
 					}
 				}
 			}
@@ -236,152 +234,13 @@ auto SimulationController::organismCellsTick() -> void {
 				if (cell.empty() || cell.dead()) continue;
 
 				if (cell.bodyPart() == BodyPart::PHOTOSYNTHESIZER) {
-					auto && environmentCell = environment.accessUnsafe(x, y);
-					auto lightPercentage = (f32)environmentCell.getFactor(Factor::LIGHT) / 127.0_f32;
-
-					auto isOtherAround = [&](i32 deltaX, i32 deltaY) {
-						auto && space = organismGrid.access(x + deltaX, y + deltaY);
-						return (space.fromOrganism() && space.cell().bodyPart() == BodyPart::PHOTOSYNTHESIZER) ? 1 : 0;
-					};
-
-					auto othersAround = isOtherAround(0, 1) +
-						isOtherAround(1, 0) +
-						isOtherAround(0, -1) +
-						isOtherAround(-1, 0);
-
-					if (
-						std::uniform_real_distribution<f32>(0.0_f32, 1.0_f32)(random) <
-						lightPercentage * (1.0_f32 - ((f32)othersAround * 0.25_f32))
-					) organism.addEnergy(settings.photosynthesisFactor);
+					Photosynthesizer::tick(x, y, organism, environment, organismGrid, settings, random);
 
 				} else if (cell.bodyPart() == BodyPart::MOUTH) {
-					auto tryEatAround = [&](i32 deltaX, i32 deltaY) {
-						auto && space = organismGrid.access(x + deltaX, y + deltaY);
+					Mouth::tick(x, y, organism, index, environment, organismGrid, settings);
 
-						auto eatCell = [&](Body::Cell & cell) {
-							auto energy = (i32)((f32)cell.cost(settings) * settings.foodEfficiency);
-							organism.addEnergy(energy);
-						};
-
-						/* eating non-broken dead cells */
-						if (space.isFilled() && space.index() != index && space.cell().dead()) {
-							eatCell(space.cell());
-
-							space.cell() = Body::Cell::makeEmpty();
-							space = OrganismGrid::Space::makeEmpty();
-							return;
-						}
-
-						//auto && envSpace = environment.access(x = deltaX, y + deltaY);
-//
-						///* eating broken dead cells */
-						//if (envSpace.food.filled()) {
-						//	eatCell(envSpace.food);
-//
-						//	envSpace.food = Body::Cell::makeEmpty();
-						//}
-					};
-
-					//tryEatAround(0, 0);
-					tryEatAround(1, 0);
-					tryEatAround(0, 1);
-					tryEatAround(-1, 0);
-					tryEatAround(0, -1);
 				} else if (cell.bodyPart() == BodyPart::WEAPON) {
-					auto superAttack = !cell.isModified() ? -1 : cell.modifier();
-
-					auto damageAround = [&](i32 deltaX, i32 deltaY) {
-						auto spaceX = x + deltaX, spaceY = y + deltaY;
-
-						auto && space = organismGrid.access(spaceX, spaceY);
-
-						/* weapons break down food */
-						//if (space.isFilled() && space.cell().dead()) {
-						//	space.cell().setBroken(true);
-						//	space = OrganismGrid::Space::makeEmpty();
-//
-						//	/* detach from organism */
-						//	if (space.fromOrganism()) {
-						//		environment.accessUnsafe(spaceX, spaceY).food = space.cell();
-						//		space.cell() = Body::Cell::makeEmpty();
-						//	}
-						//	return;
-						//}
-
-						/* attacking cells as parts of organism */
-						if (!space.fromOrganism() || space.cell().dead()) return;
-						auto defenderIndex = space.index();
-						if (defenderIndex == index) return;
-
-						constexpr static i32 BLOCK_NONE = 0x0;
-						constexpr static i32 BLOCK_PART = 0x1;
-						constexpr static i32 BLOCK_FULL = 0x2;
-						constexpr static i32 BLOCK_FULL_BUT_COOLER = 0x2;
-
-						auto armorDoesBlock = [&](i32 deltaX, i32 deltaY) -> i32 {
-							auto && space = organismGrid.access(spaceX + deltaX, spaceY + deltaY);
-							if (!space.fromOrganism() || space.index() != defenderIndex || space.cell().dead()) return BLOCK_NONE;
-
-							auto isDirectlyAttacked = deltaX == 0 && deltaY == 0;
-							auto bodyPart = space.cell().bodyPart();
-
-							auto isAmored = (bodyPart == BodyPart::ARMOR) ||
-								(bodyPart == BodyPart::SCAFFOLD && isDirectlyAttacked);
-
-							if (!isAmored) return BLOCK_NONE;
-
-							volatile auto superArmor = bodyPart == BodyPart::ARMOR ?
-				                  !space.cell().isModified() ? -1 : space.cell().modifier() : -1;
-
-							auto superCounters = superArmor == superAttack;
-
-							if (isDirectlyAttacked) {
-								if (superAttack == -1) {
-									return superArmor == -1 ? BLOCK_FULL : BLOCK_FULL_BUT_COOLER;
-								} else {
-									if (superArmor == -1) {
-										return BLOCK_PART;
-									} else {
-										return superCounters ? BLOCK_FULL : BLOCK_PART;
-									}
-								}
-							} else {
-								if (superAttack == -1) {
-									return superArmor == -1 ? BLOCK_PART : BLOCK_FULL;
-								} else {
-									if (superArmor == -1) {
-										return BLOCK_NONE;
-									} else {
-										return superCounters ? BLOCK_PART : BLOCK_NONE;
-									}
-								}
-							}
-						};
-
-						auto blockLevel = armorDoesBlock(0, 0) |
-						                  armorDoesBlock(1, 0) |
-						                  armorDoesBlock(0, 1) |
-						                  armorDoesBlock(-1, 0) |
-						                  armorDoesBlock(0, -1);
-
-						auto damageDealt = (blockLevel >> 1) & 0x1 ? 0 :
-							blockLevel & 0x1 ? settings.weaponDamage - settings.armorPrevents :
-							settings.weaponDamage;
-
-						if (damageDealt > 0) {
-							auto && defender = organisms[defenderIndex];
-							defender.addEnergy(-damageDealt);
-
-							if (defender.energy == 0) {
-								killCell(defender, space.cell(), settings);
-							}
-						}
-					};
-
-					damageAround(1, 0);
-					damageAround(0, 1);
-					damageAround(-1, 0);
-					damageAround(0, -1);
+					Weapon::tick(x, y, index, cell, environment, organismGrid, organisms, settings);
 				}
 			}
 		}

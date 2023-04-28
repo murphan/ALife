@@ -36,7 +36,7 @@ auto Body::Cell::setAge(i32 age) -> void {
 /* getters */
 
 auto Body::Cell::bodyPart() const -> BodyPart {
-	return bodyPart_;
+ 	return bodyPart_;
 }
 auto Body::Cell::data() const -> i32 {
 	return data_;
@@ -67,11 +67,11 @@ auto Body::Cell::filled() const -> bool {
 }
 
 auto Body::Cell::setBroken(bool broken) -> void {
-	//broken_ = broken;
+	broken_ = broken;
 }
 
 auto Body::Cell::broken() const -> bool {
-	return false; broken_;
+	return broken_;
 }
 
 BodyBuilder::BodyBuilder() :
