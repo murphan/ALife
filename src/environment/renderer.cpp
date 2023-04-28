@@ -98,10 +98,10 @@ auto Renderer::render(Environment & environment, std::vector<Organism> & organis
 			auto && food = mapCell.food;
 
 			if (food.filled()) {
-				buffer[bufferIndex(x, y)] = META_FOOD;
+				buffer[bufferIndex(x, y)] = META_FOOD | (food.broken() ? CIRCLE_FLAG : 0);
 				insert3(
 					buffer,
-					bufferIndex(x, y) + 3,
+					bufferIndex(x, y) + (food.broken() ? 6 : 3),
 					food.dead() ? bodyPartDeadColors[food.bodyPart() - 1] : bodyPartColors[food.bodyPart() - 1]
 				);
 			} else {

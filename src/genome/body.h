@@ -39,33 +39,29 @@ class Body {
 public:
 	class Cell {
 	private:
-		/**
-		 * 11 | 10 bits | [age]
-		 * 10 |  1 bits | [is dead]
-		 *  7 |  3 bits | [modifier]
-		 *  4 |  3 bits | [data]
-		 *  0 |  4 bits | [body part]
-		 */
-		//u32 value;
-
 		BodyPart bodyPart_;
 		i32 data_;
 		i32 age_;
 		bool dead_;
 		i32 modifier_;
+		bool broken_;
 
 	public:
-		explicit Cell(BodyPart bodyPart_,
-		i32 data_,
-		i32 age_,
-		bool dead_,
-		i32 modifier_);
+		explicit Cell(
+			BodyPart bodyPart_,
+			i32 data_,
+			i32 age_,
+			bool dead_,
+			i32 modifier_,
+			bool broken_
+		);
 
 		static auto makeEmpty() -> Cell;
 		static auto make(BodyPart bodyPart, i32 data, i32 age) -> Cell;
 
 		auto modify(i32 modifier) -> void;
 		auto setDead(bool dead) -> void;
+		auto setBroken(bool broken) -> void;
 		auto setAge(i32 age) -> void;
 
 		[[nodiscard]] auto empty() const -> bool;
@@ -76,6 +72,7 @@ public:
 		[[nodiscard]] auto modifier() const -> i32;
 		[[nodiscard]] auto dead() const -> bool;
 		[[nodiscard]] auto age() const -> i32;
+		[[nodiscard]] auto broken() const -> bool;
 
 		[[nodiscard]] auto cost(Settings & settings) const -> i32;
 	};

@@ -64,7 +64,7 @@ auto SimulationController::renderOrganismGrid() -> void {
 		for (auto x = 0; x < environment.getWidth(); ++x) {
 			auto && food = environment.accessUnsafe(x, y).food;
 
-			if (food.filled()) {
+			if (food.filled() && !food.broken()) {
 				organismGrid.accessUnsafe(x, y) = OrganismGrid::Space::makeFood(&food);
 			}
 		}
@@ -92,10 +92,10 @@ auto SimulationController::organismSeeingDirection(Organism & organism, i32 inde
 			auto && space = organismGrid.access(seeX, seeY);
 
 			/* is this good enough for organisms to actually use it?????????? ;) */
-			if (space.isFood()) {
+			if (space.fromEnvironment()) {
 				return std::make_optional<Direction>(eyeDirection);
 
-			} else if (space.isCell() && space.index() != index) {
+			} else if (space.fromOrganism() && space.index() != index) {
 				for (auto && reaction : eyeReactions) {
 					if (space.cell().bodyPart() == reaction.seeing) {
 						return std::make_optional<Direction>(reaction.actionType == EyeGene::ActionType::TOWARD ? eyeDirection : eyeDirection.opposite());
@@ -153,10 +153,6 @@ auto SimulationController::moveOrganisms() -> void {
 
 auto SimulationController::checkOrganismsDie() -> void {
 	std::erase_if(organisms, [&, this](Organism & organism) {
-		auto && body = organism.body();
-		auto rotation = organism.rotation;
-		auto isAlive = false;
-
 		if (organism.phenome.numAliveCells == 0) {
 			replaceOrganismWithFood(organism);
 			ids.removeId(organism.id);
@@ -245,7 +241,7 @@ auto SimulationController::organismCellsTick() -> void {
 
 					auto isOtherAround = [&](i32 deltaX, i32 deltaY) {
 						auto && space = organismGrid.access(x + deltaX, y + deltaY);
-						return (space.isCell() && space.cell().bodyPart() == BodyPart::PHOTOSYNTHESIZER) ? 1 : 0;
+						return (space.fromOrganism() && space.cell().bodyPart() == BodyPart::PHOTOSYNTHESIZER) ? 1 : 0;
 					};
 
 					auto othersAround = isOtherAround(0, 1) +
@@ -262,17 +258,31 @@ auto SimulationController::organismCellsTick() -> void {
 					auto tryEatAround = [&](i32 deltaX, i32 deltaY) {
 						auto && space = organismGrid.access(x + deltaX, y + deltaY);
 
-						/* organisms can eat dead cells, part of a living organism or not */
-						if (space.isFilled() && space.index() != index && space.cell().dead()) {
-							auto energy = (i32)((f32)space.cell().cost(settings) * settings.foodEfficiency);
+						auto eatCell = [&](Body::Cell & cell) {
+							auto energy = (i32)((f32)cell.cost(settings) * settings.foodEfficiency);
 							organism.addEnergy(energy);
+						};
+
+						/* eating non-broken dead cells */
+						if (space.isFilled() && space.index() != index && space.cell().dead()) {
+							eatCell(space.cell());
 
 							space.cell() = Body::Cell::makeEmpty();
 							space = OrganismGrid::Space::makeEmpty();
+							return;
 						}
+
+						//auto && envSpace = environment.access(x = deltaX, y + deltaY);
+//
+						///* eating broken dead cells */
+						//if (envSpace.food.filled()) {
+						//	eatCell(envSpace.food);
+//
+						//	envSpace.food = Body::Cell::makeEmpty();
+						//}
 					};
 
-					tryEatAround(0, 0);
+					//tryEatAround(0, 0);
 					tryEatAround(1, 0);
 					tryEatAround(0, 1);
 					tryEatAround(-1, 0);
@@ -284,7 +294,22 @@ auto SimulationController::organismCellsTick() -> void {
 						auto spaceX = x + deltaX, spaceY = y + deltaY;
 
 						auto && space = organismGrid.access(spaceX, spaceY);
-						if (!space.isCell() || space.cell().dead()) return;
+
+						/* weapons break down food */
+						//if (space.isFilled() && space.cell().dead()) {
+						//	space.cell().setBroken(true);
+						//	space = OrganismGrid::Space::makeEmpty();
+//
+						//	/* detach from organism */
+						//	if (space.fromOrganism()) {
+						//		environment.accessUnsafe(spaceX, spaceY).food = space.cell();
+						//		space.cell() = Body::Cell::makeEmpty();
+						//	}
+						//	return;
+						//}
+
+						/* attacking cells as parts of organism */
+						if (!space.fromOrganism() || space.cell().dead()) return;
 						auto defenderIndex = space.index();
 						if (defenderIndex == index) return;
 
@@ -295,7 +320,7 @@ auto SimulationController::organismCellsTick() -> void {
 
 						auto armorDoesBlock = [&](i32 deltaX, i32 deltaY) -> i32 {
 							auto && space = organismGrid.access(spaceX + deltaX, spaceY + deltaY);
-							if (!space.isCell() || space.index() != defenderIndex || space.cell().dead()) return BLOCK_NONE;
+							if (!space.fromOrganism() || space.index() != defenderIndex || space.cell().dead()) return BLOCK_NONE;
 
 							auto isDirectlyAttacked = deltaX == 0 && deltaY == 0;
 							auto bodyPart = space.cell().bodyPart();

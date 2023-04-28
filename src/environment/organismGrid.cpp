@@ -65,7 +65,7 @@ auto OrganismGrid::placeOrganism(Organism & organism, i32 index) -> void {
 
 			auto && cell = body.access(i, j, rotation);
 
-			if (cell.filled()) {
+			if (cell.filled() && !cell.broken()) {
 				grid[indexOf(x, y)] = Space::makeCell(&cell, index);
 			}
 		}
@@ -144,12 +144,12 @@ auto OrganismGrid::Space::isFilled() const -> bool {
 }
 
 /** is filled AND is part of a living organism (even if dead) */
-auto OrganismGrid::Space::isCell() const -> bool {
+auto OrganismGrid::Space::fromOrganism() const -> bool {
 	return reference != nullptr && value != 0 && value != FOOD_VALUE;
 }
 
 /** is filled AND is dropped as food, not part of an organism */
-auto OrganismGrid::Space::isFood() const -> bool {
+auto OrganismGrid::Space::fromEnvironment() const -> bool {
 	return reference != nullptr && value == FOOD_VALUE;
 }
 

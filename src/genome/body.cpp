@@ -5,48 +5,23 @@
 #include "body.h"
 #include "rotation.h"
 
-//Body::Cell::Cell(u32 value): value(value) {}
-
-inline auto nBits(i32 n) -> u32 {
-	return (1 << n) - 1;
-}
-
-//auto Body::Cell::makeEmpty() -> Body::Cell {
-//	return Cell(0_u32);
-//}
-//
-//auto Body::Cell::make(BodyPart bodyPart, i32 data, i32 age) -> Cell {
-//	return Cell(((age & nBits(10)) << 11) | ((data & nBits(3)) << 4) | (bodyPart & nBits(4)));
-//}
-
-Body::Cell::Cell(BodyPart bodyPart_,
-                 i32 data_,
-                 i32 age_,
-                 bool dead_,
-                 i32 modifier_): bodyPart_(bodyPart_), data_(data_), age_(age_), dead_(dead_), modifier_(modifier_) {}
+Body::Cell::Cell(
+	BodyPart bodyPart_,
+	i32 data_,
+	i32 age_,
+	bool dead_,
+	i32 modifier_,
+	bool broken_
+): bodyPart_(bodyPart_), data_(data_), age_(age_), dead_(dead_), modifier_(modifier_), broken_(broken_) {}
 
 auto Body::Cell::makeEmpty() -> Body::Cell {
-	return Cell(BodyPart::NONE, 0, 0, false, -1);
+	return Cell(BodyPart::NONE, 0, 0, false, -1, false);
 }
 auto Body::Cell::make(BodyPart bodyPart, i32 data, i32 age) -> Cell {
-	return Cell(bodyPart, data, age, false, -1);
+	return Cell(bodyPart, data, age, false, -1, false);
 }
 
 /* mutators */
-
-//auto Body::Cell::modify(i32 modifier) -> void {
-//	value &= ~(nBits(3) << 7);
-//	value |= ((modifier + 1) & nBits(3)) << 7;
-//}
-//
-//auto Body::Cell::setDead(bool dead) -> void {
-//	value |= (dead ? 1 : 0) << 10;
-//}
-//
-//auto Body::Cell::setAge(i32 age) -> void {
-//	value &= ~(nBits(10) << 11);
-//	value |= (age & nBits(10)) << 11;
-//}
 
 auto Body::Cell::modify(i32 modifier) -> void {
 	modifier_ = modifier + 1;
@@ -59,30 +34,6 @@ auto Body::Cell::setAge(i32 age) -> void {
 }
 
 /* getters */
-
-//auto Body::Cell::bodyPart() const -> BodyPart {
-//	return (BodyPart)(value & nBits(4));
-//}
-//
-//auto Body::Cell::data() const -> i32 {
-//	return (i32)((value >> 4) & nBits(3));
-//}
-//
-//auto Body::Cell::isModified() const -> bool {
-//	return ((value >> 7) & nBits(3)) != 0;
-//}
-//
-//auto Body::Cell::modifier() const -> i32 {
-//	return (i32)((value >> 7) & nBits(3)) - 1;
-//}
-//
-//auto Body::Cell::dead() const -> bool {
-//	return (bool)((value >> 10) & nBits(1));
-//}
-//
-//auto Body::Cell::age() const -> i32 {
-//	return (i32)((value >> 11) & nBits(10));
-//}
 
 auto Body::Cell::bodyPart() const -> BodyPart {
 	return bodyPart_;
@@ -113,6 +64,14 @@ auto Body::Cell::empty() const -> bool {
 
 auto Body::Cell::filled() const -> bool {
 	return !empty();
+}
+
+auto Body::Cell::setBroken(bool broken) -> void {
+	//broken_ = broken;
+}
+
+auto Body::Cell::broken() const -> bool {
+	return false; broken_;
 }
 
 BodyBuilder::BodyBuilder() :

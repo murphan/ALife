@@ -28,8 +28,8 @@ public:
 		static auto makeFood(Body::Cell * reference) -> Space;
 
 		[[nodiscard]] auto isFilled() const -> bool;
-		[[nodiscard]] auto isCell() const -> bool;
-		[[nodiscard]] auto isFood() const -> bool;
+		[[nodiscard]] auto fromOrganism() const -> bool;
+		[[nodiscard]] auto fromEnvironment() const -> bool;
 
 		[[nodiscard]] auto index() const -> i32;
 
