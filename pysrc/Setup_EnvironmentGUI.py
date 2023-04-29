@@ -3,34 +3,27 @@ import random
 import pygame
 
 import Global_access
+from Slider import Slider
+from typing import Callable
 
-CLOCK = None
-
-
-class SetupEnvironment:
-    """
-    This will set up the actual environment for the simulation to be displayed in
-    """
-    def __init__(self):
-        global CLOCK
+class EnvironmentGUI:
+    def __init__(self, set_fps: Callable[[float], None]):
         pygame.init()
 
-        SetupEnvironment.set_screen_sizes(Global_access.WINDOW_WIDTH, Global_access.WINDOW_HEIGHT)
+        EnvironmentGUI.set_screen_sizes(Global_access.WINDOW_WIDTH, Global_access.WINDOW_HEIGHT)
 
-        CLOCK = pygame.time.Clock()
         Global_access.SCREEN.fill(Global_access.BLACK)
 
         self.settings_button = None
         self.play_pause_button = None
-
-        self.create_buttons()
+        self.fps_slider = Slider(1.0, 21.0, lambda: Global_access.fps, lambda fps: set_fps(fps))
 
     @staticmethod
     def set_screen_sizes(width: int, height: int):
         Global_access.WINDOW_WIDTH = width
         Global_access.WINDOW_HEIGHT = height
 
-        SetupEnvironment.set_environment_box(width, height)
+        EnvironmentGUI.set_environment_box(width, height)
 
         # Global_access.new_frame = True
         Global_access.SCREEN = pygame.display.set_mode(
@@ -41,7 +34,7 @@ class SetupEnvironment:
     @staticmethod
     def set_environment_box(width: int, height: int):
         grid_width, grid_height = Global_access.environment_size
-        Global_access.ENVIRONMENT_BOX = SetupEnvironment.get_bounds(
+        Global_access.ENVIRONMENT_BOX = EnvironmentGUI.get_bounds(
             1.0 if grid_width == 0 or grid_height == 0 else float(grid_width) / grid_height,
             width,
             height,
@@ -78,7 +71,7 @@ class SetupEnvironment:
         if Global_access.latest_frame is not None:
             Global_access.latest_frame["should_render"] = True
 
-    def create_buttons(self):
+    def render_buttons(self):
         self.play_pause_button = Button(
             Global_access.SCREEN,
             (Global_access.WINDOW_WIDTH - 150, Global_access.WINDOW_HEIGHT - 40, 70, 35),
@@ -92,6 +85,18 @@ class SetupEnvironment:
             "Settings",
             20,
             (255, 255, 0),
+        )
+
+    def render_fps_slider(self):
+        self.fps_slider.render(
+            Global_access.SCREEN,
+            'fps:',
+            pygame.Rect(Global_access.WINDOW_WIDTH - 150 - 5 - 210, Global_access.WINDOW_HEIGHT - 40, 210, 35),
+            font_size=20,
+            text_area_width=80,
+            handle_width=10,
+            bar_height=5,
+            gutter=(10, 2),
         )
 
     @staticmethod

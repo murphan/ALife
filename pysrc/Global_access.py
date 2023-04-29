@@ -7,7 +7,7 @@ from threading import Lock
 import Drawing
 import pygame
 
-from pysrc.Setup_EnvironmentGUI import SetupEnvironment
+from pysrc.Setup_EnvironmentGUI import EnvironmentGUI
 
 # This is only set to be 1 when the program is exiting. Do not use unless ending execution
 EXIT = 0
@@ -97,7 +97,7 @@ def define_grid(width: int, height: int):
     ]
 
     environment_size = width, height
-    SetupEnvironment.set_environment_box(WINDOW_WIDTH, WINDOW_HEIGHT)
+    EnvironmentGUI.set_environment_box(WINDOW_WIDTH, WINDOW_HEIGHT)
 
 
 def update_grid(x, y):

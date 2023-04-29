@@ -9,18 +9,20 @@ from tkinter import messagebox
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 import pygame
 
-import Control_EnvironmentGUI
-import Setup_EnvironmentGUI
+from Control_EnvironmentGUI import EnvironmentControl
+from Setup_EnvironmentGUI import EnvironmentGUI
 import Setup_settingsGUI
 import Global_access
 import receive_message
 import Drawing
 
 class Management:
-    def __init__(self, *args, **kwargs):
-        self.EnvironmentGui = Setup_EnvironmentGUI.SetupEnvironment()
-        self.EnvironmentControl = Control_EnvironmentGUI.EnvironmentControl()
+    def __init__(self):
+        self.environment_control = EnvironmentControl()
+        self.environment_gui = EnvironmentGUI(self.environment_control.set_fps)
 
+        self.conn = None
+        self.thread = None
         self.create_connection()
 
         # TODO call whenever new connection is established
@@ -44,7 +46,7 @@ class Management:
         self.thread.start()
 
     def send_init_message(self):
-        self.EnvironmentControl.send_message(self.conn, "init")
+        self.environment_control.send_message(self.conn, "init")
 
     def main_loop(self):
         while True:
@@ -53,26 +55,32 @@ class Management:
                 pygame.quit()
                 sys.exit()
 
+            should_render_ui = False
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     thread = Thread(target=self.exiting)
                     thread.start()
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if self.EnvironmentGui.settings_button.mouse_click(event):  # Show the settings window
+                    if self.environment_gui.settings_button.mouse_click(event):  # Show the settings window
                         thread = Thread(target=self.open_settings)
                         thread.start()
-                    elif self.EnvironmentGui.play_pause_button.mouse_click(event):  # start button was clicked
-                        self.EnvironmentControl.toggle_start_stop(self.conn)
-                        self.EnvironmentGui.create_buttons()
+                    elif self.environment_gui.play_pause_button.mouse_click(event):  # start button was clicked
+                        self.environment_control.toggle_start_stop(self.conn)
+                        should_render_ui = True
                     else:  # Display on the environment that a square was clicked
-                        self.EnvironmentControl.square_clicked(event, self.EnvironmentGui, self.conn)
+                        self.environment_control.square_clicked(event, self.environment_gui, self.conn)
                 if event.type == pygame.VIDEORESIZE:
-                    self.EnvironmentGui.on_window_resize(event)
+                    self.environment_gui.on_window_resize(event)
+                if self.environment_gui.fps_slider.update(event):
+                    should_render_ui = True
 
-            if Global_access.latest_frame is not None and Global_access.latest_frame["should_render"]:
+            if (Global_access.latest_frame is not None and Global_access.latest_frame["should_render"])\
+                    or should_render_ui:
                 Global_access.SCREEN.fill(Global_access.BLACK)
                 Drawing.render_grid(Global_access.latest_frame)
-                self.EnvironmentGui.create_buttons()
+                self.environment_gui.render_buttons()
+                self.environment_gui.render_fps_slider()
                 Global_access.latest_frame["should_render"] = False
 
             pygame.display.update()
