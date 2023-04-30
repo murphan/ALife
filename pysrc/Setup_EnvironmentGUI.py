@@ -3,19 +3,22 @@ import random
 import pygame
 
 import Global_access
-from Slider import Slider
+from component.Slider import Slider
+from component.Button import Button
 from typing import Callable
+
 
 class EnvironmentGUI:
     def __init__(self, set_fps: Callable[[float], None]):
         pygame.init()
+        pygame.display.set_caption('ALife Challenge')
 
         EnvironmentGUI.set_screen_sizes(Global_access.WINDOW_WIDTH, Global_access.WINDOW_HEIGHT)
 
         Global_access.SCREEN.fill(Global_access.BLACK)
 
-        self.settings_button = None
-        self.play_pause_button = None
+        self.settings_button = Button()
+        self.play_pause_button = Button()
         self.fps_slider = Slider(1.0, 21.0, lambda: Global_access.fps, lambda fps: set_fps(fps))
 
     @staticmethod
@@ -71,28 +74,26 @@ class EnvironmentGUI:
         if Global_access.latest_frame is not None:
             Global_access.latest_frame["should_render"] = True
 
-    def render_buttons(self):
-        self.play_pause_button = Button(
+    def render_ui(self):
+        self.play_pause_button.render(
             Global_access.SCREEN,
-            (Global_access.WINDOW_WIDTH - 150, Global_access.WINDOW_HEIGHT - 40, 70, 35),
+            pygame.Rect(Global_access.WINDOW_WIDTH - 150, Global_access.WINDOW_HEIGHT - 40, 70, 35),
             "Pause" if Global_access.running else "Play",
-            20,
-            (255, 0, 0) if Global_access.running else (0, 255, 0),
+            Global_access.ENV_FONT,
+            0xe83a54 if Global_access.running else 0x75d943,
         )
-        self.settings_button = Button(
+        self.settings_button.render(
             Global_access.SCREEN,
-            (Global_access.WINDOW_WIDTH - 75, Global_access.WINDOW_HEIGHT - 40, 70, 35),
+            pygame.Rect(Global_access.WINDOW_WIDTH - 75, Global_access.WINDOW_HEIGHT - 40, 70, 35),
             "Settings",
-            20,
-            (255, 255, 0),
+            Global_access.ENV_FONT,
+            0xe09e24,
         )
-
-    def render_fps_slider(self):
         self.fps_slider.render(
             Global_access.SCREEN,
             'fps:',
             pygame.Rect(Global_access.WINDOW_WIDTH - 150 - 5 - 210, Global_access.WINDOW_HEIGHT - 40, 210, 35),
-            font_size=20,
+            font=Global_access.ENV_FONT,
             text_area_width=80,
             handle_width=10,
             bar_height=5,
@@ -122,36 +123,3 @@ class EnvironmentGUI:
         textRect = text_options.get_rect()
         textRect.center = (670, 745)
         Global_access.SCREEN.blit(text_options, textRect)
-
-
-class Button:
-    """
-    The button class which defines the buttons in the environment
-    """
-    def __init__(self, screen, position: (int, int, int, int), text: str, textSize: int, color: (int, int, int)):
-        font = pygame.font.SysFont("Arial", textSize)
-
-        rendered_text = font.render(text, True, (0, 0, 0))
-        text_rect = rendered_text.get_rect()
-
-        self.check_rect = pygame.Rect(*position)
-
-        x, y, w, h = position
-
-        pygame.draw.rect(screen, color, position)
-        screen.blit(source=rendered_text, dest=(x + (w - text_rect[2]) / 2, y + (h - text_rect[3]) / 2))
-
-    def clicked(self):
-        """
-        Returns True if you clicked on the specified button being checked
-        """
-        x, y = pygame.mouse.get_pos()
-        return True if self.check_rect.collidepoint(x, y) else False
-
-    def mouse_click(self, event):
-        """
-        Checks if you click the mouse button and then if it's on the button
-        """
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if pygame.mouse.get_pressed()[0]:
-                return True if self.clicked() else False

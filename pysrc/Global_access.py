@@ -67,6 +67,8 @@ TILE_TYPE_WALL = 3
 
 BUFFER_SIZE = 4096
 
+ENV_FONT: pygame.font
+
 # The Mutex needing to be acquired in order to update information
 mutex = Lock()
 

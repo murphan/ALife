@@ -18,7 +18,7 @@ class Slider(object):
         screen: pygame.Surface,
         label: str,
         bounding_box: pygame.Rect,
-        font_size: int,
+        font: pygame.font,
         text_area_width: int,
         handle_width: int,
         bar_height: int,
@@ -37,14 +37,11 @@ class Slider(object):
         pygame.draw.rect(screen, 0x887894, bounding_box)
 
         # draw text
-        font = pygame.font.SysFont('Arial', font_size)
         rendered_text = font.render(f'{label} {self.get_value()}', True, (0, 0, 0))
         text_rect = rendered_text.get_rect()
         screen.blit(source=rendered_text, dest=(
             bounding_box.x + (text_area_width / 2) - (text_rect.width / 2),
             bounding_box.y + (bounding_box.height / 2) - (text_rect.height / 2),
-            text_rect.width,
-            text_rect.height,
         ))
 
         # draw bar

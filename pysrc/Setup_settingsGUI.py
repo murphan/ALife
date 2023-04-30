@@ -1,12 +1,13 @@
+import socket
 import tkinter
-from tkinter import *
-import tkinter.ttk as ttk
 import tkinter.font as font
+from tkinter import *
 
-import Setup_DataProcessingGUI
-import Setup_EnvironmentGUI
-import Control_EnvironmentGUI as Control_Environment
+import EnvironmentControl as Control_Environment
 import Global_access
+import Setup_DataProcessingGUI
+import EnvironmentControl
+from send_message import send_message
 
 LIGHT_GREEN = '#5fad75'
 ORANGE_YELLOW = '#e8b320'
@@ -28,38 +29,36 @@ CELL_DESCRIPTIONS = {
     "#ede6da": "Scaffolding cell"
 }
 
+
 class SetupSettings:
     """
     This will set up the settings window for manipulating different options in Environment
     """
-    def __init__(self):
-        self.setup_window()
+    def __init__(self, conn: socket.socket):
+        self.conn = conn
+        self.window = self.setup_window()
         self.setup_banner()
         self.setup_configurations()
         self.setup_buttons()
 
-    def start(self, settings):
-        """
-        This will actually display the settings window
-
-        :param settings: An instance of the main "management" class
-        :param type: Management class instance
-        """
-        self.env_settings = settings
-        self.window.mainloop()
-
-    def setup_window(self):
+    @staticmethod
+    def setup_window() -> Tk:
         """
         This sets up the main window
         """
         window = Tk()
         window.title("Settings")
-        # window.state('zoomed') this is annoying
         window.configure(bg=LIGHT_GREEN)
         window.geometry("1500x900")
         window.minsize(1500, 900)
 
-        self.window = window
+        return window
+
+    def start(self):
+        """
+        This will actually display the settings window
+        """
+        self.window.mainloop()
 
     def setup_banner(self):
         """
@@ -137,8 +136,8 @@ class SetupSettings:
 
         completed_button_frame = tkinter.Frame(repro_frame, bg=LIGHT_GREEN)
         completed_button = tkinter.Button(completed_button_frame, bg="light blue", text="Complete!",
-                                          command=lambda: Control_Environment.EnvironmentControl.set_mutations(
-                                                                                        self,
+                                          command=lambda: EnvironmentControl.set_mutations(
+                                                                                        self.conn,
                                                                                         self.insertion_value.get(),
                                                                                         self.deletion_value.get(),
                                                                                         self.substitution_value.get()))
@@ -188,7 +187,8 @@ class SetupSettings:
         self.click_dd_value = tkinter.StringVar(click_type_frame)
         self.click_dd_value.set(Global_access.CLICK_TYPE)
         self.click_dd = tkinter.OptionMenu(click_type_frame, self.click_dd_value, *CLICK_TYPES, command=lambda event:
-                        Control_Environment.EnvironmentControl.click_type(self, self.click_dd_value.get()))
+                        EnvironmentControl.click_type(self.click_dd_value.get()))
+
         self.click_dd.config(width=15, bg="white")
         self.click_dd.pack(side=TOP)
         click_title_frame.pack(side=TOP)
@@ -217,8 +217,8 @@ class SetupSettings:
         self.temp_value = tkinter.Scale(temp_value_frame, from_=-1, to=1, orient=HORIZONTAL,
                                         background=LIGHT_GREEN, resolution=.01,
                                         state=ACTIVE, command=lambda event:
-                                        Control_Environment.EnvironmentControl.set_temp_value(self,
-                                                                                              self.temp_value.get()))
+                                        self.set_temp_value(self.temp_value.get()))
+
         self.temp_value.set(Global_access.temperature)
         self.temp_value.pack(side=LEFT)
 
@@ -230,9 +230,8 @@ class SetupSettings:
         self.temp_scale = tkinter.Scale(temp_scale_frame, from_=10, to=100, orient=HORIZONTAL,
                                         background=LIGHT_GREEN, resolution=.1,
                                         state=ACTIVE if temp_noise.get() else DISABLED, command=lambda event:
-                                        Control_Environment.EnvironmentControl.set_temp_noise_levels(self,
-                                                                                              "scale",
-                                                                                              self.temp_scale.get()))
+                                        self.set_temp_noise_levels("scale", self.temp_scale.get()))
+
         self.temp_scale.set(Global_access.temp_scale)
         self.temp_scale.pack(side=LEFT)
 
@@ -243,9 +242,8 @@ class SetupSettings:
         self.temp_depth = tkinter.Scale(temp_depth_frame, from_=0, to=2, orient=HORIZONTAL,
                                         background=LIGHT_GREEN, resolution=.1,
                                         state=ACTIVE if temp_noise.get() else DISABLED, command=lambda event:
-                                        Control_Environment.EnvironmentControl.set_temp_noise_levels(self,
-                                                                                              "depth",
-                                                                                              self.temp_depth.get()))
+                                        self.set_temp_noise_levels("depth", self.temp_depth.get()))
+
         self.temp_depth.set(Global_access.temp_depth)
         self.temp_depth.pack(side=LEFT)
 
@@ -256,9 +254,7 @@ class SetupSettings:
         self.temp_speed = tkinter.Scale(temp_speed_frame, from_=0, to=1, orient=HORIZONTAL,
                                         background=LIGHT_GREEN, resolution=.1,
                                         state=ACTIVE if temp_noise.get() else DISABLED, command=lambda event:
-                                        Control_Environment.EnvironmentControl.set_temp_noise_levels(self,
-                                                                                              "speed",
-                                                                                              self.temp_speed.get()))
+                                        self.set_temp_noise_levels("speed", self.temp_speed.get()))
         self.temp_speed.set(Global_access.temp_speed)
         self.temp_speed.pack(side=LEFT)
 
@@ -288,8 +284,8 @@ class SetupSettings:
         self.light_value = tkinter.Scale(light_value_frame, from_=-1, to=1, orient=HORIZONTAL,
                                          background=LIGHT_GREEN, resolution=.01,
                                          state=ACTIVE, command=lambda event:
-                                        Control_Environment.EnvironmentControl.set_light_value(self,
-                                                                                               self.light_value.get()))
+                                            self.set_light_value(self.light_value.get()))
+
         self.light_value.set(Global_access.light)
         self.light_value.pack(side=LEFT)
 
@@ -301,9 +297,8 @@ class SetupSettings:
         self.light_scale = tkinter.Scale(light_scale_frame, from_=10, to=100, orient=HORIZONTAL,
                                          background=LIGHT_GREEN, resolution=.1,
                                          state=ACTIVE if light_noise.get() else DISABLED, command=lambda event:
-                                         Control_Environment.EnvironmentControl.set_light_noise_levels(self,
-                                                                                                "scale",
-                                                                                                self.light_scale.get()))
+                                         self.set_light_noise_levels("scale", self.light_scale.get()))
+
         self.light_scale.set(Global_access.light_scale)
         self.light_scale.pack(side=LEFT)
 
@@ -314,9 +309,7 @@ class SetupSettings:
         self.light_depth = tkinter.Scale(light_depth_frame, from_=0, to=2, orient=HORIZONTAL,
                                          background=LIGHT_GREEN, resolution=.1,
                                          state=ACTIVE if light_noise.get() else DISABLED, command=lambda event:
-                                         Control_Environment.EnvironmentControl.set_light_noise_levels(self,
-                                                                                                "depth",
-                                                                                                self.light_depth.get()))
+                                         self.set_light_noise_levels("depth", self.light_depth.get()))
         self.light_depth.set(Global_access.light_depth)
         self.light_depth.pack(side=LEFT)
 
@@ -327,9 +320,7 @@ class SetupSettings:
         self.light_speed = tkinter.Scale(light_speed_frame, from_=0, to=1, orient=HORIZONTAL,
                                          background=LIGHT_GREEN, resolution=.1,
                                          state=ACTIVE if light_noise.get() else DISABLED, command=lambda event:
-                                         Control_Environment.EnvironmentControl.set_light_noise_levels(self,
-                                                                                                "speed",
-                                                                                                self.light_speed.get()))
+                                         self.set_light_noise_levels("speed", self.light_speed.get()))
         self.light_speed.set(Global_access.light_speed)
         self.light_speed.pack(side=LEFT)
 
@@ -359,8 +350,7 @@ class SetupSettings:
         self.oxygen_value = tkinter.Scale(oxygen_value_frame, from_=-1, to=1, orient=HORIZONTAL,
                                           background=LIGHT_GREEN, resolution=.01,
                                           state=ACTIVE, command=lambda event:
-                                          Control_Environment.EnvironmentControl.set_oxygen_value(self,
-                                                                                                  self.oxygen_value.get()))
+                                          self.set_oxygen_value(self.oxygen_value.get()))
         self.oxygen_value.set(Global_access.oxygen)
         self.oxygen_value.pack(side=LEFT)
 
@@ -372,9 +362,8 @@ class SetupSettings:
         self.oxygen_scale = tkinter.Scale(oxygen_scale_frame, from_=10, to=100, orient=HORIZONTAL,
                                           background=LIGHT_GREEN, resolution=.1,
                                           state=ACTIVE if oxygen_noise.get() else DISABLED, command=lambda event:
-                                          Control_Environment.EnvironmentControl.set_oxygen_noise_levels(self,
-                                                                                                  "scale",
-                                                                                                  self.oxygen_scale.get()))
+                                          self.set_oxygen_noise_levels("scale", self.oxygen_scale.get()))
+
         self.oxygen_scale.set(Global_access.oxygen_scale)
         self.oxygen_scale.pack(side=LEFT)
 
@@ -385,9 +374,8 @@ class SetupSettings:
         self.oxygen_depth = tkinter.Scale(oxygen_depth_frame, from_=0, to=2, orient=HORIZONTAL,
                                           background=LIGHT_GREEN, resolution=.1,
                                           state=ACTIVE if oxygen_noise.get() else DISABLED, command=lambda event:
-                                          Control_Environment.EnvironmentControl.set_oxygen_noise_levels(self,
-                                                                                                  "depth",
-                                                                                                  self.oxygen_depth.get()))
+                                          self.set_oxygen_noise_levels("depth", self.oxygen_depth.get()))
+
         self.oxygen_depth.set(Global_access.oxygen_depth)
         self.oxygen_depth.pack(side=LEFT)
 
@@ -398,9 +386,7 @@ class SetupSettings:
         self.oxygen_speed = tkinter.Scale(oxygen_speed_frame, from_=0, to=1, orient=HORIZONTAL,
                                           background=LIGHT_GREEN, resolution=.1,
                                           state=ACTIVE if oxygen_noise.get() else DISABLED, command=lambda event:
-                                          Control_Environment.EnvironmentControl.set_oxygen_noise_levels(self,
-                                                                                                  "speed",
-                                                                                                  self.oxygen_speed.get()))
+                                          self.set_oxygen_noise_levels("speed", self.oxygen_speed.get()))
         self.oxygen_speed.set(Global_access.oxygen_speed)
         self.oxygen_speed.pack(side=LEFT)
 
@@ -434,7 +420,7 @@ class SetupSettings:
         """
         This will request data from the c++ application for the data processing window
         """
-        Control_Environment.EnvironmentControl.send_message(self, self.env_settings.conn, "request_all")
+        send_message(self.conn, "request_all")
         # TODO: This call should actually be moved to the decoding of the messages
         # We need to ensure that we have all of the data before we display the window
         # Keeping this here for now in order to display the window and demonstrate functionality
@@ -444,7 +430,6 @@ class SetupSettings:
         """
         This is a setter for the state of the sliders based on if the checkbox is clicked
         """
-        Control_Environment.EnvironmentControl.set_oxygen_noise(self, oxygen_noise)
         if Global_access.oxygen_noise:
             self.oxygen_speed.config(state=ACTIVE)
             self.oxygen_depth.config(state=ACTIVE)
@@ -458,11 +443,13 @@ class SetupSettings:
             self.oxygen_scale.config(state=DISABLED, takefocus=0)
             self.oxygen_value.set(Global_access.oxygen)
 
+        Global_access.oxygen_noise = oxygen_noise
+        send_message(self.conn, "settings")
+
     def set_light_noise(self, light_noise):
         """
         This is a setter for the state of the sliders based on if the checkbox is clicked
         """
-        Control_Environment.EnvironmentControl.set_light_noise(self, light_noise)
         if Global_access.light_noise:
             self.light_speed.config(state=ACTIVE)
             self.light_depth.config(state=ACTIVE)
@@ -476,11 +463,13 @@ class SetupSettings:
             self.light_scale.config(state=DISABLED, takefocus=0)
             self.light_value.set(Global_access.light)
 
+        Global_access.light_noise = light_noise
+        send_message(self.conn, "settings")
+
     def set_temp_noise(self, temp_noise):
         """
         This is a setter for the state of the sliders based on if the checkbox is clicked
         """
-        Control_Environment.EnvironmentControl.set_temp_noise(self, temp_noise)
         if Global_access.temp_noise:
             self.temp_speed.config(state=ACTIVE)
             self.temp_depth.config(state=ACTIVE)
@@ -494,7 +483,92 @@ class SetupSettings:
             self.temp_scale.config(state=DISABLED, takefocus=0)
             self.temp_value.set(Global_access.temperature)
 
+        Global_access.temp_noise = temp_noise
+        send_message(self.conn, "settings")
 
-if __name__ == "__main__":
-    settings = SetupSettings()
-    settings.start(settings)
+    def set_temp_noise_levels(self, noise_type, value):
+        """
+        This will set the noise levels of the temp variable
+
+        :param noise_type: temp noise type (ex. scale, depth, speed)
+        :type noise_type: String
+
+        :param value: temp noise value
+        :type value: float
+        """
+        if noise_type == 'scale':
+            Global_access.temp_scale = value
+        elif noise_type == 'depth':
+            Global_access.temp_depth = value
+        elif noise_type == 'speed':
+            Global_access.temp_speed = value
+        send_message(self.conn, "settings")
+
+    def set_temp_value(self, value):
+        """
+        if the temperature variable isn't using noise levels, it will
+        use the noise value which is set here
+
+        :param value: Value to set the temperature variable to
+        :type value: float
+        """
+        Global_access.temperature = value
+        send_message(self.conn, "settings")
+
+    def set_light_noise_levels(self, noise_type, value):
+        """
+        This will set the noise levels of the light variable
+
+        :param noise_type: light noise type (ex. scale, depth, speed)
+        :type noise_type: String
+
+        :param value: light noise value
+        :type value: float
+        """
+        if noise_type == 'scale':
+            Global_access.light_scale = value
+        elif noise_type == 'depth':
+            Global_access.light_depth = value
+        elif noise_type == 'speed':
+            Global_access.light_speed = value
+        send_message(self.conn, "settings")
+
+    def set_light_value(self, value):
+        """
+        if the light variable isn't using noise levels, it will
+        use the noise value which is set here
+
+        :param value: Value to set the light variable to
+        :type value: float
+        """
+        Global_access.light = value
+        send_message(self.conn, "settings")
+
+    def set_oxygen_noise_levels(self, noise_type, value):
+        """
+        This will set the noise levels of the oxygen variable
+
+        :param noise_type: oxygen noise type (ex. scale, depth, speed)
+        :type noise_type: String
+
+        :param value: oxygen noise value
+        :type value: float
+        """
+        if noise_type == 'scale':
+            Global_access.oxygen_scale = value
+        elif noise_type == 'depth':
+            Global_access.oxygen_depth = value
+        elif noise_type == 'speed':
+            Global_access.oxygen_speed = value
+        send_message(self.conn, "settings")
+
+    def set_oxygen_value(self, value):
+        """
+        if the oxygen variable isn't using noise levels, it will
+        use the noise value which is set here
+
+        :param value: Value to set the oxygen variable to
+        :type value: float
+        """
+        Global_access.oxygen = value
+        send_message(self.conn, "settings")
