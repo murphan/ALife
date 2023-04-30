@@ -8,6 +8,7 @@ import Drawing
 import pygame
 
 from pysrc.Setup_EnvironmentGUI import EnvironmentGUI
+from Noise import Noise
 
 # This is only set to be 1 when the program is exiting. Do not use unless ending execution
 EXIT = 0
@@ -22,24 +23,13 @@ RED = '#d10a0a'
 PINK = '#f00ce1'
 
 # Environment factors
+noises: list[Noise] = [
+    Noise(False, 0.0, 0.0, 0.0, 0.0),
+    Noise(False, 0.0, 0.0, 0.0, 0.0),
+    Noise(False, 0.0, 0.0, 0.0, 0.0),
+]
+
 fps = 1
-temperature = 0  # If noise isn't used, this will be set
-temp_noise = 0  # value for if temp noise is used or not
-temp_scale = 0.0
-temp_depth = 0.0
-temp_speed = 0.0
-
-oxygen = 0  # If noise isn't used, this will be set
-oxygen_noise = 0  # value for if oxygen noise is used or not
-oxygen_scale = 0.0
-oxygen_depth = 0.0
-oxygen_speed = 0.0
-
-light = 0  # If noise isn't used, this will be set
-light_noise = 0  # value for if light noise is used or not
-light_scale = 0.0
-light_depth = 0.0
-light_speed = 0.0
 
 repro_insertion = 0.0
 repro_deletion = 0.0
@@ -69,7 +59,8 @@ BUFFER_SIZE = 4096
 
 ENV_FONT: pygame.font
 
-# The Mutex needing to be acquired in order to update information
+# TODO remove this I don't think it matters
+# ~~The Mutex needing to be acquired in order to update information~~
 mutex = Lock()
 
 
@@ -106,27 +97,6 @@ def update_grid(x, y):
     mutex.acquire()
     global ENVIRONMENT_GRID
     ENVIRONMENT_GRID[x][y] = 1
-    mutex.release()
-
-
-def change_temperature(new_temp):
-    mutex.acquire()
-    global temperature
-    temperature = new_temp
-    mutex.release()
-
-
-def change_light(new_light):
-    mutex.acquire()
-    global light
-    light = new_light
-    mutex.release()
-
-
-def change_oxygen(new_oxygen):
-    mutex.acquire()
-    global oxygen
-    oxygen = new_oxygen
     mutex.release()
 
 

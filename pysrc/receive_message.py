@@ -77,24 +77,10 @@ def handle_control_data(control):
 def handle_settings_data(settings):
     factors = settings["factors"]
 
-    # sorry
-    noise =factors[0]
-    Global_access.temp_noise = int(noise["useNoise"])
-    Global_access.temperature = noise["center"]
-    Global_access.temp_speed = noise["speed"]
-    Global_access.temp_scale = noise["scale"]
-    Global_access.temp_depth = noise["amplitude"]
-
-    noise = factors[1]
-    Global_access.light_noise = int(noise["useNoise"])
-    Global_access.light = noise["center"]
-    Global_access.light_speed = noise["speed"]
-    Global_access.light_scale = noise["scale"]
-    Global_access.light_depth = noise["amplitude"]
-
-    noise = factors[2]
-    Global_access.oxygen_noise = int(noise["useNoise"])
-    Global_access.oxygen = noise["center"]
-    Global_access.oxygen_speed = noise["speed"]
-    Global_access.oxygen_scale = noise["scale"]
-    Global_access.oxygen_depth = noise["amplitude"]
+    for factor in range(3):
+        noise = Global_access.noises[factor]
+        noise.use_noise = factors[factor]["useNoise"]
+        noise.center = factors[factor]["center"]
+        noise.speed = factors[factor]["speed"]
+        noise.depth = factors[factor]["amplitude"]
+        noise.scale = factors[factor]["scale"]

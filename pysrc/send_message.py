@@ -63,35 +63,18 @@ def create_message(message_type, data=None):
         return json.dumps({
             "type": "settings",
             "settings": {
-                "factors": [
-                    {
-                        "useNoise": bool(Global_access.temp_noise),
-                        "center": Global_access.temperature,
-                        "speed": Global_access.temp_speed,
-                        "scale": Global_access.temp_scale,
-                        "amplitude": Global_access.temp_depth,
-                    },
-                    {
-                        "useNoise": bool(Global_access.light_noise),
-                        "center": Global_access.light,
-                        "speed": Global_access.light_speed,
-                        "scale": Global_access.light_scale,
-                        "amplitude": Global_access.light_depth,
-                    },
-                    {
-                        "useNoise": bool(Global_access.oxygen_noise),
-                        "center": Global_access.oxygen,
-                        "speed": Global_access.oxygen_speed,
-                        "scale": Global_access.oxygen_scale,
-                        "amplitude": Global_access.oxygen_depth,
-                    }
-                ],
+                "factors": list(map(lambda noise: {
+                    "useNoise": noise.use_noise,
+                    "center": noise.center,
+                    "speed": noise.speed,
+                    "scale": noise.scale,
+                    "amplitude": noise.depth,
+                }, Global_access.noises)),
                 "mutations": [{
                     "insertion": Global_access.repro_insertion,
                     "deletion": Global_access.repro_deletion,
                     "substitution": Global_access.repro_substitution,
-                }
-                ]
+                }]
             },
         })
     elif message_type == "init":
