@@ -32,7 +32,7 @@ constexpr u32 bodyPartColors[] = {
 	0x086603, /* Photosynthesizer */
 	0xe31045, /* Weapon */
 	0x4e2ba6, /* Armor */
-	0x74c2e3, /* Eye */
+	0x80a9d1, /* Eye */
 	0xede6da, /* Scaffolding */
 };
 

@@ -12,7 +12,7 @@ class EnvironmentGUI:
     def __init__(self, set_fps: Callable[[float], None]):
         pygame.init()
         pygame.display.set_caption('ALife Challenge')
-
+        pygame.display.set_icon(pygame.image.load('icon.png'))
         EnvironmentGUI.set_screen_sizes(Global_access.WINDOW_WIDTH, Global_access.WINDOW_HEIGHT)
 
         Global_access.SCREEN.fill(Global_access.BLACK)
