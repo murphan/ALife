@@ -69,7 +69,7 @@ def handle_control_data(control):
     update internal control values to match what the backend says is correct
     do not send a message back
     """
-    Global_access.change_fps(control["fps"])
+    Global_access.fps = control["fps"]
     Global_access.updateDisplay = control["updateDisplay"]
     Global_access.running = control["playing"]
 

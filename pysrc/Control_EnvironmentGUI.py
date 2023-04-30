@@ -13,18 +13,10 @@ class EnvironmentControl:
         """
         pass
 
-    def set_fps(self, fps):
-        """
-        This is where the fps of the environment is set from the settings window
-
-        :param fps: The fps of the environment.
-        :param type: int
-        """
-        if Global_access.fps == fps:
-            return
-        else:
-            Global_access.change_fps(fps)
-            EnvironmentControl.send_message(self, self.env_settings.conn, "control")
+    def set_fps(self, conn, fps):
+        if Global_access.fps != fps:
+            Global_access.fps = fps
+            self.send_message(conn, "control")
 
     def set_temp_noise(self, noise):
         """

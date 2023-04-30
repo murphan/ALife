@@ -78,10 +78,10 @@ class SetupSettings:
         This sets up the different configuration options which are split into four sections
 
         --------------------------------------------------------------
-        |               |                |             |             |
-        |      fps      |  reproduction  |   colors    |   Click     |
-        |               |      rates     |   guide     |   Type      |
-        |               |                |             |             |
+        |                  |                      |                  |
+        |  reproduction    |       colors         |      Click       |
+        |      rates       |       guide          |      Type        |
+        |                  |                      |                  |
         --------------------------------------------------------------
         |                  |                      |                  |
         |       Temp       |       Light          |     Oxygen       |
@@ -101,16 +101,6 @@ class SetupSettings:
         light_frame = tkinter.Frame(middle_bottom_frame, bg=LIGHT_GREEN, borderwidth=75)
         oxygen_frame = tkinter.Frame(middle_bottom_frame, bg=LIGHT_GREEN, borderwidth=75)
 
-        # Setting up the fps slider frame
-        speed_text_label = Label(speed_frame, text="Frames Per Second", background=LIGHT_GREEN)
-        speed_text_label.config(font=("Arial", 12))
-        speed_text_label.pack()
-
-        self.fps_slider = tkinter.Scale(speed_frame, from_=1, to=21, orient=HORIZONTAL,
-                                        background=LIGHT_GREEN, command=lambda event:
-                                        Control_Environment.EnvironmentControl.set_fps(self, self.fps_slider.get()))
-        self.fps_slider.set(Global_access.fps)
-        self.fps_slider.pack(side=TOP)
         speed_frame.pack(side=LEFT)
 
         # Dealing with the reproduction inputs

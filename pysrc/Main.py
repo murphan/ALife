@@ -16,14 +16,15 @@ import Global_access
 import receive_message
 import Drawing
 
+
 class Management:
     def __init__(self):
-        self.environment_control = EnvironmentControl()
-        self.environment_gui = EnvironmentGUI(self.environment_control.set_fps)
-
         self.conn = None
         self.thread = None
         self.create_connection()
+
+        self.environment_control = EnvironmentControl()
+        self.environment_gui = EnvironmentGUI(lambda fps: self.environment_control.set_fps(self.conn, fps))
 
         # TODO call whenever new connection is established
         self.send_init_message()

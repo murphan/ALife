@@ -107,11 +107,6 @@ def update_grid(x, y):
     mutex.release()
 
 
-def change_fps(new_fps):
-    global fps
-    fps = new_fps
-
-
 def change_temperature(new_temp):
     mutex.acquire()
     global temperature
