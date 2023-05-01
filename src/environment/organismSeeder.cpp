@@ -40,8 +40,7 @@ auto OrganismSeeder::insertInitialOrganisms(
 			centerX + gridX * spaceWide - offsetX,
 			centerY + gridY * spaceTall - offsetY,
 			Direction::RIGHT,
-			initialEnergy,
-			std::uniform_int_distribution(0, 7)(random)
+			initialEnergy
 		);
 	}
 }

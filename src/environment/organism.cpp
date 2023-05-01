@@ -4,7 +4,7 @@
 
 #include "organism.h"
 
-Organism::Organism(Phenome && phenome, u32 id, i32 x, i32 y, Direction rotation, i32 energy, Direction movementDirection) :
+Organism::Organism(Phenome && phenome, u32 id, i32 x, i32 y, Direction rotation, i32 energy) :
 	id(id),
 	phenome(std::move(phenome)),
 	x(x),
@@ -12,9 +12,8 @@ Organism::Organism(Phenome && phenome, u32 id, i32 x, i32 y, Direction rotation,
 	rotation(rotation),
 	energy(energy),
 	storedChild(std::nullopt),
-	movementDirection(movementDirection),
 	ticksSinceCollision(0),
-	choosingNewDirection(false) {}
+	ticksStuck(0) {}
 
 auto Organism::getGenome() const -> const Genome & {
 	return phenome.genome;

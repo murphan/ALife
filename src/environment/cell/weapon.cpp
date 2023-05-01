@@ -60,15 +60,15 @@ auto Weapon::armorDoesBlock(i32 x, i32 y, i32 superAttack, bool directAttack, i3
 	if (!space.fromOrganism() || space.index() != defenderIndex || space.cell().dead()) return BLOCK_NONE;
 
 	auto bodyPart = space.cell().bodyPart();
+	auto modifier = !space.cell().isModified() ? -1 : space.cell().modifier();
 
 	auto isArmored = (bodyPart == BodyPart::ARMOR) ||
-	                 (bodyPart == BodyPart::SCAFFOLD && directAttack);
+	                 (bodyPart == BodyPart::SCAFFOLD && modifier != -1 && directAttack);
 
 	if (!isArmored) return BLOCK_NONE;
 
 	/* for some reason intellisense fails to realize this variable is used */
-	volatile auto superArmor = bodyPart == BodyPart::ARMOR ?
-	                           !space.cell().isModified() ? -1 : space.cell().modifier() : -1;
+	volatile auto superArmor = bodyPart == BodyPart::ARMOR ? modifier : -1;
 
 	auto superCounters = superArmor == superAttack;
 

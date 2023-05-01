@@ -69,8 +69,6 @@ auto SimulationController::renderOrganismGrid() -> void {
 	}
 }
 
-auto symmetricRange = std::uniform_int_distribution<i32>(-1, 1);
-
 auto SimulationController::organismSeeingDirection(Organism & organism, i32 index) -> std::optional<Direction> {
 	auto && eyeReactions = organism.phenome.eyeReactions;
 	auto && eyes = organism.phenome.senses;
@@ -89,7 +87,6 @@ auto SimulationController::organismSeeingDirection(Organism & organism, i32 inde
 
 			auto && space = organismGrid.access(seeX, seeY);
 
-			/* is this good enough for organisms to actually use it?????????? ;) */
 			if (space.fromEnvironment()) {
 				return std::make_optional<Direction>(eyeDirection);
 
@@ -114,38 +111,65 @@ auto SimulationController::moveOrganisms() -> void {
 		auto moveTries = organism.phenome.moveTries;
 		if (moveTries == 0 || organism.energy == 0) continue;
 
-		if (moveTries < std::uniform_int_distribution(1, 2)(random)) continue;
+		//if (moveTries < std::uniform_int_distribution(1, 2)(random)) continue;
 
 		auto seeingDirection = organismSeeingDirection(organism, index);
-		auto lockedOn = seeingDirection.has_value();
+		//auto lockedOn = seeingDirection.has_value();
 
 		//TODO this section can be cleaned up
 		//TODO could also be controlled by a new gene type
 
-		for (auto j = 0; j < moveTries * 2; ++j) {
-			auto direction = seeingDirection.has_value() ? seeingDirection.value() : organism.movementDirection;
+		auto tryMovingDirection = seeingDirection.has_value() ? seeingDirection.value() : organism.rotation;
 
-			if (lockedOn) organism.ticksSinceCollision = 0;
-
-			auto deltaX = direction.x(), deltaY = direction.y();
-			auto deltaRotation = (j == 0 && organism.ticksSinceCollision < organism.phenome.moveLength) ? 0 : symmetricRange(random);
-
-			organism.addEnergy(-settings.moveCost);
-
+		auto tryMove = [&](i32 deltaX, i32 deltaY, i32 deltaRotation) -> bool {
 			if (organismGrid.canMoveOrganism(organism, index, deltaX, deltaY, deltaRotation)) {
 				organismGrid.moveOrganism(organism, index, deltaX, deltaY, deltaRotation);
-				organism.movementDirection = direction;
-				break;
-
-			} else if (!lockedOn) {
-				organism.movementDirection = randomDirection(random);
+				return true;
 			}
+			return false;
+		};
+
+		auto doMove = [&]() -> bool {
+			if (organism.ticksStuck >= 5) {
+				for (auto i = 0; i < moveTries; ++i) {
+					auto deltaRotation = std::uniform_int_distribution<i32>(1, 7)(random);
+					auto deltaX = std::uniform_int_distribution<i32>(-1, 1)(random);
+					auto deltaY = std::uniform_int_distribution<i32>(-1, 1)(random);
+
+					if (tryMove(deltaX, deltaY, deltaRotation)) return true;
+				}
+				return false;
+			}
+
+			if (organism.ticksSinceCollision < organism.phenome.moveLength) {
+				if (tryMove(tryMovingDirection.x(), tryMovingDirection.y(), 0)) return true;
+			}
+
+			organism.ticksSinceCollision = 0;
+
+			auto baseDeltaRotation = std::uniform_int_distribution<i32>(0, 4)(random);
+			for (auto i = 0; i < 5; ++i) {
+				auto deltaRotation = ((baseDeltaRotation + i) % 5) - 2;
+				auto newDirection = organism.rotation.rotate(deltaRotation);
+
+				if (tryMove(
+					newDirection.x(),
+					newDirection.y(),
+					deltaRotation
+				)) return true;
+			}
+
+			return false;
+		};
+
+		if (doMove()) {
+			++organism.ticksSinceCollision;
+			organism.ticksStuck = 0;
+		} else {
+			++organism.ticksStuck;
 		}
 
-		if (++organism.ticksSinceCollision > organism.phenome.moveLength) {
-			organism.ticksSinceCollision = 0;
-			organism.movementDirection = randomDirection(random);
-		}
+		organism.addEnergy(-settings.moveCost);
 	}
 }
 
@@ -299,77 +323,32 @@ auto SimulationController::organismsReproduce() -> void {
 	}
 }
 
-inline auto noMoreThan(i32 a, i32 b) -> i32 {
-	return a < b ? a : b;
-}
-
-//TODO make it more flexible
-auto SimulationController::findChildSpawnPoint(Organism & organism, Phenome & childPhenome) -> std::optional<Util::Coord> {
+auto SimulationController::findChildSpawnPoint(Organism & organism, Phenome & childPhenome) -> std::optional<ChildSpawnPoint> {
 	auto rotation = organism.rotation;
-
-	auto childLeft = childPhenome.body.getLeft(rotation);
-	auto childRight = childPhenome.body.getRight(rotation);
-	auto childUp = childPhenome.body.getUp(rotation);
-	auto childDown = childPhenome.body.getDown(rotation);
-
-	auto range = std::uniform_int_distribution<i32>(0, 7);
-	auto baseDirection = Direction(range(random));
 
 	auto left = organism.body().getLeft(rotation);
 	auto right = organism.body().getRight(rotation);
 	auto up = organism.body().getUp(rotation);
 	auto down = organism.body().getDown(rotation);
 
-	auto spawnRight = organism.x + right + 1 - childLeft + 1;
-	auto spawnLeft = organism.x + left - 1 - childRight - 1;
-	auto spawnUp = organism.y + up + 1 - childDown + 1;
-	auto spawnDown = organism.y + down - 1 - childUp - 1;
+	auto findSpawnTries = (std::uniform_int_distribution<i32>(0, 2)(random) / 2) + organism.phenome.moveTries * 2;
 
-	auto tries = noMoreThan(1 + organism.phenome.moveTries, 8);
+	for (auto tri = 0; tri < findSpawnTries; ++tri) {
+		auto childRotation = Direction(randomDirection(random));
 
-	for (auto angle = 0; angle < tries; ++angle) {
-		auto direction = baseDirection.rotate(angle);
+		auto childLeft = childPhenome.body.getLeft(childRotation);
+		auto childRight = childPhenome.body.getRight(childRotation);
+		auto childUp = childPhenome.body.getUp(childRotation);
+		auto childDown = childPhenome.body.getDown(childRotation);
 
-		i32 x;
-		i32 y;
+		auto xRange = std::uniform_int_distribution<i32>(left - 1 - childRight, right + 1 - childLeft);
+		auto yRange = std::uniform_int_distribution<i32>(down - 1 - childUp, up + 1 - childDown);
 
-		switch (direction.value()) {
-			case Direction::RIGHT: {
-				x = spawnRight;
-				y = organism.y;
-			} break;
-			case Direction::RIGHT_UP: {
-				x = spawnRight;
-				y = spawnUp;
-			} break;
-			case Direction::UP: {
-				x = organism.x;
-				y = spawnUp;
-			} break;
-			case Direction::LEFT_UP: {
-				x = spawnLeft;
-				y = spawnUp;
-			} break;
-			case Direction::LEFT: {
-				x = spawnLeft;
-				y = organism.y;
-			} break;
-			case Direction::LEFT_DOWN: {
-				x = spawnLeft;
-				y = spawnDown;
-			} break;
-			case Direction::DOWN: {
-				x = organism.x;
-				y = spawnDown;
-			} break;
-			case Direction::RIGHT_DOWN: {
-				x = spawnRight;
-				y = spawnDown;
-			} break;
-		}
+		auto spawnX = organism.x + xRange(random);
+		auto spawnY = organism.y + yRange(random);
 
-		if (organismGrid.isSpaceAvailable(childPhenome.body, x, y, rotation))
-			return std::make_optional<Util::Coord>(x, y);
+		if (organismGrid.isSpaceAvailable(childPhenome.body, spawnX, spawnY, childRotation))
+			return std::make_optional(ChildSpawnPoint { spawnX, spawnY, childRotation });
 	}
 
 	return std::nullopt;
@@ -379,7 +358,7 @@ auto SimulationController::tryReproduce(Phenome & childPhenome, Organism & organ
 	auto spawnPoint = findChildSpawnPoint(organism, childPhenome);
 	if (!spawnPoint.has_value()) return std::nullopt;
 
-	auto [x, y] = spawnPoint.value();
+	auto [x, y, rotation] = spawnPoint.value();
 
 	organism.addEnergy(-(reproductionEnergy + childBodyEnergy + childEnergy));
 
@@ -387,9 +366,8 @@ auto SimulationController::tryReproduce(Phenome & childPhenome, Organism & organ
 		std::move(childPhenome),
         ids.newId(),
         x, y,
-        organism.rotation,
-        childEnergy,
-		organism.movementDirection.opposite()
+        rotation,
+        childEnergy
 	);
 }
 

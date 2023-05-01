@@ -28,13 +28,12 @@ public:
 	i32 energy;
 
 	i32 ticksSinceCollision;
-	bool choosingNewDirection;
-	Direction movementDirection;
+	i32 ticksStuck;
 
 	std::optional<Phenome> storedChild;
 
 	Organism(Organism && other) = default;
-	Organism(Phenome && phenome, u32 id, i32 x, i32 y, Direction rotation, i32 energy, Direction movementDirection);
+	Organism(Phenome && phenome, u32 id, i32 x, i32 y, Direction rotation, i32 energy);
 
 	auto operator=(Organism && other) noexcept -> Organism & = default;
 
