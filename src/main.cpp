@@ -18,8 +18,6 @@
 #include "genome/initialGenome.h"
 #include "ids.h"
 
-#include "genome/rotation.h"
-
 auto main () -> int {
 	auto random = std::default_random_engine(std::random_device()());
 
