@@ -25,8 +25,8 @@ auto OrganismGrid::clear() -> void {
 }
 
 auto OrganismGrid::internalSpaceAvailable(Body & body, i32 index, i32 centerX, i32 centerY, Direction rotation) -> bool {
-	return std::all_of(body.cells.begin(), body.cells.end(), [&](Body::Cell * cell) {
-		auto [x, y] = Body::absoluteXY(*cell, centerX, centerY, rotation);
+	return std::all_of(body.getCells().begin(), body.getCells().end(), [&](Body::Cell & cell) {
+		auto [x, y] = Body::absoluteXY(cell, centerX, centerY, rotation);
 
 		if (!inBounds(x, y)) return false;
 
@@ -47,15 +47,15 @@ auto OrganismGrid::canMoveOrganism(Organism &organism, i32 index, i32 deltaX, i3
 }
 
 auto OrganismGrid::placeOrganism(Organism & organism, i32 index) -> void {
-	for (auto && cell : organism.body().cells) {
-		auto [x, y] = organism.absoluteXY(*cell);
-		if (!cell->broken()) grid[indexOf(x, y)] = Space::makeCell(cell, index);
+	for (auto && cell : organism.body().getCells()) {
+		auto [x, y] = organism.absoluteXY(cell);
+		if (!cell.broken()) grid[indexOf(x, y)] = Space::makeCell(&cell, index);
 	}
 }
 
 auto OrganismGrid::eraseOrganism(Organism & organism, i32 index) -> void {
-	for (auto && cell : organism.body().cells) {
-		auto [x, y] = organism.absoluteXY(*cell);
+	for (auto && cell : organism.body().getCells()) {
+		auto [x, y] = organism.absoluteXY(cell);
 		grid[indexOf(x, y)] = Space::makeEmpty();
 	}
 }

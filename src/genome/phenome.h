@@ -45,11 +45,6 @@ public:
 
 	i32 moveLength;
 
-	/**
-	 * indices of the sense cells within the body for quick lookup
-	 */
-	std::vector<Body::Cell *> senses;
-
 	std::vector<EyeGene> eyeReactions;
 
 	explicit Phenome(Genome && inGenome, Body && inBody, Settings & settings);

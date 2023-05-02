@@ -19,22 +19,11 @@ inline auto readSegment(const Genome & genome, GeneMap::Segment segment) -> Geno
 
 auto Phenome::onAddCell(Body::Cell & cell) -> void {
 	if (cell.bodyPart() == BodyPart::MOVER) ++moveTries;
-
-	else if (cell.bodyPart() == BodyPart::EYE) {
-		senses.emplace_back(&cell);
-	}
-
 	++numAliveCells;
 }
 
 auto Phenome::onKilledCell(Body::Cell & cell) -> void {
 	if (cell.bodyPart() == BodyPart::MOVER) --moveTries;
-
-	else if (cell.bodyPart() == BodyPart::EYE) {
-		auto found = Util::find(senses, [&](Body::Cell * sense) { return sense == &cell; });
-		if (found != senses.end()) Util::quickErase(senses, found);
-	}
-
 	--numAliveCells;
 }
 
@@ -46,7 +35,6 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 	baseBodyEnergy(0),
 	moveTries(0),
 	moveLength(settings.baseMoveLength),
-	senses(),
 	eyeReactions()
 {
 	if (genome.size() == 0) return;
@@ -123,8 +111,8 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 	}
 
 	/* calculate cell based stats */
-	for (auto && cell : body.cells) {
-		onAddCell(*cell);
-		baseBodyEnergy += cell->cost(settings);
+	for (auto && cell : body.getCells()) {
+		onAddCell(cell);
+		baseBodyEnergy += cell.cost(settings);
 	}
 }

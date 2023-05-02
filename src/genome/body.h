@@ -68,8 +68,7 @@ private:
     i32 width, height;
     /** distance from bottom left of the canvas to the 0,0 point of the organism */
     i32 originX, originY;
-    /** organism's body parts */
-    std::vector<Cell> canvas;
+	std::vector<Cell> cells;
 
 	/** bounds of the organism in the canvas, inclusive on both ends */
 	i32 left, right, down, up;
@@ -82,23 +81,11 @@ private:
 	};
 	std::vector<Anchor> anchors;
 
-	auto expand(i32, i32) -> void;
-	auto indexOf(i32, i32) const -> i32;
-
-    auto canvasLeft() const -> i32;
-    auto canvasRight() const -> i32;
-    auto canvasDown() const -> i32;
-    auto canvasUp() const -> i32;
-
-	auto accessExpand(i32, i32, i32) -> Cell &;
-
 	auto getAnchorOfType(i32 type) -> Anchor *;
 	auto popAnchorOfType(i32 type) -> std::optional<Anchor>;
 
 public:
-	std::vector<Cell *> cells;
-
-	Body(const Body & other);
+	Body(const Body & other) = default;
 	Body(Body && other) = default;
 
 	explicit Body(i32 edge);
@@ -111,15 +98,12 @@ public:
 	auto operator=(Body && other) noexcept -> Body & = default;
 	auto operator=(const Body & other) -> Body & = delete;
 
-    auto access(i32, i32, Direction rotation) -> Cell &;
 	auto directAccess(i32 x, i32 y) -> Cell &;
 
 	auto addCell(Direction direction, Cell && cell, i32 jumpAnchor, i32 setAnchor) -> void;
 	auto directAddCell(Cell && cell, i32 x, i32 y) -> void;
 	auto removeCell(Cell & cell) -> void;
 	auto getNextCellofType(BodyPart bodyPart, i32 & start) -> Cell *;
-
-    auto debugToString() const -> std::string;
 
 	auto getWidth() const -> i32;
 	auto getHeight() const -> i32;
@@ -128,6 +112,8 @@ public:
 	auto getRight(Direction rotation) const -> i32;
 	auto getDown(Direction rotation) const -> i32;
 	auto getUp(Direction rotation) const -> i32;
+
+	auto getCells() -> std::vector<Cell> &;
 
 	static auto absoluteXY(Body::Cell & cell, i32 centerX, i32 centerY, Direction rotation) -> Util::Coord;
 };

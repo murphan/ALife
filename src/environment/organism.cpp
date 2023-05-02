@@ -51,11 +51,11 @@ auto Organism::serialize(bool detailed) -> json {
 	});
 
 	auto cells = json::array();
-	for (auto && cell : body.cells) {
+	for (auto && cell : body.getCells()) {
 		cells.push_back({
-            { "x", cell->x() },
-            { "y", cell->y() },
-            { "type", cell->bodyPart() }
+            { "x", cell.x() },
+            { "y", cell.y() },
+            { "type", cell.bodyPart() }
 		});
 	}
 

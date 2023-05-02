@@ -70,14 +70,12 @@ auto SimulationController::renderOrganismGrid() -> void {
 }
 
 auto SimulationController::organismSeeingDirection(Organism & organism, i32 index) -> std::optional<Direction> {
-	auto && eyeReactions = organism.phenome.eyeReactions;
-	auto && eyes = organism.phenome.senses;
+	for (auto && cell : organism.body().getCells()) {
+		if (cell.bodyPart() != BodyPart::EYE) continue;
+		auto && eye = cell;
 
-	if (eyeReactions.empty() || eyes.empty()) return std::nullopt;
-
-	for (auto && eye : eyes) {
-		auto eyeDirection = Direction(eye->data()).rotate(organism.rotation);
-		auto eyePos = organism.absoluteXY(*eye);
+		auto eyeDirection = Direction(eye.data()).rotate(organism.rotation);
+		auto eyePos = organism.absoluteXY(eye);
 
 		for (auto i = 1; i <= settings.sightRange; ++i) {
 			auto seeX = eyePos.x + i * eyeDirection.x();
@@ -91,7 +89,7 @@ auto SimulationController::organismSeeingDirection(Organism & organism, i32 inde
 				return std::make_optional<Direction>(eyeDirection);
 
 			} else if (space.fromOrganism() && space.index() != index) {
-				for (auto && reaction : eyeReactions) {
+				for (auto && reaction : organism.phenome.eyeReactions) {
 					if (space.cell().bodyPart() == reaction.seeing) {
 						return std::make_optional<Direction>(reaction.actionType == EyeGene::ActionType::TOWARD ? eyeDirection : eyeDirection.opposite());
 					}
@@ -181,9 +179,9 @@ auto SimulationController::checkOrganismsDie() -> void {
 }
 
 auto SimulationController::replaceOrganismWithFood(Organism & organism) -> void {
-	for (auto && cell : organism.body().cells) {
-		auto && [x, y] = organism.absoluteXY(*cell);
-		environment.accessUnsafe(x, y).food = *cell;
+	for (auto && cell : organism.body().getCells()) {
+		auto && [x, y] = organism.absoluteXY(cell);
+		environment.accessUnsafe(x, y).food = cell;
 	}
 }
 
@@ -211,20 +209,20 @@ auto SimulationController::ageOrganismCells() -> void {
 		if (fiftyFifty(random) == 0) continue;
 
 		/* select one cell to age */
-		auto numCells = organism.body().cells.size();
+		auto numCells = organism.body().getCells().size();
 		auto startIndex = std::uniform_int_distribution(0, (i32)numCells - 1)(random);
 
 		for (auto i = 0; i < numCells; ++i) {
 			auto index = (i + startIndex) % numCells;
-			auto * cell = organism.body().cells[index];
+			auto && cell = organism.body().getCells()[index];
 
-			if (cell->dead()) continue;
+			if (cell.dead()) continue;
 
-			auto newAge = cell->age() + 1;
-			cell->setAge(newAge);
+			auto newAge = cell.age() + 1;
+			cell.setAge(newAge);
 
 			if (newAge >= settings.lifetimeFactor) {
-				Weapon::killCell(organism, *cell);
+				Weapon::killCell(organism, cell);
 			}
 			break;
 		}
@@ -235,19 +233,19 @@ auto SimulationController::organismCellsTick() -> void {
 	for (auto index = 0; index < organisms.size(); ++index) {
 		auto && organism = organisms[index];
 
-		for (auto && cell : organism.body().cells) {
-			auto [x, y] = organism.absoluteXY(*cell);
+		for (auto && cell : organism.body().getCells()) {
+			auto [x, y] = organism.absoluteXY(cell);
 
-			if (cell->dead()) continue;
+			if (cell.dead()) continue;
 
-			if (cell->bodyPart() == BodyPart::PHOTOSYNTHESIZER) {
+			if (cell.bodyPart() == BodyPart::PHOTOSYNTHESIZER) {
 				Photosynthesizer::tick(x, y, organism, environment, organismGrid, settings, random);
 
-			} else if (cell->bodyPart() == BodyPart::MOUTH) {
+			} else if (cell.bodyPart() == BodyPart::MOUTH) {
 				Mouth::tick(x, y, organism, index, environment, organismGrid, settings);
 
-			} else if (cell->bodyPart() == BodyPart::WEAPON) {
-				Weapon::tick(x, y, index, *cell, environment, organismGrid, organisms, settings);
+			} else if (cell.bodyPart() == BodyPart::WEAPON) {
+				Weapon::tick(x, y, index, cell, environment, organismGrid, organisms, settings);
 			}
 		}
 	}
