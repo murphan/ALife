@@ -12,7 +12,7 @@
 #include <random>
 
 namespace Photosynthesizer {
-	auto tick(i32 x, i32 y, Organism & organism, Environment & environment, OrganismGrid & organismGrid, Settings & settings, std::default_random_engine & random) -> void;
+	auto tick(i32 x, i32 y, Organism & organism, Environment & environment, OrganismGrid & organismGrid, Settings & settings, std::vector<Organism> & organisms, std::default_random_engine & random) -> void;
 }
 
 #endif //ALIFE_PHOTOSYNTHESIZER_H

@@ -63,7 +63,7 @@ auto SimulationController::renderOrganismGrid() -> void {
 			auto && food = environment.accessUnsafe(x, y).food;
 
 			if (food.filled() && !food.broken()) {
-				organismGrid.accessUnsafe(x, y) = OrganismGrid::Space::makeFood(&food);
+				organismGrid.accessUnsafe(x, y) = OrganismGrid::Space::makeFood(x, y);
 			}
 		}
 	}
@@ -90,7 +90,7 @@ auto SimulationController::organismSeeingDirection(Organism & organism, i32 inde
 
 			} else if (space.fromOrganism() && space.index() != index) {
 				for (auto && reaction : organism.phenome.eyeReactions) {
-					if (space.cell().bodyPart() == reaction.seeing) {
+					if (space.cell(organisms).bodyPart() == reaction.seeing) {
 						return std::make_optional<Direction>(reaction.actionType == EyeGene::ActionType::TOWARD ? eyeDirection : eyeDirection.opposite());
 					}
 				}
@@ -239,10 +239,10 @@ auto SimulationController::organismCellsTick() -> void {
 			if (cell.dead()) continue;
 
 			if (cell.bodyPart() == BodyPart::PHOTOSYNTHESIZER) {
-				Photosynthesizer::tick(x, y, organism, environment, organismGrid, settings, random);
+				Photosynthesizer::tick(x, y, organism, environment, organismGrid, settings, organisms, random);
 
 			} else if (cell.bodyPart() == BodyPart::MOUTH) {
-				Mouth::tick(x, y, organism, index, environment, organismGrid, settings);
+				Mouth::tick(x, y, organism, index, environment, organismGrid, organisms, settings);
 
 			} else if (cell.bodyPart() == BodyPart::WEAPON) {
 				Weapon::tick(x, y, index, cell, environment, organismGrid, organisms, settings);

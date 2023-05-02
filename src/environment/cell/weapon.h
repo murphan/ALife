@@ -22,7 +22,7 @@ namespace Weapon {
 
 	auto dealDamage(i32 x, i32 y, i32 superAttack, i32 index, Environment & environment, OrganismGrid & organismGrid, std::vector<Organism> & organisms, Settings & settings) -> void;
 
-	auto armorDoesBlock(i32 x, i32 y, i32 superAttack, bool directAttack, i32 defenderIndex, OrganismGrid & organismGrid) -> BlockResult;
+	auto armorDoesBlock(i32 x, i32 y, i32 superAttack, bool directAttack, i32 defenderIndex, OrganismGrid & organismGrid, std::vector<Organism> & organisms) -> BlockResult;
 
 	auto killCell(Organism & organism, Body::Cell & cell) -> void;
 

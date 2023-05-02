@@ -163,7 +163,7 @@ auto Body::directAddCell(Cell && cell, i32 x, i32 y) -> void {
 
 auto Body::removeCell(Cell & cell) -> void {
 	auto found = Util::find(cells, [&](Cell & entry) { return &cell == &entry; });
-	if (found == cells.end()) return;
+	//if (found == cells.end()) return;
 	Util::quickErase(cells, found);
 }
 

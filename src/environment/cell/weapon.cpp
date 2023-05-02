@@ -17,27 +17,33 @@ auto Weapon::dealDamage(i32 x, i32 y, i32 superAttack, i32 index, Environment & 
 	auto && space = organismGrid.access(x, y);
 
 	/* weapons break down food */
-	if (space.isFilled() && space.cell().dead() && space.index() != index) {
-		space.cell().setBroken(true);
+	if (space.isFilled()) {
+		auto && cell = space.cell(organisms, environment);
+		if (cell.dead() && space.index() != index) {
+			cell.setBroken(true);
 
-		if (space.fromOrganism())
-			detachCell(organisms[space.index()], environment, space.cell());
+			if (space.fromOrganism())
+				detachCell(organisms[space.index()], environment, cell);
 
-		space = OrganismGrid::Space::makeEmpty();
-		return;
+			space = OrganismGrid::Space::makeEmpty();
+			return;
+		}
 	}
 
 	/* attacking cells as parts of organism */
-	if (!space.fromOrganism() || space.cell().dead()) return;
+	if (!space.fromOrganism()) return;
+	auto && cell = space.cell(organisms);
+	if (cell.dead()) return;
+
 	auto defenderIndex = space.index();
 	if (defenderIndex == index) return;
 
 
-	auto blockLevel = armorDoesBlock(x + 0, y + 0, superAttack, true, defenderIndex, organismGrid) |
-	                  armorDoesBlock(x + 1, y + 0, superAttack, false, defenderIndex, organismGrid) |
-	                  armorDoesBlock(x + 0, y + 1, superAttack, false, defenderIndex, organismGrid) |
-	                  armorDoesBlock(x - 1, y + 0, superAttack, false, defenderIndex, organismGrid) |
-	                  armorDoesBlock(x + 0, y - 1, superAttack, false, defenderIndex, organismGrid);
+	auto blockLevel = armorDoesBlock(x + 0, y + 0, superAttack, true, defenderIndex, organismGrid, organisms) |
+	                  armorDoesBlock(x + 1, y + 0, superAttack, false, defenderIndex, organismGrid, organisms) |
+	                  armorDoesBlock(x + 0, y + 1, superAttack, false, defenderIndex, organismGrid, organisms) |
+	                  armorDoesBlock(x - 1, y + 0, superAttack, false, defenderIndex, organismGrid, organisms) |
+	                  armorDoesBlock(x + 0, y - 1, superAttack, false, defenderIndex, organismGrid, organisms);
 
 	auto damageDealt = (blockLevel >> 1) & 0x1 ? 0 :
 	                   blockLevel & 0x1 ? settings.weaponDamage - settings.armorPrevents :
@@ -48,17 +54,20 @@ auto Weapon::dealDamage(i32 x, i32 y, i32 superAttack, i32 index, Environment & 
 		defender.addEnergy(-damageDealt);
 
 		if (defender.energy == 0) {
-			killCell(defender, space.cell());
+			killCell(defender, cell);
 		}
 	}
 }
 
-auto Weapon::armorDoesBlock(i32 x, i32 y, i32 superAttack, bool directAttack, i32 defenderIndex, OrganismGrid & organismGrid) -> BlockResult {
+auto Weapon::armorDoesBlock(i32 x, i32 y, i32 superAttack, bool directAttack, i32 defenderIndex, OrganismGrid & organismGrid, std::vector<Organism> & organisms) -> BlockResult {
 	auto && space = organismGrid.access(x, y);
-	if (!space.fromOrganism() || space.index() != defenderIndex || space.cell().dead()) return BLOCK_NONE;
+	if (!space.fromOrganism() || space.index() != defenderIndex) return BLOCK_NONE;
 
-	auto bodyPart = space.cell().bodyPart();
-	auto modifier = !space.cell().isModified() ? -1 : space.cell().modifier();
+	auto && cell = space.cell(organisms);
+	if (cell.dead()) return BLOCK_NONE;
+
+	auto bodyPart = cell.bodyPart();
+	auto modifier = !cell.isModified() ? -1 : cell.modifier();
 
 	auto isArmored = (bodyPart == BodyPart::ARMOR) ||
 	                 (bodyPart == BodyPart::SCAFFOLD && modifier != -1 && directAttack);

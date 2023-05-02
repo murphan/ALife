@@ -4,15 +4,15 @@
 
 #include "mouth.h"
 
-auto Mouth::tick(i32 x, i32 y, Organism & organism, i32 index, Environment & environment, OrganismGrid & organismGrid, Settings & settings) -> void {
-	tryEat(x, y, organism, index, environment, organismGrid, settings);
-	tryEat(x + 1, y, organism, index, environment, organismGrid, settings);
-	tryEat(x, y + 1, organism, index, environment, organismGrid, settings);
-	tryEat(x - 1, y, organism, index, environment, organismGrid, settings);
-	tryEat(x, y - 1, organism, index, environment, organismGrid, settings);
+auto Mouth::tick(i32 x, i32 y, Organism & organism, i32 index, Environment & environment, OrganismGrid & organismGrid, std::vector<Organism> & organisms, Settings & settings) -> void {
+	tryEat(x, y, organism, index, environment, organismGrid, organisms, settings);
+	tryEat(x + 1, y, organism, index, environment, organismGrid, organisms, settings);
+	tryEat(x, y + 1, organism, index, environment, organismGrid, organisms, settings);
+	tryEat(x - 1, y, organism, index, environment, organismGrid, organisms, settings);
+	tryEat(x, y - 1, organism, index, environment, organismGrid, organisms, settings);
 }
 
-auto Mouth::tryEat(i32 x, i32 y, Organism & organism, i32 index, Environment & environment, OrganismGrid & organismGrid, Settings & settings) -> void {
+auto Mouth::tryEat(i32 x, i32 y, Organism & organism, i32 index, Environment & environment, OrganismGrid & organismGrid, std::vector<Organism> & organisms, Settings & settings) -> void {
 	auto && space = organismGrid.access(x, y);
 	auto && envSpace = environment.access(x, y);
 
@@ -25,11 +25,14 @@ auto Mouth::tryEat(i32 x, i32 y, Organism & organism, i32 index, Environment & e
 	}
 
 	/* eating non-broken dead cells */
-	else if (space.isFilled() && space.index() != index && space.cell().dead()) {
-		eatCell(organism, space.cell(), settings);
+	else if (space.fromOrganism() && space.index() != index) {
+		auto && cellToEat = space.cell(organisms);
+		if (cellToEat.dead()) {
+			eatCell(organism, cellToEat, settings);
 
-		space.cell() = Body::Cell::makeEmpty();
-		space = OrganismGrid::Space::makeEmpty();
+			organisms[space.index()].body().removeCell(cellToEat);
+			space = OrganismGrid::Space::makeEmpty();
+		}
 	}
 }
 
