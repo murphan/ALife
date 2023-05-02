@@ -21,15 +21,6 @@
 #include "genome/rotation.h"
 
 auto main () -> int {
-	auto [x0, y0] = Rotation::rotate(0, 0, Direction::UP);
-	std::cout << x0 << ", " << y0 << std::endl;
-	auto [x1, y1] = Rotation::rotate(1, 0, Direction::UP);
-	std::cout << x1 << ", " << y1 << std::endl;
-	auto [x2, y2] = Rotation::rotate(2, 0, Direction::UP);
-	std::cout << x2 << ", " << y2 << std::endl;
-	auto [x3, y3] = Rotation::rotate(3, 0, Direction::UP);
-	std::cout << x3 << ", " << y3 << std::endl;
-
 	auto random = std::default_random_engine(std::random_device()());
 
 	auto controls = Controls { .playing=false, .fps=20, .updateDisplay=true };

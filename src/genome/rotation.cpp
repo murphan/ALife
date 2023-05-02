@@ -63,17 +63,6 @@ auto Rotation::rotate90Step(Util::Coord xy, i32 steps) -> Util::Coord {
 }
 
 auto Rotation::rotate(Util::Coord xy, Direction direction) -> Util::Coord {
-	//switch (direction.value()) {
-	//	case Direction::RIGHT: return xy;
-	//	case Direction::RIGHT_UP: return rotate45(xy);
-	//	case Direction::UP: return rotate90Step(xy, 1);
-	//	case Direction::LEFT_UP: return rotate90Step(rotate45(xy), 1);
-	//	case Direction::LEFT: return rotate90Step(xy, 2);
-	//	case Direction::LEFT_DOWN: return rotate90Step(rotate45(xy), 2);
-	//	case Direction::DOWN: return rotate90Step(xy, 3);
-	//	case Direction::RIGHT_DOWN: return rotate90Step(rotate45(xy), 3);
-	//}
-
 	switch (direction.value()) {
 		case Direction::RIGHT: return xy;
 		case Direction::RIGHT_UP: return rotate90Step(rotate45(xy), 3);
