@@ -24,7 +24,9 @@ namespace Weapon {
 
 	auto armorDoesBlock(i32 x, i32 y, i32 superAttack, bool directAttack, i32 defenderIndex, OrganismGrid & organismGrid) -> BlockResult;
 
-	auto killCell(Organism & organism, Body::Cell & cell, Settings & settings) -> void;
+	auto killCell(Organism & organism, Body::Cell & cell) -> void;
+
+	auto detachCell(Organism & organism, Environment & environment, Body::Cell & cell) -> void;
 }
 
 #endif //ALIFE_WEAPON_H

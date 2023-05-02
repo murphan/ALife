@@ -96,11 +96,12 @@ private:
 	auto popAnchorOfType(i32 type) -> std::optional<Anchor>;
 
 public:
-	std::vector<Cell*> cells;
+	std::vector<Cell *> cells;
 
-	Body(const Body & other) = default;
+	Body(const Body & other);
 	Body(Body && other) = default;
-	Body(i32 edge);
+
+	explicit Body(i32 edge);
 
 	/**
 	 * I know this is unsafe but DO NOT modify this cell
@@ -108,6 +109,7 @@ public:
 	static Cell outOfBounds;
 
 	auto operator=(Body && other) noexcept -> Body & = default;
+	auto operator=(const Body & other) -> Body & = delete;
 
     auto access(i32, i32, Direction rotation) -> Cell &;
 	auto directAccess(i32 x, i32 y) -> Cell &;
@@ -126,6 +128,8 @@ public:
 	auto getRight(Direction rotation) const -> i32;
 	auto getDown(Direction rotation) const -> i32;
 	auto getUp(Direction rotation) const -> i32;
+
+	static auto absoluteXY(Body::Cell & cell, i32 centerX, i32 centerY, Direction rotation) -> Util::Coord;
 };
 
 #endif //ALIFE_BODY_H

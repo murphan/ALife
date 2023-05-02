@@ -26,7 +26,7 @@ auto OrganismGrid::clear() -> void {
 
 auto OrganismGrid::internalSpaceAvailable(Body & body, i32 index, i32 centerX, i32 centerY, Direction rotation) -> bool {
 	return std::all_of(body.cells.begin(), body.cells.end(), [&](Body::Cell * cell) {
-		auto [x, y] = Rotation::rotate(cell->x(), cell->y(), rotation) + Util::Coord { centerX, centerY };
+		auto [x, y] = Body::absoluteXY(*cell, centerX, centerY, rotation);
 
 		if (!inBounds(x, y)) return false;
 
@@ -47,38 +47,16 @@ auto OrganismGrid::canMoveOrganism(Organism &organism, i32 index, i32 deltaX, i3
 }
 
 auto OrganismGrid::placeOrganism(Organism & organism, i32 index) -> void {
-	auto && body = organism.body();
-	auto rotation = organism.rotation;
-
-	for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
-		for (auto i = body.getLeft(rotation); i <= body.getRight(rotation); ++i) {
-			auto y = organism.y + j;
-			auto x = organism.x + i;
-
-			auto && cell = body.access(i, j, rotation);
-
-			if (cell.filled() && !cell.broken()) {
-				grid[indexOf(x, y)] = Space::makeCell(&cell, index);
-			}
-		}
+	for (auto && cell : organism.body().cells) {
+		auto [x, y] = organism.absoluteXY(*cell);
+		if (!cell->broken()) grid[indexOf(x, y)] = Space::makeCell(cell, index);
 	}
 }
 
 auto OrganismGrid::eraseOrganism(Organism & organism, i32 index) -> void {
-	auto && body = organism.body();
-	auto rotation = organism.rotation;
-
-	for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
-		for (auto i = body.getLeft(rotation); i <= body.getRight(rotation); ++i) {
-			auto y = organism.y + j;
-			auto x = organism.x + i;
-
-			auto && space = grid[indexOf(x, y)];
-
-			if (space.index() == index) {
-				space = Space::makeEmpty();
-			}
-		}
+	for (auto && cell : organism.body().cells) {
+		auto [x, y] = organism.absoluteXY(*cell);
+		grid[indexOf(x, y)] = Space::makeEmpty();
 	}
 }
 
@@ -146,7 +124,7 @@ auto OrganismGrid::Space::fromEnvironment() const -> bool {
 }
 
 auto OrganismGrid::Space::index() const -> i32 {
-	return value - 1;
+	return (i32)(value - 1);
 }
 
 auto OrganismGrid::Space::cell() const -> Body::Cell & {

@@ -77,7 +77,7 @@ auto SimulationController::organismSeeingDirection(Organism & organism, i32 inde
 
 	for (auto && eye : eyes) {
 		auto eyeDirection = Direction(eye->data()).rotate(organism.rotation);
-		auto eyePos = Rotation::rotate(eye->x(), eye->y(), organism.rotation);
+		auto eyePos = organism.absoluteXY(*eye);
 
 		for (auto i = 1; i <= settings.sightRange; ++i) {
 			auto seeX = eyePos.x + i * eyeDirection.x();
@@ -114,10 +114,6 @@ auto SimulationController::moveOrganisms() -> void {
 		//if (moveTries < std::uniform_int_distribution(1, 2)(random)) continue;
 
 		auto seeingDirection = organismSeeingDirection(organism, index);
-		//auto lockedOn = seeingDirection.has_value();
-
-		//TODO this section can be cleaned up
-		//TODO could also be controlled by a new gene type
 
 		auto tryMovingDirection = seeingDirection.has_value() ? seeingDirection.value() : organism.rotation;
 
@@ -186,9 +182,7 @@ auto SimulationController::checkOrganismsDie() -> void {
 
 auto SimulationController::replaceOrganismWithFood(Organism & organism) -> void {
 	for (auto && cell : organism.body().cells) {
-		auto && [x, y] = Rotation::rotate(cell->x(), cell->y(), organism.rotation) +
-			Util::Coord { organism.x, organism.y };
-
+		auto && [x, y] = organism.absoluteXY(*cell);
 		environment.accessUnsafe(x, y).food = *cell;
 	}
 }
@@ -230,7 +224,7 @@ auto SimulationController::ageOrganismCells() -> void {
 			cell->setAge(newAge);
 
 			if (newAge >= settings.lifetimeFactor) {
-				Weapon::killCell(organism, *cell, settings);
+				Weapon::killCell(organism, *cell);
 			}
 			break;
 		}
@@ -240,27 +234,20 @@ auto SimulationController::ageOrganismCells() -> void {
 auto SimulationController::organismCellsTick() -> void {
 	for (auto index = 0; index < organisms.size(); ++index) {
 		auto && organism = organisms[index];
-		auto && body = organism.body();
-		auto rotation = organism.rotation;
 
-		for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
-			for (auto i = body.getLeft(rotation); i <= body.getRight(rotation); ++i) {
-				auto y = organism.y + j;
-				auto x = organism.x + i;
+		for (auto && cell : organism.body().cells) {
+			auto [x, y] = organism.absoluteXY(*cell);
 
-				auto && cell = body.access(i, j, rotation);
+			if (cell->dead()) continue;
 
-				if (cell.empty() || cell.dead()) continue;
+			if (cell->bodyPart() == BodyPart::PHOTOSYNTHESIZER) {
+				Photosynthesizer::tick(x, y, organism, environment, organismGrid, settings, random);
 
-				if (cell.bodyPart() == BodyPart::PHOTOSYNTHESIZER) {
-					Photosynthesizer::tick(x, y, organism, environment, organismGrid, settings, random);
+			} else if (cell->bodyPart() == BodyPart::MOUTH) {
+				Mouth::tick(x, y, organism, index, environment, organismGrid, settings);
 
-				} else if (cell.bodyPart() == BodyPart::MOUTH) {
-					Mouth::tick(x, y, organism, index, environment, organismGrid, settings);
-
-				} else if (cell.bodyPart() == BodyPart::WEAPON) {
-					Weapon::tick(x, y, index, cell, environment, organismGrid, organisms, settings);
-				}
+			} else if (cell->bodyPart() == BodyPart::WEAPON) {
+				Weapon::tick(x, y, index, *cell, environment, organismGrid, organisms, settings);
 			}
 		}
 	}

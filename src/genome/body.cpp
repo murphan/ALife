@@ -213,9 +213,10 @@ auto Body::addCell(Direction direction, Cell && cell, i32 jumpAnchor, i32 setAnc
 }
 
 auto Body::directAddCell(Cell && cell, i32 x, i32 y) -> void {
-	canvas[indexOf(x, y)] = cell;
-	cells.push_back(&cell);
 	cell.setPosition(x, y);
+
+	canvas[indexOf(x, y)] = cell;
+	cells.emplace_back(canvas.data() + indexOf(x, y));
 
 	/* update bounds */
 	if (x < left) left = x;
@@ -365,5 +366,25 @@ auto Body::getDown(Direction rotation) const -> i32 {
 		case Direction::LEFT_DOWN: return -diagonalLength(up, right);
 		case Direction::DOWN: return -right;
 		case Direction::RIGHT_DOWN: return -diagonalLength(right, down);
+	}
+}
+
+auto Body::absoluteXY(Body::Cell & cell, i32 centerX, i32 centerY, Direction rotation) -> Util::Coord {
+	return Rotation::rotate(cell.x(), cell.y(), rotation) + Util::Coord { centerX, centerY };
+}
+
+Body::Body(const Body & other):
+	width(other.width), height(other.height),
+	originX(other.originX), originY(other.originY),
+	canvas(other.canvas),
+	left(other.left), right(other.right), down(other.down), up(other.up),
+	currentX(other.currentX), currentY(other.currentY),
+	anchors(other.anchors),
+	cells()
+{
+	/* must update pointers in cells to point to new canvas */
+	cells.reserve(other.cells.size());
+	for (auto && cell : other.cells) {
+		cells.emplace_back(canvas.data() + indexOf(cell->x(), cell->y()));
 	}
 }

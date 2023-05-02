@@ -43,6 +43,8 @@ public:
 	auto serialize(bool detailed) -> json;
 
 	auto addEnergy(i32 delta) -> void;
+
+	auto absoluteXY(Body::Cell & cell) const -> Util::Coord;
 };
 
 #endif //ALIFE_ORGANISM_H

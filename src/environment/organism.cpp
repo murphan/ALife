@@ -3,6 +3,7 @@
 //
 
 #include "organism.h"
+#include "genome/rotation.h"
 
 Organism::Organism(Phenome && phenome, u32 id, i32 x, i32 y, Direction rotation, i32 energy) :
 	id(id),
@@ -49,18 +50,19 @@ auto Organism::serialize(bool detailed) -> json {
 		{ "action", EyeGene::ACTION_NAMES[eyeReaction.actionType] },
 	});
 
-	auto byteEncodedBody = std::string();
-	byteEncodedBody.reserve(body.getWidth() * body.getHeight());
-	for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
-		for (auto i = body.getLeft(rotation); i <= body.getRight(rotation); ++i) {
-			byteEncodedBody.push_back((char)body.access(i, j, rotation).bodyPart());
-		}
+	auto cells = json::array();
+	for (auto && cell : body.cells) {
+		cells.push_back({
+            { "x", cell->x() },
+            { "y", cell->y() },
+            { "type", cell->bodyPart() }
+		});
 	}
 
 	nonDetailedPart.push_back({ "mutationModifiers", mutationModifiers });
 	nonDetailedPart.push_back({ "eyeReactions", eyeReactions });
 	nonDetailedPart.push_back({ "genome", phenome.genome.toString() });
-	nonDetailedPart.push_back({ "body", Util::base64Encode(byteEncodedBody) });
+	nonDetailedPart.push_back({ "cells", cells });
 	auto && completeParts = nonDetailedPart;
 	return completeParts;
 }
@@ -71,4 +73,8 @@ auto Organism::serialize(bool detailed) -> json {
 auto Organism::addEnergy(i32 delta) -> void {
 	energy += delta;
 	if (energy < 0) energy = 0;
+}
+
+auto Organism::absoluteXY(Body::Cell & cell) const -> Util::Coord {
+	return Body::absoluteXY(cell, x, y, rotation);
 }

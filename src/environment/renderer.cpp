@@ -115,38 +115,28 @@ auto Renderer::render(Environment & environment, std::vector<Organism> & organis
 	}
 
 	for (auto && organism : organisms) {
-		auto && body = organism.body();
-		auto rotation = organism.rotation;
+		for (auto && cell :  organism.body().cells) {
+			auto [x, y] = organism.absoluteXY(*cell);
 
-		for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
-			for (auto i = body.getLeft(rotation); i <= body.getRight(rotation); ++i) {
-				auto && cell = body.access(i, j, rotation);
-
-				auto x = organism.x + i;
-				auto y = organism.y + j;
-
-				if (cell.filled()) {
-					buffer[bufferIndex(x, y)] = META_ORGANISM | (cell.isModified() ? CIRCLE_FLAG : 0);
-					insert2(
-						buffer,
-						bufferIndex(x, y) + 1,
-						organism.id
-					);
-					insert3(
-						buffer,
-						bufferIndex(x, y) + 3,
-						cell.dead() ? bodyPartDeadColors[cell.bodyPart() - 1] : bodyPartColors[cell.bodyPart() - 1]
-					);
-					if (cell.isModified()) {
-						insert3(
-							buffer,
-							bufferIndex(x, y) + 6,
-							cell.bodyPart() == BodyPart::WEAPON ? weaponUpgradeColors[cell.modifier()] :
-							cell.bodyPart() == BodyPart::ARMOR ? armorUpgradeColors[cell.modifier()] :
-							scaffoldingUpgradeColor
-						);
-					}
-				}
+			buffer[bufferIndex(x, y)] = META_ORGANISM | (cell->isModified() ? CIRCLE_FLAG : 0);
+			insert2(
+				buffer,
+				bufferIndex(x, y) + 1,
+				organism.id
+			);
+			insert3(
+				buffer,
+				bufferIndex(x, y) + 3,
+				cell->dead() ? bodyPartDeadColors[cell->bodyPart() - 1] : bodyPartColors[cell->bodyPart() - 1]
+			);
+			if (cell->isModified()) {
+				insert3(
+					buffer,
+					bufferIndex(x, y) + 6,
+					cell->bodyPart() == BodyPart::WEAPON ? weaponUpgradeColors[cell->modifier()] :
+					cell->bodyPart() == BodyPart::ARMOR ? armorUpgradeColors[cell->modifier()] :
+					scaffoldingUpgradeColor
+				);
 			}
 		}
 	}

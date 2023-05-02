@@ -2,6 +2,7 @@
 // Created by Emmet on 4/27/2023.
 //
 #include "weapon.h"
+#include "../../genome/rotation.h"
 
 auto Weapon::tick(i32 x, i32 y, i32 index, Body::Cell & weapon, Environment & environment, OrganismGrid & organismGrid, std::vector<Organism> & organisms, Settings & settings) -> void {
 	auto superAttack = !weapon.isModified() ? -1 : weapon.modifier();
@@ -19,11 +20,8 @@ auto Weapon::dealDamage(i32 x, i32 y, i32 superAttack, i32 index, Environment & 
 	if (space.isFilled() && space.cell().dead() && space.index() != index) {
 		space.cell().setBroken(true);
 
-		/* detach from organism */
-		if (space.fromOrganism()) {
-			environment.accessUnsafe(x, y).food = space.cell();
-			space.cell() = Body::Cell::makeEmpty();
-		}
+		if (space.fromOrganism())
+			detachCell(organisms[space.index()], environment, space.cell());
 
 		space = OrganismGrid::Space::makeEmpty();
 		return;
@@ -50,7 +48,7 @@ auto Weapon::dealDamage(i32 x, i32 y, i32 superAttack, i32 index, Environment & 
 		defender.addEnergy(-damageDealt);
 
 		if (defender.energy == 0) {
-			killCell(defender, space.cell(), settings);
+			killCell(defender, space.cell());
 		}
 	}
 }
@@ -95,7 +93,13 @@ auto Weapon::armorDoesBlock(i32 x, i32 y, i32 superAttack, bool directAttack, i3
 	}
 }
 
-auto Weapon::killCell(Organism & organism, Body::Cell & cell, Settings & settings) -> void {
-	organism.phenome.onKilledCell(cell, settings);
+auto Weapon::killCell(Organism & organism, Body::Cell & cell) -> void {
+	organism.phenome.onKilledCell(cell);
 	cell.setDead(true);
+}
+
+auto Weapon::detachCell(Organism & organism, Environment & environment, Body::Cell & cell) -> void {
+	auto [x, y] = organism.absoluteXY(cell);
+	environment.accessUnsafe(x, y).food = cell;
+	organism.body().removeCell(cell);
 }
