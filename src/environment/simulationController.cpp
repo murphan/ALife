@@ -76,8 +76,8 @@ auto SimulationController::organismSeeingDirection(Organism & organism, i32 inde
 	if (eyeReactions.empty() || eyes.empty()) return std::nullopt;
 
 	for (auto && eye : eyes) {
-		auto eyeDirection = Direction(eye.senseCell->data()).rotate(organism.rotation);
-		auto eyePos = Rotation::rotate({ eye.x, eye.y }, organism.rotation);
+		auto eyeDirection = Direction(eye->data()).rotate(organism.rotation);
+		auto eyePos = Rotation::rotate(eye->x(), eye->y(), organism.rotation);
 
 		for (auto i = 1; i <= settings.sightRange; ++i) {
 			auto seeX = eyePos.x + i * eyeDirection.x();
@@ -185,18 +185,11 @@ auto SimulationController::checkOrganismsDie() -> void {
 }
 
 auto SimulationController::replaceOrganismWithFood(Organism & organism) -> void {
-	auto && body = organism.body();
-	auto rotation = organism.rotation;
+	for (auto && cell : organism.body().cells) {
+		auto && [x, y] = Rotation::rotate(cell->x(), cell->y(), organism.rotation) +
+			Util::Coord { organism.x, organism.y };
 
-	for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
-		for (auto i = body.getLeft(rotation); i <= body.getRight(rotation); ++i) {
-			auto y = organism.y + j, x = organism.x + i;
-			auto && bodyCell = body.access(i, j, rotation);
-
-			if (bodyCell.filled()) {
-				environment.accessUnsafe(x, y).food = bodyCell;
-			}
-		}
+		environment.accessUnsafe(x, y).food = *cell;
 	}
 }
 
@@ -216,28 +209,30 @@ auto SimulationController::serialize() -> json {
 	};
 }
 
-static auto fiftyFifty = std::uniform_int_distribution<i32>(0, 1);
+static auto fiftyFifty = std::uniform_int_distribution(0, 1);
 
 auto SimulationController::ageOrganismCells() -> void {
 	for (auto && organism : organisms) {
-		auto && body = organism.body();
-		auto rotation = organism.rotation;
+		/* cells age with a half life */
+		if (fiftyFifty(random) == 0) continue;
 
-		for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
-			for (auto i = body.getLeft(rotation); i <= body.getRight(rotation); ++i) {
-				auto && cell = body.access(i, j, rotation);
+		/* select one cell to age */
+		auto numCells = organism.body().cells.size();
+		auto startIndex = std::uniform_int_distribution(0, (i32)numCells - 1)(random);
 
-				if (cell.empty() || cell.dead()) continue;
+		for (auto i = 0; i < numCells; ++i) {
+			auto index = (i + startIndex) % numCells;
+			auto * cell = organism.body().cells[index];
 
-				if (fiftyFifty(random) == 1) {
-					auto newAge = cell.age() + 1;
-					cell.setAge(newAge);
+			if (cell->dead()) continue;
 
-					if (newAge >= organism.phenome.maxAge(settings)) {
-						Weapon::killCell(organism, cell, settings);
-					}
-				}
+			auto newAge = cell->age() + 1;
+			cell->setAge(newAge);
+
+			if (newAge >= settings.lifetimeFactor) {
+				Weapon::killCell(organism, *cell, settings);
 			}
+			break;
 		}
 	}
 }
@@ -277,7 +272,7 @@ auto SimulationController::organismsReproduce() -> void {
     for (auto && organism : organisms) {
 		if (!organism.storedChild.has_value()) {
 			auto && phenome = organism.phenome;
-			auto bodyEnergy = phenome.bodyEnergy;
+			auto bodyEnergy = phenome.baseBodyEnergy;
 
 			auto reproductionEnergy = settings.reproductionCost;
 			auto estimatedChildEnergy = bodyEnergy + settings.startingEnergy;
@@ -297,7 +292,7 @@ auto SimulationController::organismsReproduce() -> void {
 		} else {
 			auto && childPhenome = organism.storedChild.value();
 
-			auto childBodyEnergy = childPhenome.bodyEnergy;
+			auto childBodyEnergy = childPhenome.baseBodyEnergy;
 
 			auto reproductionEnergy = settings.reproductionCost;
 			auto childEnergy = settings.startingEnergy;

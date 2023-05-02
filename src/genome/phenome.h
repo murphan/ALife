@@ -19,29 +19,15 @@
 #include "genome/gene/mutationRateGene.h"
 #include "../environment/settings.h"
 
-class Sense {
-public:
-	i32 x;
-	i32 y;
-	Body::Cell * senseCell;
-
-	Sense(i32 x, i32 y, Body::Cell * senseCell);
-};
-
-struct FoodStats {
-	i32 digestionBonus = 0;
-	i32 absoprtionBonus = 0;
-};
-
 class Phenome {
 public:
 	Genome genome;
 	Body body;
 
 	/** cells this organism had originally */
-	i32 maxCells;
 	i32 numAliveCells;
-	i32 bodyEnergy;
+	/** how much energy it takes to produce this organism */
+	i32 baseBodyEnergy;
 
 	/**
 	 * these are not the actual mutation rates
@@ -62,7 +48,7 @@ public:
 	/**
 	 * indices of the sense cells within the body for quick lookup
 	 */
-	std::vector<Sense> senses;
+	std::vector<Body::Cell *> senses;
 
 	std::vector<EyeGene> eyeReactions;
 
@@ -72,10 +58,8 @@ public:
 	Phenome(Phenome && other) = default;
 	auto operator=(Phenome && other) noexcept -> Phenome & = default;
 
-	auto maxAge(Settings & settings) const -> i32;
-
-	auto onAddCell(Body::Cell & cell, i32 x, i32 y, Settings & settings) -> void;
-	auto onRemoveCell(Body::Cell & cell, Settings & settings) -> void;
+	auto onAddCell(Body::Cell & cell) -> void;
+	auto onKilledCell(Body::Cell & cell) -> void;
 };
 
 #endif //ALIFE_PHENOME_H

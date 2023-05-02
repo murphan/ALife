@@ -74,3 +74,7 @@ auto Rotation::rotate(Util::Coord xy, Direction direction) -> Util::Coord {
 		case Direction::RIGHT_DOWN: return rotate90Step(rotate45(xy), 3);
 	}
 }
+
+auto Rotation::rotate(i32 x, i32 y, Direction direction) -> Util::Coord {
+	return rotate({ x, y }, direction);
+}

@@ -10,6 +10,14 @@
 #include "types.h"
 
 namespace Util {
+	template<typename T, typename Out, typename ...In>
+	concept Function = requires(T functionLike, In ...param) {
+		{functionLike(param...)} -> std::same_as<Out>;
+	};
+
+	template<typename Iterator, typename ValueType>
+	concept IsIterator = std::same_as<typename std::iterator_traits<Iterator>::value_type, ValueType>;
+
 	auto ceilDiv(u32 x, u32 y) -> u32;
 	auto floorDiv(i32 x, u32 y) -> i32;
 
@@ -21,12 +29,25 @@ namespace Util {
 
         Coord();
 		Coord(i32, i32);
+
+		auto operator+(const Coord && other) const -> Coord;
 	};
 
 	auto positiveMod(i32 a, i32 b) -> i32;
 	auto positiveMod(f32 a, f32 b) -> f32;
 
     auto printGrid(std::vector<i32> &, i32 width) -> void;
+
+	template <typename T, Function<bool, T &> Predicate>
+	auto find(std::vector<T> & vector, Predicate predicate) {
+		return std::find_if(vector.begin(), vector.end(), predicate);
+	}
+
+	template <typename T, IsIterator<T> Iter>
+	auto quickErase(std::vector<T> & vector, Iter iterator) -> void {
+		std::iter_swap(vector.end() - 1, iterator);
+		vector.pop_back();
+	}
 
 	constexpr const char * BASE64_STRING = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -55,16 +76,16 @@ namespace Util {
 	}
 
 	template<typename T>
-	auto base64Decode(const std::string & in) -> std::string {
+	auto base64Decode(const T & in) -> std::string {
 		std::string out;
 
-		std::vector<int> T(256,-1);
-		for (int i = 0; i < 64; i++) T[BASE64_STRING[i]] = i;
+		std::vector<int> t(256,-1);
+		for (int i = 0; i < 64; i++) t[BASE64_STRING[i]] = i;
 
 		int val = 0, valb = -8;
 		for (u8 current : in) {
-			if (T[current] == -1) break;
-			val = (val << 6) + T[current];
+			if (t[current] == -1) break;
+			val = (val << 6) + t[current];
 			valb += 6;
 			if (valb >= 0) {
 				out.push_back(char((val >> valb) & 0xFF));
@@ -74,14 +95,6 @@ namespace Util {
 
 		return out;
 	}
-
-	template<typename T, typename Out, typename ...In>
-	concept Function = requires(T functionLike, In ...param) {
-		{functionLike(param...)} -> std::same_as<Out>;
-	};
-
-	template<typename Iterator, typename ValueType>
-	concept IsIterator = std::same_as<typename std::iterator_traits<Iterator>::value_type, ValueType>;
 }
 
 #endif //ALIFE_UTIL_H

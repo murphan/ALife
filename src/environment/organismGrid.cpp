@@ -2,8 +2,7 @@
 // Created by Emmet on 2/10/2023.
 //
 #include "organismGrid.h"
-
-
+#include "../genome/rotation.h"
 
 OrganismGrid::OrganismGrid(i32 width, i32 height) :
 	blankSpace(Space::makeEmpty()),
@@ -26,23 +25,16 @@ auto OrganismGrid::clear() -> void {
 }
 
 auto OrganismGrid::internalSpaceAvailable(Body & body, i32 index, i32 centerX, i32 centerY, Direction rotation) -> bool {
-	for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
-		for (auto i = body.getLeft(rotation); i <= body.getRight(rotation); ++i) {
-			auto y = centerY + j;
-			auto x = centerX + i;
+	return std::all_of(body.cells.begin(), body.cells.end(), [&](Body::Cell * cell) {
+		auto [x, y] = Rotation::rotate(cell->x(), cell->y(), rotation) + Util::Coord { centerX, centerY };
 
-			if (!inBounds(x, y)) return false;
+		if (!inBounds(x, y)) return false;
 
-			auto && cell = body.access(i, j, rotation);
+		auto && gridSpace = grid[indexOf(x, y)];
+		if (gridSpace.isFilled() && gridSpace.index() != index) return false;
 
-			if (cell.filled()) {
-				auto && gridSpace = grid[indexOf(x, y)];
-				if (gridSpace.isFilled() && gridSpace.index() != index) return false;
-			}
-		}
-	}
-
-	return true;
+		return true;
+	});
 }
 
 auto OrganismGrid::canMoveOrganism(Organism &organism, i32 index, i32 deltaX, i32 deltaY, i32 deltaRotation) -> bool {

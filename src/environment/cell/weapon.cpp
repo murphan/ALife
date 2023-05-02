@@ -96,6 +96,6 @@ auto Weapon::armorDoesBlock(i32 x, i32 y, i32 superAttack, bool directAttack, i3
 }
 
 auto Weapon::killCell(Organism & organism, Body::Cell & cell, Settings & settings) -> void {
-	organism.phenome.onRemoveCell(cell, settings);
+	organism.phenome.onKilledCell(cell, settings);
 	cell.setDead(true);
 }

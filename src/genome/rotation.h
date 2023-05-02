@@ -15,6 +15,8 @@ public:
 	static auto rotate45(Util::Coord xy) -> Util::Coord;
 
 	static auto rotate(Util::Coord xy, Direction direction) -> Util::Coord;
+
+	static auto rotate(i32 x, i32 y, Direction direction) -> Util::Coord;
 };
 
 #endif //ALIFE_ROTATION_H

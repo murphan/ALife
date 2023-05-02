@@ -15,26 +15,6 @@
 #include "direction.h"
 #include "environment/settings.h"
 
-/**
- * additional context needed to build a body from instructions
- */
-class BodyBuilder {
-public:
-	struct Insertion {
-		BodyPart bodyPart;
-		i32 x, y;
-	};
-	std::vector<Insertion> insertedOrder;
-
-    BodyBuilder();
-
-    i32 currentX, currentY;
-	Util::Coord anchors[4];
-
-	auto add(BodyPart bodyPart, i32 x, i32 y) -> void;
-	auto getNextCellofType(BodyPart bodyPart, i32 & start) -> std::optional<Util::Coord>;
-};
-
 class Body {
 public:
 	class Cell {
@@ -42,8 +22,9 @@ public:
 		BodyPart bodyPart_;
 		i32 data_;
 		i32 age_;
-		bool dead_;
 		i32 modifier_;
+		i16 x_, y_;
+		bool dead_;
 		bool broken_;
 
 	public:
@@ -51,8 +32,10 @@ public:
 			BodyPart bodyPart_,
 			i32 data_,
 			i32 age_,
-			bool dead_,
 			i32 modifier_,
+			i16 x_,
+			i16 y_,
+			bool dead_,
 			bool broken_
 		);
 
@@ -63,6 +46,7 @@ public:
 		auto setDead(bool dead) -> void;
 		auto setBroken(bool broken) -> void;
 		auto setAge(i32 age) -> void;
+		auto setPosition(i32 x, i32 y) -> void;
 
 		[[nodiscard]] auto empty() const -> bool;
 		[[nodiscard]] auto filled() const -> bool;
@@ -73,6 +57,9 @@ public:
 		[[nodiscard]] auto dead() const -> bool;
 		[[nodiscard]] auto age() const -> i32;
 		[[nodiscard]] auto broken() const -> bool;
+
+		[[nodiscard]] auto x() const -> i32;
+		[[nodiscard]] auto y() const -> i32;
 
 		[[nodiscard]] auto cost(Settings & settings) const -> i32;
 	};
@@ -87,6 +74,14 @@ private:
 	/** bounds of the organism in the canvas, inclusive on both ends */
 	i32 left, right, down, up;
 
+	/** for building the body */
+	i32 currentX, currentY;
+	struct Anchor {
+		i32 x, y;
+		i32 type;
+	};
+	std::vector<Anchor> anchors;
+
 	auto expand(i32, i32) -> void;
 	auto indexOf(i32, i32) const -> i32;
 
@@ -97,7 +92,12 @@ private:
 
 	auto accessExpand(i32, i32, i32) -> Cell &;
 
+	auto getAnchorOfType(i32 type) -> Anchor *;
+	auto popAnchorOfType(i32 type) -> std::optional<Anchor>;
+
 public:
+	std::vector<Cell*> cells;
+
 	Body(const Body & other) = default;
 	Body(Body && other) = default;
 	Body(i32 edge);
@@ -109,16 +109,13 @@ public:
 
 	auto operator=(Body && other) noexcept -> Body & = default;
 
-	struct AccessRecord {
-		Cell & cell;
-		i32 x, y;
-	};
-	auto accessCoord(i32, i32, Direction rotation) -> AccessRecord;
     auto access(i32, i32, Direction rotation) -> Cell &;
 	auto directAccess(i32 x, i32 y) -> Cell &;
 
-	auto addCell(BodyBuilder &, Direction, Cell cell, i32 jumpAnchor) -> void;
-	auto directAddCell(BodyBuilder & builder, Cell cell, i32 x, i32 y) -> void;
+	auto addCell(Direction direction, Cell && cell, i32 jumpAnchor, i32 setAnchor) -> void;
+	auto directAddCell(Cell && cell, i32 x, i32 y) -> void;
+	auto removeCell(Cell & cell) -> void;
+	auto getNextCellofType(BodyPart bodyPart, i32 & start) -> Cell *;
 
     auto debugToString() const -> std::string;
 
