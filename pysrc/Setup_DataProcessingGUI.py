@@ -30,36 +30,10 @@ class SetupDataDisplay:
     """
     def __init__(self):
         self.control = Control_DataProcessingGUI.DataDisplayControl()
-        self.setup_graph_one()
-        self.setup_graph_two()
         self.setup_window()
         self.setup_frames()
 
         self.window.mainloop()
-
-    def setup_graph_one(self):
-        """
-        Set up the first graph which is displayed in the top right corner of the window. The names of the arrays are
-        shown and displayed as w1a1, w1a2, etc. which stands for window1array1, and so on.
-        :return: None
-        """
-        self.w1a1 = np.array
-        self.w1a2 = np.array
-        self.w1a3 = np.array
-        self.w1a4 = np.array
-        self.w1a5 = np.array
-
-    def setup_graph_two(self):
-        """
-        Set up the first graph which is displayed in the top right corner of the window.The names of the arrays are
-        shown and displayed as w2a1, w2a2, etc. which stands for window2array1, and so on.
-        :return: None
-        """
-        self.w2a1 = np.array
-        self.w2a2 = np.array
-        self.w2a3 = np.array
-        self.w2a4 = np.array
-        self.w2a5 = np.array
 
     def setup_window(self):
         """
@@ -133,7 +107,7 @@ class SetupDataDisplay:
         self.top_dd_1_value.set("Attribute/Variable")
         self.top_dd_1 = tkinter.OptionMenu(frame, self.top_dd_1_value, *ATTRIBUTES,
                                            command=lambda event:
-                                           self.control.set_graph1_array1(self, self.top_dd_1_value.get()))
+                                           self.control.set_graph_array(self.top_dd_1_value.get(), 1, 1))
         self.top_dd_1.pack(side=TOP)
         self.top_dd_1.config(fg="red", bg="white", width=20)
 
@@ -141,7 +115,7 @@ class SetupDataDisplay:
         self.top_dd_2_value.set("Attribute/Variable")
         self.top_dd_2 = tkinter.OptionMenu(frame, self.top_dd_2_value, *ATTRIBUTES,
                                            command=lambda event:
-                                           self.control.set_graph1_array2(self, self.top_dd_2_value.get()))
+                                           self.control.set_graph_array(self.top_dd_2_value.get(), 1, 2))
         self.top_dd_2.pack(side=TOP)
         self.top_dd_2.config(fg="blue", bg="white", width=20)
 
@@ -149,7 +123,7 @@ class SetupDataDisplay:
         self.top_dd_3_value.set("Attribute/Variable")
         self.top_dd_3 = tkinter.OptionMenu(frame, self.top_dd_3_value, *ATTRIBUTES,
                                            command=lambda event:
-                                           self.control.DataDisplayControl.set_graph1_array3(self, self.top_dd_3_value.get()))
+                                           self.control.set_graph_array(self.top_dd_3_value.get(), 1, 3))
         self.top_dd_3.pack(side=TOP)
         self.top_dd_3.config(fg="orange", bg="white", width=20)
 
@@ -157,7 +131,7 @@ class SetupDataDisplay:
         self.top_dd_4_value.set("Attribute/Variable")
         self.top_dd_4 = tkinter.OptionMenu(frame, self.top_dd_4_value, *ATTRIBUTES,
                                            command=lambda event:
-                                           self.control.set_graph1_array4(self.top_dd_4_value.get()))
+                                           self.control.set_graph_array(self.top_dd_4_value.get(), 1, 4))
         self.top_dd_4.pack(side=TOP)
         self.top_dd_4.config(fg="green", bg="white", width=20)
 
@@ -165,7 +139,7 @@ class SetupDataDisplay:
         self.top_dd_5_value.set("Attribute/Variable")
         self.top_dd_5 = tkinter.OptionMenu(frame, self.top_dd_5_value, *ATTRIBUTES,
                                            command=lambda event:
-                                           self.control.set_graph1_array5(self, self.top_dd_5_value.get()))
+                                           self.control.set_graph_array(self.top_dd_5_value.get(), 1, 5))
         self.top_dd_5.pack(side=TOP)
         self.top_dd_5.config(fg="purple", bg="white", width=20)
 
@@ -181,7 +155,7 @@ class SetupDataDisplay:
         self.btm_dd_1_value.set("Attribute/Variable")
         self.btm_dd_1 = tkinter.OptionMenu(frame, self.btm_dd_1_value, *ATTRIBUTES,
                                            command=lambda event:
-                                           self.control.set_graph2_array1(self, self.btm_dd_1_value.get()))
+                                           self.control.set_graph_array(self.btm_dd_1_value.get(), 2, 1))
         self.btm_dd_1.pack(side=TOP)
         self.btm_dd_1.config(fg="red", bg="white", width=20)
 
@@ -189,7 +163,7 @@ class SetupDataDisplay:
         self.btm_dd_2_value.set("Attribute/Variable")
         self.btm_dd_2 = tkinter.OptionMenu(frame, self.btm_dd_2_value, *ATTRIBUTES,
                                            command=lambda event:
-                                           self.control.set_graph2_array2(self, self.btm_dd_2_value.get()))
+                                           self.control.set_graph_array(self.btm_dd_2_value.get(), 2, 2))
         self.btm_dd_2.pack(side=TOP)
         self.btm_dd_2.config(fg="blue", bg="white", width=20)
 
@@ -197,7 +171,7 @@ class SetupDataDisplay:
         self.btm_dd_3_value.set("Attribute/Variable")
         self.btm_dd_3 = tkinter.OptionMenu(frame, self.btm_dd_3_value, *ATTRIBUTES,
                                            command=lambda event:
-                                           self.control.set_graph2_array3(self, self.btm_dd_3_value.get()))
+                                           self.control.set_graph_array(self.btm_dd_3_value.get(), 2, 3))
         self.btm_dd_3.pack(side=TOP)
         self.btm_dd_3.config(fg="orange", bg="white", width=20)
 
@@ -205,7 +179,7 @@ class SetupDataDisplay:
         self.btm_dd_4_value.set("Attribute/Variable")
         self.btm_dd_4 = tkinter.OptionMenu(frame, self.btm_dd_4_value, *ATTRIBUTES,
                                            command=lambda event:
-                                           self.control.set_graph2_array4(self, self.btm_dd_4_value.get()))
+                                           self.control.set_graph_array(self.btm_dd_4_value.get(), 2, 4))
         self.btm_dd_4.pack(side=TOP)
         self.btm_dd_4.config(fg="green", bg="white", width=20)
 
@@ -213,7 +187,7 @@ class SetupDataDisplay:
         self.btm_dd_5_value.set("Attribute/Variable")
         self.btm_dd_5 = tkinter.OptionMenu(frame, self.btm_dd_5_value, *ATTRIBUTES,
                                            command=lambda event:
-                                           self.control.set_graph2_array5(self, self.btm_dd_5_value.get()))
+                                           self.control.set_graph_array(self.btm_dd_5_value.get(), 2, 5))
         self.btm_dd_5.pack(side=TOP)
         self.btm_dd_5.config(fg="purple", bg="white", width=20)
 

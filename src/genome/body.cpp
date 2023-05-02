@@ -5,48 +5,32 @@
 #include "body.h"
 #include "rotation.h"
 
-//Body::Cell::Cell(u32 value): value(value) {}
-
-inline auto nBits(i32 n) -> u32 {
-	return (1 << n) - 1;
-}
-
-//auto Body::Cell::makeEmpty() -> Body::Cell {
-//	return Cell(0_u32);
-//}
-//
-//auto Body::Cell::make(BodyPart bodyPart, i32 data, i32 age) -> Cell {
-//	return Cell(((age & nBits(10)) << 11) | ((data & nBits(3)) << 4) | (bodyPart & nBits(4)));
-//}
-
-Body::Cell::Cell(BodyPart bodyPart_,
-                 i32 data_,
-                 i32 age_,
-                 bool dead_,
-                 i32 modifier_): bodyPart_(bodyPart_), data_(data_), age_(age_), dead_(dead_), modifier_(modifier_) {}
+Body::Cell::Cell(
+	BodyPart bodyPart_,
+	i32 data_,
+	i32 age_,
+	i32 modifier_,
+	i16 x_,
+	i16 y_,
+	bool dead_,
+	bool broken_
+): bodyPart_(bodyPart_),
+	data_(data_),
+	age_(age_),
+    modifier_(modifier_),
+	x_(x_),
+    y_(y_),
+	dead_(dead_),
+	broken_(broken_) {}
 
 auto Body::Cell::makeEmpty() -> Body::Cell {
-	return Cell(BodyPart::NONE, 0, 0, false, -1);
+	return Cell(BodyPart::NONE, 0, 0, -1, 0, 0, false, false);
 }
 auto Body::Cell::make(BodyPart bodyPart, i32 data, i32 age) -> Cell {
-	return Cell(bodyPart, data, age, false, -1);
+	return Cell(bodyPart, data, age, -1, 0, 0, false, false);
 }
 
 /* mutators */
-
-//auto Body::Cell::modify(i32 modifier) -> void {
-//	value &= ~(nBits(3) << 7);
-//	value |= ((modifier + 1) & nBits(3)) << 7;
-//}
-//
-//auto Body::Cell::setDead(bool dead) -> void {
-//	value |= (dead ? 1 : 0) << 10;
-//}
-//
-//auto Body::Cell::setAge(i32 age) -> void {
-//	value &= ~(nBits(10) << 11);
-//	value |= (age & nBits(10)) << 11;
-//}
 
 auto Body::Cell::modify(i32 modifier) -> void {
 	modifier_ = modifier + 1;
@@ -60,32 +44,8 @@ auto Body::Cell::setAge(i32 age) -> void {
 
 /* getters */
 
-//auto Body::Cell::bodyPart() const -> BodyPart {
-//	return (BodyPart)(value & nBits(4));
-//}
-//
-//auto Body::Cell::data() const -> i32 {
-//	return (i32)((value >> 4) & nBits(3));
-//}
-//
-//auto Body::Cell::isModified() const -> bool {
-//	return ((value >> 7) & nBits(3)) != 0;
-//}
-//
-//auto Body::Cell::modifier() const -> i32 {
-//	return (i32)((value >> 7) & nBits(3)) - 1;
-//}
-//
-//auto Body::Cell::dead() const -> bool {
-//	return (bool)((value >> 10) & nBits(1));
-//}
-//
-//auto Body::Cell::age() const -> i32 {
-//	return (i32)((value >> 11) & nBits(10));
-//}
-
 auto Body::Cell::bodyPart() const -> BodyPart {
-	return bodyPart_;
+ 	return bodyPart_;
 }
 auto Body::Cell::data() const -> i32 {
 	return data_;
@@ -115,102 +75,36 @@ auto Body::Cell::filled() const -> bool {
 	return !empty();
 }
 
-BodyBuilder::BodyBuilder() :
-	currentX(0),
-	currentY(0),
-	anchors {
-		{ 0, 0 },
-		{ 0, 0 },
-		{ 0, 0 },
-		{ 0, 0 },
-	} {}
-
-auto BodyBuilder::getNextCellofType(BodyPart bodyPart, i32 & start) -> std::optional<Util::Coord> {
-	for (auto i = start; i < insertedOrder.size(); ++i) {
-		auto [current, x, y] = insertedOrder[i];
-		if (current == bodyPart) {
-			start = i;
-			return std::make_optional<Util::Coord>(x, y);
-		}
-	}
-
-	return std::nullopt;
+auto Body::Cell::setBroken(bool broken) -> void {
+	broken_ = broken;
 }
 
-auto BodyBuilder::add(BodyPart bodyPart, i32 x, i32 y) -> void {
-	insertedOrder.push_back({ bodyPart, x, y });
+auto Body::Cell::broken() const -> bool {
+	return broken_;
 }
 
-auto canvasIndex(i32 width, i32 x, i32 y) -> i32 {
-	return y * width + x;
+auto Body::Cell::setPosition(i32 x, i32 y) -> void {
+	x_ = (i16)x;
+	y_ = (i16)y;
 }
 
-auto Body::expand(i32 expandX, i32 expandY) -> void {
-	auto newWidth = width;
-	auto newHeight = height;
-	auto newOriginX = originX;
-	auto newOriginY = originY;
-	auto offX = 0;
-	auto offY = 0;
-
-	if (expandX < 0) {
-		newWidth += -expandX;
-		newOriginX += -expandX;
-		offX = -expandX;
-
-	} else if (expandX > 0) {
-		newWidth += expandX;
-	}
-
-	if (expandY < 0) {
-		newHeight += -expandY;
-		newOriginY += -expandY;
-		offY = -expandY;
-
-	} else if (expandY > 0) {
-		newHeight += expandY;
-	}
-
-	auto newCanvas = std::vector<Cell>(newWidth * newHeight, Cell::makeEmpty());
-
-	for (auto y = 0; y < height; ++y) {
-		for (auto x = 0; x < width; ++x) {
-			newCanvas[canvasIndex(newWidth, x + offX, y + offY)] = canvas[canvasIndex(width, x, y)];
-		}
-	}
-
-	width = newWidth;
-	height = newHeight;
-	originX = newOriginX;
-	originY = newOriginY;
-	canvas = std::move(newCanvas);
+auto Body::Cell::x() const -> i32 {
+	return x_;
 }
 
-auto Body::indexOf(i32 x, i32 y) const -> i32 {
-	return (y + originY) * width + (x + originX);
+auto Body::Cell::y() const -> i32 {
+	return y_;
 }
 
-auto Body::canvasLeft() const -> i32 {
-    return -originX;
-}
-
-auto Body::canvasRight() const -> i32 {
-    return (width - 1) - originX;
-}
-
-auto Body::canvasDown() const -> i32 {
-    return -originY;
-}
-
-auto Body::canvasUp() const -> i32 {
-    return (height - 1) - originY;
-}
+/* Body */
 
 Body::Body(i32 edge):
     width(edge * 2 + 1), height(edge * 2 + 1),
 	originX(edge), originY(edge),
-	canvas(width * height, Cell::makeEmpty()),
-    left(0), right(0), down(0), up(0)
+	cells(),
+    left(0), right(0), down(0), up(0),
+	currentX(0), currentY(0),
+	anchors()
 {}
 
 auto Body::outOfBounds = Cell::makeEmpty();
@@ -219,18 +113,22 @@ auto Body::outOfBounds = Cell::makeEmpty();
  * @param builder the builder for the body creation process
  * @param direction direction to add the body part in
  * @param part the body segment to add
- * @param jumpAnchor use -1 for no usingAnchor, otherwise 0,1,2,3 for anchors A,B,C,D
+ * @param jumpAnchor use -1 for no usingAnchor, otherwise the anchor id
+ * @param setAnchor use -1 for not setting anchor, otherwise the anchor id to set here
  *
  * modifies the builder's current direction and current position
  */
-auto Body::addCell(BodyBuilder & builder, Direction direction, Cell cell, i32 jumpAnchor) -> void {
+auto Body::addCell(Direction direction, Cell && cell, i32 jumpAnchor, i32 setAnchor) -> void {
     /* move from current position unless anchored, then jump */
-	auto baseX = builder.currentX;
-	auto baseY = builder.currentY;
+	auto baseX = currentX;
+	auto baseY = currentY;
 
 	if (jumpAnchor > -1) {
-		baseX = builder.anchors[jumpAnchor].x;
-		baseY = builder.anchors[jumpAnchor].y;
+		auto && anchor = popAnchorOfType(jumpAnchor);
+		if (anchor.has_value()) {
+			baseX = anchor->x;
+			baseY = anchor->y;
+		}
 	}
 
     /* keep moving in direction until finding an empty space */
@@ -239,18 +137,21 @@ auto Body::addCell(BodyBuilder & builder, Direction direction, Cell cell, i32 ju
     do {
         newX += direction.x();
         newY += direction.y();
-    } while (accessExpand(newX, newY, 5).bodyPart() != BodyPart::NONE);
+    } while (directAccess(newX, newY).filled());
 
-	builder.currentX = newX;
-	builder.currentY = newY;
+	currentX = newX;
+	currentY = newY;
 
-	directAddCell(builder, cell, newX, newY);
+	if (setAnchor != -1) {
+		anchors.push_back({ currentX, currentY, setAnchor });
+	}
+
+	directAddCell(std::move(cell), newX, newY);
 }
 
-auto Body::directAddCell(BodyBuilder & builder, Cell cell, i32 x, i32 y) -> void {
-	canvas[indexOf(x, y)] = cell;
-
-	builder.add(cell.bodyPart(), x, y);
+auto Body::directAddCell(Cell && cell, i32 x, i32 y) -> void {
+	cell.setPosition(x, y);
+	cells.emplace_back(cell);
 
 	/* update bounds */
 	if (x < left) left = x;
@@ -260,54 +161,34 @@ auto Body::directAddCell(BodyBuilder & builder, Cell cell, i32 x, i32 y) -> void
 	else if (y > up) up = y;
 }
 
-/** may resize the canvas if out of bounds */
-auto Body::accessExpand(i32 x, i32 y, i32 expandBy) -> Cell & {
-    auto expandX = 0;
-    auto expandY = 0;
+auto Body::removeCell(Cell & cell) -> void {
+	auto found = Util::find(cells, [&](Cell & entry) { return &cell == &entry; });
+	//if (found == cells.end()) return;
+	Util::quickErase(cells, found);
+}
 
-    if (x < canvasLeft()) {
-        expandX = -expandBy;
-    } else if (x > canvasRight()) {
-        expandX = expandBy;
-    }
-    if (y < canvasDown()) {
-        expandY = -expandBy;
-    } else if (y > canvasUp()) {
-        expandY = expandBy;
-    }
-    if (expandX != 0 || expandY != 0) expand(expandX, expandY);
+auto Body::getAnchorOfType(i32 type) -> Anchor * {
+	for (auto && anchor : anchors) {
+		if (anchor.type == type) return &anchor;
+	}
+	return nullptr;
+}
 
-    return canvas[indexOf(x, y)];
+auto Body::popAnchorOfType(i32 type) -> std::optional<Anchor> {
+	auto found = Util::find(anchors, [&](Anchor & anchor) { return anchor.type == type; });
+	if (found == anchors.end()) return std::nullopt;
+
+	auto ret = std::make_optional(*found);
+
+	Util::quickErase(anchors, found);
+
+	return ret;
 }
 
 auto Body::directAccess(i32 x, i32 y) -> Body::Cell & {
-	return canvas[indexOf(x, y)];
-}
-
-auto Body::accessCoord(i32 x, i32 y, Direction rotation) -> AccessRecord {
-	auto [accessX, accessY] = Rotation::rotate({ x, y }, rotation);
-	if (accessX < canvasLeft() || accessX > canvasRight() || accessY < canvasDown() || accessY > canvasUp()) return { outOfBounds, accessX, accessY };
-	return { canvas[indexOf(accessX, accessY)], accessX, accessY };
-}
-
-auto Body::access(i32 x, i32 y, Direction rotation) -> Cell & {
-	auto [accessX, accessY] = Rotation::rotate({ x, y }, rotation);
-	if (accessX < canvasLeft() || accessX > canvasRight() || accessY < canvasDown() || accessY > canvasUp()) return outOfBounds;
-	return canvas[indexOf(accessX, accessY)];
-}
-
-auto Body::debugToString() const -> std::string {
-    auto string = std::string();
-    string.reserve((width + 1) * height - 1);
-
-    for (auto y = height - 1; y >= 0; --y) {
-        for (auto x = 0; x < width; ++x) {
-            string.push_back(canvas[canvasIndex(width, x, y)].bodyPart() + '0');
-        }
-        if (y > down) string.push_back('\n');
-    }
-
-    return string;
+	auto found = Util::find(cells, [&](Cell & cell) { return cell.x() == x && cell.y() == y; });
+	if (found == cells.end()) return outOfBounds;
+	return *found;
 }
 
 auto Body::getWidth() const -> i32 {
@@ -316,6 +197,18 @@ auto Body::getWidth() const -> i32 {
 
 auto Body::getHeight() const -> i32 {
 	return up - down + 1;
+}
+
+auto Body::getNextCellofType(BodyPart bodyPart, i32 & start) -> Cell * {
+	for (auto i = start; i < cells.size(); ++i) {
+		auto && cell = cells[i];
+		if (cell.bodyPart() == bodyPart) {
+			start = i;
+			return &cell;
+		}
+	}
+
+	return nullptr;
 }
 
 inline auto diagonalLength(i32 length0, i32 length1) {
@@ -372,4 +265,12 @@ auto Body::getDown(Direction rotation) const -> i32 {
 		case Direction::DOWN: return -right;
 		case Direction::RIGHT_DOWN: return -diagonalLength(right, down);
 	}
+}
+
+auto Body::absoluteXY(Body::Cell & cell, i32 centerX, i32 centerY, Direction rotation) -> Util::Coord {
+	return Rotation::rotate(cell.x(), cell.y(), rotation) + Util::Coord { centerX, centerY };
+}
+
+auto Body::getCells() -> std::vector<Cell> & {
+	return cells;
 }

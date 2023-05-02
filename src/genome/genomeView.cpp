@@ -13,6 +13,6 @@ auto GenomeView::empty() -> bool {
 	return internal == nullptr;
 }
 
-auto GenomeView::operator[](i32 index) -> Genome::Base {
-	return internal->get(index + offset);
+auto GenomeView::operator[](i32 index) const -> Genome::Base {
+	return internal->operator[](index + offset);
 }

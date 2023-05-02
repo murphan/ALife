@@ -32,7 +32,7 @@ constexpr u32 bodyPartColors[] = {
 	0x086603, /* Photosynthesizer */
 	0xe31045, /* Weapon */
 	0x4e2ba6, /* Armor */
-	0x74c2e3, /* Eye */
+	0x80a9d1, /* Eye */
 	0xede6da, /* Scaffolding */
 };
 
@@ -97,56 +97,50 @@ auto Renderer::render(Environment & environment, std::vector<Organism> & organis
 			auto && mapCell = environment.accessUnsafe(x, y);
 			auto && food = mapCell.food;
 
+			insert3(
+				buffer,
+				bufferIndex(x, y) + 3,
+				getFactorsColor(mapCell)
+			);
+
 			if (food.filled()) {
-				buffer[bufferIndex(x, y)] = META_FOOD;
+				buffer[bufferIndex(x, y)] = META_FOOD | (food.broken() ? CIRCLE_FLAG : 0);
 				insert3(
 					buffer,
-					bufferIndex(x, y) + 3,
+					bufferIndex(x, y) + (food.broken() ? 6 : 3),
 					food.dead() ? bodyPartDeadColors[food.bodyPart() - 1] : bodyPartColors[food.bodyPart() - 1]
-				);
-			} else {
-				insert3(
-					buffer,
-					bufferIndex(x, y) + 3,
-					getFactorsColor(mapCell)
 				);
 			}
 		}
 	}
 
 	for (auto && organism : organisms) {
-		auto && body = organism.body();
-		auto rotation = organism.rotation;
+		for (auto && cell : organism.body().getCells()) {
+			auto [x, y] = organism.absoluteXY(cell);
 
-		for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
-			for (auto i = body.getLeft(rotation); i <= body.getRight(rotation); ++i) {
-				auto && cell = body.access(i, j, rotation);
-
-				auto x = organism.x + i;
-				auto y = organism.y + j;
-
-				if (cell.filled()) {
-					buffer[bufferIndex(x, y)] = META_ORGANISM | (cell.isModified() ? CIRCLE_FLAG : 0);
-					insert2(
-						buffer,
-						bufferIndex(x, y) + 1,
-						organism.id
-					);
-					insert3(
-						buffer,
-						bufferIndex(x, y) + 3,
-						cell.dead() ? bodyPartDeadColors[cell.bodyPart() - 1] : bodyPartColors[cell.bodyPart() - 1]
-					);
-					if (cell.isModified()) {
-						insert3(
-							buffer,
-							bufferIndex(x, y) + 6,
-							cell.bodyPart() == BodyPart::WEAPON ? weaponUpgradeColors[cell.modifier()] :
-							cell.bodyPart() == BodyPart::ARMOR ? armorUpgradeColors[cell.modifier()] :
-							scaffoldingUpgradeColor
-						);
-					}
-				}
+			buffer[bufferIndex(x, y)] = META_ORGANISM | (cell.isModified() ? CIRCLE_FLAG : 0);
+			insert2(
+				buffer,
+				bufferIndex(x, y) + 1,
+				organism.id
+			);
+			auto color = cell.dead() ? bodyPartDeadColors[cell.bodyPart() - 1] : bodyPartColors[cell.bodyPart() - 1];
+			if (color == 0) {
+				auto dfa = 23423;
+			}
+			insert3(
+				buffer,
+				bufferIndex(x, y) + 3,
+				cell.dead() ? bodyPartDeadColors[cell.bodyPart() - 1] : bodyPartColors[cell.bodyPart() - 1]
+			);
+			if (cell.isModified()) {
+				insert3(
+					buffer,
+					bufferIndex(x, y) + 6,
+					cell.bodyPart() == BodyPart::WEAPON ? weaponUpgradeColors[cell.modifier()] :
+					cell.bodyPart() == BodyPart::ARMOR ? armorUpgradeColors[cell.modifier()] :
+					scaffoldingUpgradeColor
+				);
 			}
 		}
 	}

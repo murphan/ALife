@@ -17,23 +17,25 @@ public:
 	private:
 		constexpr static u32 FOOD_VALUE = ~0;
 
-		Body::Cell * reference;
+		i32 x, y;
 		u32 value;
 
-		explicit Space(Body::Cell * reference, u32 value);
+		explicit Space(i32 x, i32 y, u32 value);
 
 	public:
 		static auto makeEmpty() -> Space;
-		static auto makeCell(Body::Cell * reference, i32 index) -> Space;
-		static auto makeFood(Body::Cell * reference) -> Space;
+		static auto makeCell(Body::Cell & reference, i32 index) -> Space;
+		static auto makeFood(i32 x, i32 y) -> Space;
 
 		[[nodiscard]] auto isFilled() const -> bool;
-		[[nodiscard]] auto isCell() const -> bool;
-		[[nodiscard]] auto isFood() const -> bool;
+		[[nodiscard]] auto fromOrganism() const -> bool;
+		[[nodiscard]] auto fromEnvironment() const -> bool;
 
 		[[nodiscard]] auto index() const -> i32;
 
-		[[nodiscard]] auto cell() const -> Body::Cell &;
+		[[nodiscard]] auto cell(std::vector<Organism> & organisms) const -> Body::Cell &;
+		[[nodiscard]] auto cell(Environment & environment) const -> Body::Cell &;
+		[[nodiscard]] auto cell(std::vector<Organism> & organisms, Environment & environment) const -> Body::Cell &;
 	};
 
 private:

@@ -8,6 +8,7 @@
 #include <random>
 
 #include "genome.h"
+#include "gene.h"
 
 /**
  * splits geneone into logical areas of:
@@ -24,7 +25,7 @@ public:
 	 */
 	struct Segment {
 		bool isCoding;
-		Genome::Base type;
+		Gene::Type type;
 		i32 begin;
 		i32 end;
 
@@ -37,7 +38,7 @@ public:
 
 	std::vector<Segment> segments;
 
-	GeneMap(const Genome & genome);
+	explicit GeneMap(const Genome & genome);
 
 	auto smartMutateCopy(
 		const Genome & original,

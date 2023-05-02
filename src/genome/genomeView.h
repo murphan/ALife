@@ -24,7 +24,7 @@ public:
 	i32 length;
 
 	auto empty() -> bool;
-	auto operator[](i32 index) -> Genome::Base;
+	auto operator[](i32 index) const -> Genome::Base;
 };
 
 #endif //ALIFE_GENOMEVIEW_H

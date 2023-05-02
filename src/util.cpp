@@ -31,6 +31,10 @@ Util::Coord::Coord(i32 x, i32 y): x(x), y(y) {}
 
 Util::Coord::Coord(): x(0), y(0) {}
 
+auto Util::Coord::operator+(const Util::Coord && other) const -> Util::Coord {
+	return { x + other.x, y + other.y };
+}
+
 auto Util::printGrid(std::vector<i32> & grid, i32 width) -> void {
     auto height = grid.size() / width;
 

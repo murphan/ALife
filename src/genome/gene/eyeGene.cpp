@@ -3,22 +3,19 @@
 //
 
 #include "eyeGene.h"
+#include "../geneWriter.h"
 
 const auto EyeGene::LENGTH = 6;
 
-auto EyeGene::headerBase() -> Genome::Base {
-	return Genome::B;
-}
-
 EyeGene::EyeGene(GenomeView & view) :
-	seeing((BodyPart)read7(view, 0)),
-	actionType((ActionType)read2(view, 3)) {}
+	seeing((BodyPart)GeneWriter::read7(view, 0)),
+	actionType((ActionType)GeneWriter::read2(view, 3)) {}
 
 EyeGene::EyeGene(BodyPart bodyPart, ActionType actionType) :
 		seeing(bodyPart),
 		actionType(actionType) {}
 
 auto EyeGene::writeBody(Genome & genome) -> void {
-	write7(genome, seeing);
-	write2(genome, actionType);
+	GeneWriter::write7(genome, seeing);
+	GeneWriter::write2(genome, actionType);
 }

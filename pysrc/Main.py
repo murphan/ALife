@@ -1,7 +1,6 @@
 import os
 import socket
 import sys
-import time
 from threading import Thread
 from tkinter import messagebox
 
@@ -9,19 +8,24 @@ from tkinter import messagebox
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 import pygame
 
-import Control_EnvironmentGUI
-import Setup_EnvironmentGUI
+import EnvironmentControl
+from Setup_EnvironmentGUI import EnvironmentGUI
 import Setup_settingsGUI
 import Global_access
 import receive_message
 import Drawing
+from send_message import send_message
+
 
 class Management:
-    def __init__(self, *args, **kwargs):
-        self.EnvironmentGui = Setup_EnvironmentGUI.SetupEnvironment()
-        self.EnvironmentControl = Control_EnvironmentGUI.EnvironmentControl()
-
+    def __init__(self):
+        self.conn = None
+        self.thread = None
         self.create_connection()
+
+        self.environment_gui = EnvironmentGUI(lambda fps: EnvironmentControl.set_fps(self.conn, fps))
+
+        Global_access.ENV_FONT = pygame.font.SysFont('Arial', 20)
 
         # TODO call whenever new connection is established
         self.send_init_message()
@@ -32,7 +36,7 @@ class Management:
         while not connected:
             try:
                 host = socket.gethostname()
-                port = self.read_port()
+                port = Management.read_port()
                 self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.conn.connect((host, port))
                 connected = True
@@ -44,7 +48,7 @@ class Management:
         self.thread.start()
 
     def send_init_message(self):
-        self.EnvironmentControl.send_message(self.conn, "init")
+        send_message(self.conn, "init")
 
     def main_loop(self):
         while True:
@@ -53,46 +57,55 @@ class Management:
                 pygame.quit()
                 sys.exit()
 
+            should_render_ui = False
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    thread = Thread(target=self.exiting)
-                    thread.start()
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if self.EnvironmentGui.settings_button.mouse_click(event):  # Show the settings window
-                        thread = Thread(target=self.open_settings)
-                        thread.start()
-                    elif self.EnvironmentGui.play_pause_button.mouse_click(event):  # start button was clicked
-                        self.EnvironmentControl.toggle_start_stop(self.conn)
-                        self.EnvironmentGui.create_buttons()
-                    else:  # Display on the environment that a square was clicked
-                        self.EnvironmentControl.square_clicked(event, self.EnvironmentGui, self.conn)
-                if event.type == pygame.VIDEORESIZE:
-                    self.EnvironmentGui.on_window_resize(event)
+                    Thread(target=Management.exiting).start()
 
-            if Global_access.latest_frame is not None and Global_access.latest_frame["should_render"]:
+                if event.type == pygame.VIDEORESIZE:
+                    self.environment_gui.on_window_resize(event)
+
+                if self.environment_gui.settings_button.update(event):
+                    Thread(target=self.open_settings).start()
+
+                if self.environment_gui.play_pause_button.update(event):
+                    EnvironmentControl.toggle_start_stop(self.conn)
+                    should_render_ui = True
+
+                if self.environment_gui.fps_slider.update(event):
+                    should_render_ui = True
+
+            should_render_environment = Global_access.latest_frame is not None and\
+                Global_access.latest_frame["should_render"]
+
+            if should_render_environment:
                 Global_access.SCREEN.fill(Global_access.BLACK)
                 Drawing.render_grid(Global_access.latest_frame)
-                self.EnvironmentGui.create_buttons()
                 Global_access.latest_frame["should_render"] = False
+
+            if should_render_environment or should_render_ui:
+                self.environment_gui.render_ui()
 
             pygame.display.update()
 
-            time.sleep(0.01)
 
-    def exiting(self):
+    @staticmethod
+    def exiting():
         confirm = messagebox.askokcancel(title="Quit?", message="Are you sure that you want to Quit?")
         if confirm:
             Global_access.EXIT = 1
         else:
             return
 
-    def read_port(self):
+    @staticmethod
+    def read_port():
         f = open("../config.txt", "r")
         return int(f.read())
 
     def open_settings(self):
-        settings = Setup_settingsGUI.SetupSettings()
-        settings.start(self)
+        settings = Setup_settingsGUI.SetupSettings(self.conn)
+        settings.start()
 
 
 if __name__ == "__main__":

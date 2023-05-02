@@ -1,55 +1,83 @@
+import socket
 import tkinter
-from tkinter import *
-import tkinter.ttk as ttk
 import tkinter.font as font
+from tkinter import *
 
-import Setup_DataProcessingGUI
-import Setup_EnvironmentGUI
-import Control_EnvironmentGUI as Control_Environment
 import Global_access
+import Setup_DataProcessingGUI
+import EnvironmentControl
+from pysrc.Noise import Factor
+from send_message import send_message
 
 LIGHT_GREEN = '#5fad75'
 ORANGE_YELLOW = '#e8b320'
 GREEN = '#0c871b'
 BLUE = '#3289a8'
 
-CLICK_TYPES = ["Wall",
-               "Organism",
-               "Food"]
+CLICK_TYPES = [
+    "Wall",
+    "Organism",
+    "Food"
+]
+
+# These are place holder colors and descriptions
+CELL_DESCRIPTIONS = {
+    "#f2960c": "Mouth cell",
+    "#11f0e8": "Mover cell",
+    "#086603": "Photosynthesis cell",
+    "#e31045": "Weapon cell",
+    "#4e2ba6": "Shield cell",
+    "#74c2e3": "Eye cell",
+    "#ede6da": "Scaffolding cell"
+}
+
+
+class NoiseControl(object):
+    def __init__(
+        self,
+        use_noise_checkbox: tkinter.Checkbutton,
+        center_slider: tkinter.Scale,
+        scale_slider: tkinter.Scale,
+        depth_slider: tkinter.Scale,
+        speed_slider: tkinter.Scale
+    ):
+        self.use_noise_checkbox = use_noise_checkbox
+        self.center_slider = center_slider
+        self.scale_slider = scale_slider
+        self.depth_slider = depth_slider
+        self.speed_slider = speed_slider
 
 
 class SetupSettings:
     """
     This will set up the settings window for manipulating different options in Environment
     """
-    def __init__(self):
-        self.setup_window()
+    def __init__(self, conn: socket.socket):
+        self.conn = conn
+        self.window = self.setup_window()
+        self.noise_controls: list[NoiseControl] = []
         self.setup_banner()
         self.setup_configurations()
         self.setup_buttons()
 
-    def start(self, settings):
-        """
-        This will actually display the settings window
-
-        :param settings: An instance of the main "management" class
-        :param type: Management class instance
-        """
-        self.env_settings = settings
-        self.window.mainloop()
-
-    def setup_window(self):
+    @staticmethod
+    def setup_window() -> Tk:
         """
         This sets up the main window
         """
         window = Tk()
         window.title("Settings")
-        # window.state('zoomed') this is annoying
         window.configure(bg=LIGHT_GREEN)
-        window.geometry("1000x500")
-        window.minsize(1500, 785)
+        window.geometry("1500x900")
+        window.minsize(1500, 900)
 
-        self.window = window
+        return window
+
+    def start(self):
+        """
+        This will actually display the settings window
+        """
+        self.window.mainloop()
 
     def setup_banner(self):
         """
@@ -68,10 +96,10 @@ class SetupSettings:
         This sets up the different configuration options which are split into four sections
 
         --------------------------------------------------------------
-        |               |                |             |             |
-        |      fps      |  reproduction  |    size     |   Click     |
-        |               |      rates     |             |   Type      |
-        |               |                |             |             |
+        |                  |                      |                  |
+        |  reproduction    |       colors         |      Click       |
+        |      rates       |       guide          |      Type        |
+        |                  |                      |                  |
         --------------------------------------------------------------
         |                  |                      |                  |
         |       Temp       |       Light          |     Oxygen       |
@@ -80,28 +108,16 @@ class SetupSettings:
         --------------------------------------------------------------
 
         """
-        middle_top_frame = tkinter.Frame(self.window, bg=LIGHT_GREEN)
-        middle_bottom_frame = tkinter.Frame(self.window, bg=LIGHT_GREEN)
-        speed_frame = tkinter.Frame(middle_top_frame, bg=LIGHT_GREEN, borderwidth=50)
-        repro_frame = tkinter.Frame(middle_top_frame, bg=LIGHT_GREEN, borderwidth=50)
-        size_frame = tkinter.Frame(middle_top_frame, bg=LIGHT_GREEN, borderwidth=50)
-        click_type_frame = tkinter.Frame(middle_top_frame, bg=LIGHT_GREEN, borderwidth=50)
+        top_frame = tkinter.Frame(self.window, bg=LIGHT_GREEN)
+        bottom_frame = tkinter.Frame(self.window, bg=LIGHT_GREEN)
 
-        temp_frame = tkinter.Frame(middle_bottom_frame, bg=LIGHT_GREEN, borderwidth=75)
-        light_frame = tkinter.Frame(middle_bottom_frame, bg=LIGHT_GREEN, borderwidth=75)
-        oxygen_frame = tkinter.Frame(middle_bottom_frame, bg=LIGHT_GREEN, borderwidth=75)
+        repro_frame = tkinter.Frame(top_frame, bg=LIGHT_GREEN, borderwidth=25)
+        size_frame = tkinter.Frame(top_frame, bg=LIGHT_GREEN, borderwidth=25)
+        click_type_frame = tkinter.Frame(top_frame, bg=LIGHT_GREEN, borderwidth=25)
 
-        # Setting up the fps slider frame
-        speed_text_label = Label(speed_frame, text="Frames Per Second", background=LIGHT_GREEN)
-        speed_text_label.config(font=("Arial", 12))
-        speed_text_label.pack()
-
-        self.fps_slider = tkinter.Scale(speed_frame, from_=1, to=21, orient=HORIZONTAL,
-                                        background=LIGHT_GREEN, command=lambda event:
-                                        Control_Environment.EnvironmentControl.set_fps(self, self.fps_slider.get()))
-        self.fps_slider.set(Global_access.fps)
-        self.fps_slider.pack(side=TOP)
-        speed_frame.pack(side=LEFT)
+        temp_frame = tkinter.Frame(bottom_frame, bg=LIGHT_GREEN, borderwidth=75)
+        light_frame = tkinter.Frame(bottom_frame, bg=LIGHT_GREEN, borderwidth=75)
+        oxygen_frame = tkinter.Frame(bottom_frame, bg=LIGHT_GREEN, borderwidth=75)
 
         # Dealing with the reproduction inputs
         reproduction_text_label = Label(repro_frame, text="Reproduction Mutation Rates", background=LIGHT_GREEN)
@@ -137,8 +153,8 @@ class SetupSettings:
 
         completed_button_frame = tkinter.Frame(repro_frame, bg=LIGHT_GREEN)
         completed_button = tkinter.Button(completed_button_frame, bg="light blue", text="Complete!",
-                                          command=lambda: Control_Environment.EnvironmentControl.set_mutations(
-                                                                                        self,
+                                          command=lambda: EnvironmentControl.set_mutations(
+                                                                                        self.conn,
                                                                                         self.insertion_value.get(),
                                                                                         self.deletion_value.get(),
                                                                                         self.substitution_value.get()))
@@ -147,32 +163,33 @@ class SetupSettings:
         repro_frame.pack(side=LEFT)
 
         # Set up the size configuration options
-        size_title_frame = tkinter.Frame(size_frame, bg=LIGHT_GREEN)
-        size_title_frame.pack(side=TOP, expand=True)
-        size_title_label = Label(size_title_frame, text="Size", background=LIGHT_GREEN)
-        size_title_label.config(font=("Arial", 12))
-        size_title_label.pack(side=TOP)
+        color_title_frame = tkinter.Frame(size_frame, bg=LIGHT_GREEN)
+        color_title_frame.pack(side=TOP, expand=True)
+        color_title_label = Label(color_title_frame, text="Color Guide", background=LIGHT_GREEN)
+        color_title_label.config(font=("Arial", 12))
+        color_title_label.pack(side=TOP)
 
-        width_frame = tkinter.Frame(size_frame, bg=LIGHT_GREEN)
-        width_text_label = Label(width_frame, text="Width(don't use *yet)", background="White")
-        width_text_label.config(font=("Arial", 12))
-        width_text_label.pack(side=LEFT)
-        width_input = ttk.Spinbox(width_frame, from_=50.0, to=77.0,increment=1.0,
-                                  state='readonly', wrap=True, command=lambda event:
-                                  Control_Environment.EnvironmentControl.set_width(self, width_input.get()))
-        width_input.pack(side=LEFT)
-        width_frame.pack(side=TOP)
+        color_guide_frame = tkinter.Frame(size_frame, bg=LIGHT_GREEN)
 
-        height_frame = tkinter.Frame(size_frame, bg=LIGHT_GREEN)
-        height_text_label = Label(height_frame, text="Height(don't use *yet)", background="White")
-        height_text_label.config(font=("Arial", 12))
-        height_text_label.pack(side=LEFT)
-        height_input = ttk.Spinbox(height_frame, from_=100.0, to=150.0, increment=1.0,
-                                   state='readonly', width=19, wrap=True, command=lambda event:
-                                   Control_Environment.EnvironmentControl.set_height(self, height_input.get()))
-        height_input.pack(side=LEFT)
-        height_frame.pack(side=BOTTOM)
+        block_size = 25
+        color_tile_frame = tkinter.Frame(color_guide_frame, bg="blue")
+        canvas = Canvas(color_tile_frame, height=block_size * len(CELL_DESCRIPTIONS), width=block_size, bg=LIGHT_GREEN)
+        i = 0
+        for key, value in CELL_DESCRIPTIONS.items():
+            canvas.create_rectangle(0, 0 + (block_size * i),
+                                    block_size, block_size + (block_size * i), outline="black", fill=key, width=3)
+            i+=1
+        canvas.pack(side=TOP)
 
+        color_tile_frame.pack(side=LEFT)
+
+        color_label_frame = tkinter.Frame(color_guide_frame, bg=LIGHT_GREEN)
+        for key, value in CELL_DESCRIPTIONS.items():
+            tkinter.Label(color_label_frame, text=value, bg=LIGHT_GREEN).pack(side=TOP)
+
+        color_label_frame.pack(side=LEFT)
+
+        color_guide_frame.pack(side=TOP)
         size_frame.pack(side=LEFT)
 
         # Setup Click type section
@@ -187,230 +204,87 @@ class SetupSettings:
         self.click_dd_value = tkinter.StringVar(click_type_frame)
         self.click_dd_value.set(Global_access.CLICK_TYPE)
         self.click_dd = tkinter.OptionMenu(click_type_frame, self.click_dd_value, *CLICK_TYPES, command=lambda event:
-                        Control_Environment.EnvironmentControl.click_type(self, self.click_dd_value.get()))
+                        EnvironmentControl.click_type(self.click_dd_value.get()))
+
         self.click_dd.config(width=15, bg="white")
         self.click_dd.pack(side=TOP)
         click_title_frame.pack(side=TOP)
         self.click_dd_frame.pack(side=LEFT)
 
         click_type_frame.pack(side=LEFT)
-        middle_top_frame.pack(side=TOP, expand=True)
+        top_frame.pack(side=TOP, expand=True)
 
-        # set up the environment variable controls
-        # Set up Temperature
-        temp_control_frame = tkinter.Frame(temp_frame, bg=LIGHT_GREEN)
-        temp_title = Label(temp_frame, text="Temperature Options:",
-                                background=LIGHT_GREEN)
-        temp_title.config(font=("Arial", 12))
-        temp_title.pack(side=TOP)
-        temp_noise = tkinter.IntVar(value=Global_access.temp_noise)
-        temp_noise_check = tkinter.Checkbutton(temp_control_frame, text="Use Noise?", background=LIGHT_GREEN,
-                                               variable=temp_noise, command=lambda:
-                                               self.set_temp_noise(temp_noise.get()))
-        temp_noise_check.pack(side=LEFT)
+        self.noise_controls.append(
+            self.create_noise_control('Temperature Control', temp_frame, Factor.TEMPERATURE)
+        )
+        self.noise_controls.append(
+            self.create_noise_control('Light Control', light_frame, Factor.LIGHT)
+        )
+        self.noise_controls.append(
+            self.create_noise_control('Oxygen Control', oxygen_frame, Factor.OXYGEN)
+        )
 
-        temp_value_frame = tkinter.Frame(temp_frame, bg=LIGHT_GREEN)
-        temp_value_label = Label(temp_value_frame, text="Center", background=LIGHT_GREEN)
-        temp_value_label.config(font=("Arial", 10))
-        temp_value_label.pack(side=LEFT)
-        self.temp_value = tkinter.Scale(temp_value_frame, from_=-1, to=1, orient=HORIZONTAL,
-                                        background=LIGHT_GREEN, resolution=.01,
-                                        state=ACTIVE, command=lambda event:
-                                        Control_Environment.EnvironmentControl.set_temp_value(self,
-                                                                                              self.temp_value.get()))
-        self.temp_value.set(Global_access.temperature)
-        self.temp_value.pack(side=LEFT)
+        bottom_frame.pack(side=TOP, expand=True)
 
-        temp_scale_frame = tkinter.Frame(temp_frame, bg=LIGHT_GREEN)
-        temp_noise_check.config(font=("Arial", 10))
-        temp_scale_label = Label(temp_scale_frame, text="Noise Scale", background=LIGHT_GREEN)
-        temp_scale_label.config(font=("Arial", 10))
-        temp_scale_label.pack(side=LEFT)
-        self.temp_scale = tkinter.Scale(temp_scale_frame, from_=10, to=100, orient=HORIZONTAL,
-                                        background=LIGHT_GREEN, resolution=.1,
-                                        state=ACTIVE if temp_noise.get() else DISABLED, command=lambda event:
-                                        Control_Environment.EnvironmentControl.set_temp_noise_levels(self,
-                                                                                              "scale",
-                                                                                              self.temp_scale.get()))
-        self.temp_scale.set(Global_access.temp_scale)
-        self.temp_scale.pack(side=LEFT)
+    def create_slider(
+        self,
+        low: float,
+        high: float,
+        frame: tkinter.Frame,
+        label_text: str,
+        factor: Factor,
+        field: str
+    ) -> tkinter.Scale:
+        slider_frame = tkinter.Frame(frame, bg=LIGHT_GREEN)
 
-        temp_depth_frame = tkinter.Frame(temp_frame, bg=LIGHT_GREEN)
-        temp_depth_label = Label(temp_depth_frame, text="Noise Depth", background=LIGHT_GREEN)
-        temp_depth_label.config(font=("Arial", 10))
-        temp_depth_label.pack(side=LEFT)
-        self.temp_depth = tkinter.Scale(temp_depth_frame, from_=0, to=2, orient=HORIZONTAL,
-                                        background=LIGHT_GREEN, resolution=.1,
-                                        state=ACTIVE if temp_noise.get() else DISABLED, command=lambda event:
-                                        Control_Environment.EnvironmentControl.set_temp_noise_levels(self,
-                                                                                              "depth",
-                                                                                              self.temp_depth.get()))
-        self.temp_depth.set(Global_access.temp_depth)
-        self.temp_depth.pack(side=LEFT)
+        label = Label(slider_frame, text=label_text, background=LIGHT_GREEN)
+        label.config(font=("Arial", 10))
+        label.pack(side=LEFT)
 
-        temp_speed_frame = tkinter.Frame(temp_frame, bg=LIGHT_GREEN)
-        temp_speed_label = Label(temp_speed_frame, text="Noise Speed", background=LIGHT_GREEN)
-        temp_speed_label.config(font=("Arial", 10))
-        temp_speed_label.pack(side=LEFT)
-        self.temp_speed = tkinter.Scale(temp_speed_frame, from_=0, to=1, orient=HORIZONTAL,
-                                        background=LIGHT_GREEN, resolution=.1,
-                                        state=ACTIVE if temp_noise.get() else DISABLED, command=lambda event:
-                                        Control_Environment.EnvironmentControl.set_temp_noise_levels(self,
-                                                                                              "speed",
-                                                                                              self.temp_speed.get()))
-        self.temp_speed.set(Global_access.temp_speed)
-        self.temp_speed.pack(side=LEFT)
+        variable = tkinter.DoubleVar(value=getattr(Global_access.noises[factor.value], field))
+        slider = tkinter.Scale(
+            slider_frame,
+            from_=low,
+            to=high,
+            orient=HORIZONTAL,
+            background=LIGHT_GREEN, resolution=.01,
+            state=ACTIVE,
+            variable=variable,
+            command=lambda _: self.set_factor_field(factor, field, variable.get())
+        )
+        slider.pack(side=LEFT)
 
-        temp_control_frame.pack(side=TOP)
-        temp_value_frame.pack(side=TOP)
-        temp_scale_frame.pack(side=TOP)
-        temp_depth_frame.pack(side=TOP)
-        temp_speed_frame.pack(side=TOP)
-        temp_frame.pack(side=LEFT)
+        slider_frame.pack(side=TOP)
 
-        # Set up light
-        light_control_frame = tkinter.Frame(light_frame, bg=LIGHT_GREEN)
-        light_title = Label(light_frame, text="Light Options:",
-                           background=LIGHT_GREEN)
-        light_title.config(font=("Arial", 12))
-        light_title.pack(side=TOP)
-        light_noise = tkinter.IntVar(value=Global_access.light_noise)
-        light_noise_check = tkinter.Checkbutton(light_control_frame, text="Use Noise?", background=LIGHT_GREEN,
-                                                variable=light_noise, command=lambda:
-                                                self.set_light_noise(light_noise.get()))
-        light_noise_check.pack(side=LEFT)
+        return slider
 
-        light_value_frame = tkinter.Frame(light_frame, bg=LIGHT_GREEN)
-        light_value_label = Label(light_value_frame, text="Center", background=LIGHT_GREEN)
-        light_value_label.config(font=("Arial", 10))
-        light_value_label.pack(side=LEFT)
-        self.light_value = tkinter.Scale(light_value_frame, from_=-1, to=1, orient=HORIZONTAL,
-                                         background=LIGHT_GREEN, resolution=.01,
-                                         state=ACTIVE, command=lambda event:
-                                        Control_Environment.EnvironmentControl.set_light_value(self,
-                                                                                               self.light_value.get()))
-        self.light_value.set(Global_access.light)
-        self.light_value.pack(side=LEFT)
+    def create_noise_control(self, label_text: str, frame: tkinter.Frame, factor: Factor) -> NoiseControl:
+        title = Label(frame, text=label_text, background=LIGHT_GREEN)
+        title.config(font=("Arial", 12))
+        title.pack()
 
-        light_scale_frame = tkinter.Frame(light_frame, bg=LIGHT_GREEN)
-        light_noise_check.config(font=("Arial", 10))
-        light_scale_label = Label(light_scale_frame, text="Noise Scale", background=LIGHT_GREEN)
-        light_scale_label.config(font=("Arial", 10))
-        light_scale_label.pack(side=LEFT)
-        self.light_scale = tkinter.Scale(light_scale_frame, from_=10, to=100, orient=HORIZONTAL,
-                                         background=LIGHT_GREEN, resolution=.1,
-                                         state=ACTIVE if light_noise.get() else DISABLED, command=lambda event:
-                                         Control_Environment.EnvironmentControl.set_light_noise_levels(self,
-                                                                                                "scale",
-                                                                                                self.light_scale.get()))
-        self.light_scale.set(Global_access.light_scale)
-        self.light_scale.pack(side=LEFT)
+        control_frame = tkinter.Frame(frame, bg=LIGHT_GREEN)
+        control_frame.pack(side=TOP)
 
-        light_depth_frame = tkinter.Frame(light_frame, bg=LIGHT_GREEN)
-        light_depth_label = Label(light_depth_frame, text="Noise Depth", background=LIGHT_GREEN)
-        light_depth_label.config(font=("Arial", 10))
-        light_depth_label.pack(side=LEFT)
-        self.light_depth = tkinter.Scale(light_depth_frame, from_=0, to=2, orient=HORIZONTAL,
-                                         background=LIGHT_GREEN, resolution=.1,
-                                         state=ACTIVE if light_noise.get() else DISABLED, command=lambda event:
-                                         Control_Environment.EnvironmentControl.set_light_noise_levels(self,
-                                                                                                "depth",
-                                                                                                self.light_depth.get()))
-        self.light_depth.set(Global_access.light_depth)
-        self.light_depth.pack(side=LEFT)
+        # use_noise checkbox
+        use_noise_var = tkinter.BooleanVar(value=Global_access.noises[factor.value].use_noise)
+        use_noise_checkbox = tkinter.Checkbutton(
+            control_frame,
+            text="Use Noise?",
+            background=LIGHT_GREEN,
+            variable=use_noise_var,
+            command=lambda: self.set_factor_use_noise(factor, use_noise_var.get())
+        )
+        use_noise_checkbox.pack(side=TOP)
 
-        light_speed_frame = tkinter.Frame(light_frame, bg=LIGHT_GREEN)
-        light_speed_label = Label(light_speed_frame, text="Noise Speed", background=LIGHT_GREEN)
-        light_speed_label.config(font=("Arial", 10))
-        light_speed_label.pack(side=LEFT)
-        self.light_speed = tkinter.Scale(light_speed_frame, from_=0, to=1, orient=HORIZONTAL,
-                                         background=LIGHT_GREEN, resolution=.1,
-                                         state=ACTIVE if light_noise.get() else DISABLED, command=lambda event:
-                                         Control_Environment.EnvironmentControl.set_light_noise_levels(self,
-                                                                                                "speed",
-                                                                                                self.light_speed.get()))
-        self.light_speed.set(Global_access.light_speed)
-        self.light_speed.pack(side=LEFT)
+        center_slider = self.create_slider(-1.0, 1.0, control_frame, "Center", factor, "center")
+        scale_slider = self.create_slider(1.0, 100.0, control_frame, "Scale", factor, "scale")
+        depth_slider = self.create_slider(0.0, 2.0, control_frame, "Depth", factor, "depth")
+        speed_slider = self.create_slider(0.0, 0.1, control_frame, "Speed", factor, "speed")
 
-        light_control_frame.pack(side=TOP)
-        light_value_frame.pack(side=TOP)
-        light_scale_frame.pack(side=TOP)
-        light_depth_frame.pack(side=TOP)
-        light_speed_frame.pack(side=TOP)
-        light_frame.pack(side=LEFT)
+        frame.pack(side=LEFT)
 
-        # Set up Oxygen
-        oxygen_control_frame = tkinter.Frame(oxygen_frame, bg=LIGHT_GREEN)
-        oxygen_title = Label(oxygen_frame, text="Oxygen Options:",
-                            background=LIGHT_GREEN)
-        oxygen_title.config(font=("Arial", 12))
-        oxygen_title.pack(side=TOP)
-        oxygen_noise = tkinter.IntVar(value=Global_access.oxygen_noise)
-        oxygen_noise_check = tkinter.Checkbutton(oxygen_control_frame, text="Use Noise?", background=LIGHT_GREEN,
-                                                 variable=oxygen_noise, command=lambda:
-                                                 self.set_oxygen_noise(oxygen_noise.get()))
-        oxygen_noise_check.pack(side=LEFT)
-
-        oxygen_value_frame = tkinter.Frame(oxygen_frame, bg=LIGHT_GREEN)
-        oxygen_value_label = Label(oxygen_value_frame, text="Center", background=LIGHT_GREEN)
-        oxygen_value_label.config(font=("Arial", 10))
-        oxygen_value_label.pack(side=LEFT)
-        self.oxygen_value = tkinter.Scale(oxygen_value_frame, from_=-1, to=1, orient=HORIZONTAL,
-                                          background=LIGHT_GREEN, resolution=.01,
-                                          state=ACTIVE, command=lambda event:
-                                          Control_Environment.EnvironmentControl.set_oxygen_value(self,
-                                                                                                  self.oxygen_value.get()))
-        self.oxygen_value.set(Global_access.oxygen)
-        self.oxygen_value.pack(side=LEFT)
-
-        oxygen_scale_frame = tkinter.Frame(oxygen_frame, bg=LIGHT_GREEN)
-        oxygen_noise_check.config(font=("Arial", 10))
-        oxygen_scale_label = Label(oxygen_scale_frame, text="Noise Scale", background=LIGHT_GREEN)
-        oxygen_scale_label.config(font=("Arial", 10))
-        oxygen_scale_label.pack(side=LEFT)
-        self.oxygen_scale = tkinter.Scale(oxygen_scale_frame, from_=10, to=100, orient=HORIZONTAL,
-                                          background=LIGHT_GREEN, resolution=.1,
-                                          state=ACTIVE if oxygen_noise.get() else DISABLED, command=lambda event:
-                                          Control_Environment.EnvironmentControl.set_oxygen_noise_levels(self,
-                                                                                                  "scale",
-                                                                                                  self.oxygen_scale.get()))
-        self.oxygen_scale.set(Global_access.oxygen_scale)
-        self.oxygen_scale.pack(side=LEFT)
-
-        oxygen_depth_frame = tkinter.Frame(oxygen_frame, bg=LIGHT_GREEN)
-        oxygen_depth_label = Label(oxygen_depth_frame, text="Noise Depth", background=LIGHT_GREEN)
-        oxygen_depth_label.config(font=("Arial", 10))
-        oxygen_depth_label.pack(side=LEFT)
-        self.oxygen_depth = tkinter.Scale(oxygen_depth_frame, from_=0, to=2, orient=HORIZONTAL,
-                                          background=LIGHT_GREEN, resolution=.1,
-                                          state=ACTIVE if oxygen_noise.get() else DISABLED, command=lambda event:
-                                          Control_Environment.EnvironmentControl.set_oxygen_noise_levels(self,
-                                                                                                  "depth",
-                                                                                                  self.oxygen_depth.get()))
-        self.oxygen_depth.set(Global_access.oxygen_depth)
-        self.oxygen_depth.pack(side=LEFT)
-
-        oxygen_speed_frame = tkinter.Frame(oxygen_frame, bg=LIGHT_GREEN)
-        oxygen_speed_label = Label(oxygen_speed_frame, text="Noise Speed", background=LIGHT_GREEN)
-        oxygen_speed_label.config(font=("Arial", 10))
-        oxygen_speed_label.pack(side=LEFT)
-        self.oxygen_speed = tkinter.Scale(oxygen_speed_frame, from_=0, to=1, orient=HORIZONTAL,
-                                          background=LIGHT_GREEN, resolution=.1,
-                                          state=ACTIVE if oxygen_noise.get() else DISABLED, command=lambda event:
-                                          Control_Environment.EnvironmentControl.set_oxygen_noise_levels(self,
-                                                                                                  "speed",
-                                                                                                  self.oxygen_speed.get()))
-        self.oxygen_speed.set(Global_access.oxygen_speed)
-        self.oxygen_speed.pack(side=LEFT)
-
-        oxygen_control_frame.pack(side=TOP)
-        oxygen_value_frame.pack(side=TOP)
-        oxygen_scale_frame.pack(side=TOP)
-        oxygen_depth_frame.pack(side=TOP)
-        oxygen_speed_frame.pack(side=TOP)
-        oxygen_frame.pack(side=LEFT)
-
-        middle_bottom_frame.pack(side=TOP, expand=True)
+        return NoiseControl(use_noise_checkbox, center_slider, scale_slider, depth_slider, speed_slider)
 
     def setup_buttons(self):
         """
@@ -433,62 +307,37 @@ class SetupSettings:
         """
         This will request data from the c++ application for the data processing window
         """
-        Control_Environment.EnvironmentControl.send_message(self, self.env_settings.conn, "request_all")
+        send_message(self.conn, "request_all")
         # TODO: This call should actually be moved to the decoding of the messages
         # We need to ensure that we have all of the data before we display the window
         # Keeping this here for now in order to display the window and demonstrate functionality
         Setup_DataProcessingGUI.SetupDataDisplay()
 
-    def set_oxygen_noise(self, oxygen_noise):
-        """
-        This is a setter for the state of the sliders based on if the checkbox is clicked
-        """
-        Control_Environment.EnvironmentControl.set_oxygen_noise(self, oxygen_noise)
-        if Global_access.oxygen_noise:
-            self.oxygen_speed.config(state=ACTIVE)
-            self.oxygen_depth.config(state=ACTIVE)
-            self.oxygen_scale.config(state=ACTIVE)
-            self.oxygen_speed.set(Global_access.oxygen_speed)
-            self.oxygen_depth.set(Global_access.oxygen_depth)
-            self.oxygen_scale.set(Global_access.oxygen_scale)
-        else:
-            self.oxygen_speed.config(state=DISABLED, takefocus=0)
-            self.oxygen_depth.config(state=DISABLED, takefocus=0)
-            self.oxygen_scale.config(state=DISABLED, takefocus=0)
-            self.oxygen_value.set(Global_access.oxygen)
+    def set_factor_field(self, factor: Factor, field: str, value):
+        setattr(Global_access.noises[factor.value], field, value)
+        send_message(self.conn, "settings")
 
-    def set_light_noise(self, light_noise):
+    def set_factor_use_noise(self, factor: Factor, use_noise: True):
         """
         This is a setter for the state of the sliders based on if the checkbox is clicked
         """
-        Control_Environment.EnvironmentControl.set_light_noise(self, light_noise)
-        if Global_access.light_noise:
-            self.light_speed.config(state=ACTIVE)
-            self.light_depth.config(state=ACTIVE)
-            self.light_scale.config(state=ACTIVE)
-            self.light_speed.set(Global_access.light_speed)
-            self.light_depth.set(Global_access.light_depth)
-            self.light_scale.set(Global_access.light_scale)
-        else:
-            self.light_speed.config(state=DISABLED, takefocus=0)
-            self.light_depth.config(state=DISABLED, takefocus=0)
-            self.light_scale.config(state=DISABLED, takefocus=0)
-            self.light_value.set(Global_access.light)
+        noise = Global_access.noises[factor.value]
+        noise_control = self.noise_controls[factor.value]
 
-    def set_temp_noise(self, temp_noise):
-        """
-        This is a setter for the state of the sliders based on if the checkbox is clicked
-        """
-        Control_Environment.EnvironmentControl.set_temp_noise(self, temp_noise)
-        if Global_access.temp_noise:
-            self.temp_speed.config(state=ACTIVE)
-            self.temp_depth.config(state=ACTIVE)
-            self.temp_scale.config(state=ACTIVE)
-            self.temp_speed.set(Global_access.temp_speed)
-            self.temp_depth.set(Global_access.temp_depth)
-            self.temp_scale.set(Global_access.temp_scale)
+        if use_noise:
+            noise_control.speed_slider.config(state=ACTIVE)
+            noise_control.depth_slider.config(state=ACTIVE)
+            noise_control.scale_slider.config(state=ACTIVE)
         else:
-            self.temp_speed.config(state=DISABLED, takefocus=0)
-            self.temp_depth.config(state=DISABLED, takefocus=0)
-            self.temp_scale.config(state=DISABLED, takefocus=0)
-            self.temp_value.set(Global_access.temperature)
+            noise_control.speed_slider.config(state=DISABLED)
+            noise_control.depth_slider.config(state=DISABLED)
+            noise_control.scale_slider.config(state=DISABLED)
+
+        noise_control.center_slider.set(noise.center)
+        noise_control.speed_slider.set(noise.speed)
+        noise_control.depth_slider.set(noise.depth)
+        noise_control.scale_slider.set(noise.scale)
+
+        noise.use_noise = use_noise
+        send_message(self.conn, "settings")
+

@@ -1,9 +1,9 @@
 //
 // Created by Emmet on 2/10/2023.
 //
+
 #include "organismGrid.h"
-
-
+#include "../genome/rotation.h"
 
 OrganismGrid::OrganismGrid(i32 width, i32 height) :
 	blankSpace(Space::makeEmpty()),
@@ -26,23 +26,16 @@ auto OrganismGrid::clear() -> void {
 }
 
 auto OrganismGrid::internalSpaceAvailable(Body & body, i32 index, i32 centerX, i32 centerY, Direction rotation) -> bool {
-	for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
-		for (auto i = body.getLeft(rotation); i <= body.getRight(rotation); ++i) {
-			auto y = centerY + j;
-			auto x = centerX + i;
+	return std::all_of(body.getCells().begin(), body.getCells().end(), [&](Body::Cell & cell) {
+		auto [x, y] = Body::absoluteXY(cell, centerX, centerY, rotation);
 
-			if (!inBounds(x, y)) return false;
+		if (!inBounds(x, y)) return false;
 
-			auto && cell = body.access(i, j, rotation);
+		auto && gridSpace = grid[indexOf(x, y)];
+		if (gridSpace.isFilled() && gridSpace.index() != index) return false;
 
-			if (cell.filled()) {
-				auto && gridSpace = grid[indexOf(x, y)];
-				if (gridSpace.isFilled() && gridSpace.index() != index) return false;
-			}
-		}
-	}
-
-	return true;
+		return true;
+	});
 }
 
 auto OrganismGrid::canMoveOrganism(Organism &organism, i32 index, i32 deltaX, i32 deltaY, i32 deltaRotation) -> bool {
@@ -55,38 +48,16 @@ auto OrganismGrid::canMoveOrganism(Organism &organism, i32 index, i32 deltaX, i3
 }
 
 auto OrganismGrid::placeOrganism(Organism & organism, i32 index) -> void {
-	auto && body = organism.body();
-	auto rotation = organism.rotation;
-
-	for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
-		for (auto i = body.getLeft(rotation); i <= body.getRight(rotation); ++i) {
-			auto y = organism.y + j;
-			auto x = organism.x + i;
-
-			auto && cell = body.access(i, j, rotation);
-
-			if (cell.filled()) {
-				grid[indexOf(x, y)] = Space::makeCell(&cell, index);
-			}
-		}
+	for (auto && cell : organism.body().getCells()) {
+		auto [x, y] = organism.absoluteXY(cell);
+		if (!cell.broken()) grid[indexOf(x, y)] = Space::makeCell(cell, index);
 	}
 }
 
 auto OrganismGrid::eraseOrganism(Organism & organism, i32 index) -> void {
-	auto && body = organism.body();
-	auto rotation = organism.rotation;
-
-	for (auto j = body.getDown(rotation); j <= body.getUp(rotation); ++j) {
-		for (auto i = body.getLeft(rotation); i <= body.getRight(rotation); ++i) {
-			auto y = organism.y + j;
-			auto x = organism.x + i;
-
-			auto && space = grid[indexOf(x, y)];
-
-			if (space.index() == index) {
-				space = Space::makeEmpty();
-			}
-		}
+	for (auto && cell : organism.body().getCells()) {
+		auto [x, y] = organism.absoluteXY(cell);
+		if (!cell.broken()) grid[indexOf(x, y)] = Space::makeEmpty();
 	}
 }
 
@@ -124,39 +95,55 @@ auto OrganismGrid::access(i32 x, i32 y) -> Space & {
 	return grid[indexOf(x, y)];
 }
 
-OrganismGrid::Space::Space(Body::Cell * reference, u32 value):
-    reference(reference), value(value) {}
+OrganismGrid::Space::Space(i32 x, i32 y, u32 value):
+    x(x), y(y), value(value) {}
 
 auto OrganismGrid::Space::makeEmpty() -> OrganismGrid::Space {
-	return OrganismGrid::Space(nullptr, 0);
+	return OrganismGrid::Space(0, 0, 0);
 }
 
-auto OrganismGrid::Space::makeCell(Body::Cell * reference, i32 index) -> OrganismGrid::Space {
-	return OrganismGrid::Space(reference, index + 1);
+auto OrganismGrid::Space::makeCell(Body::Cell & reference, i32 index) -> OrganismGrid::Space {
+	return OrganismGrid::Space(reference.x(), reference.y(), index + 1);
 }
 
-auto OrganismGrid::Space::makeFood(Body::Cell * reference) -> OrganismGrid::Space {
-	return OrganismGrid::Space(reference, FOOD_VALUE);
+auto OrganismGrid::Space::makeFood(i32 x, i32 y) -> OrganismGrid::Space {
+	return OrganismGrid::Space(x, y, FOOD_VALUE);
 }
 
 auto OrganismGrid::Space::isFilled() const -> bool {
-	return reference != nullptr && value != 0;
+	return value != 0;
 }
 
 /** is filled AND is part of a living organism (even if dead) */
-auto OrganismGrid::Space::isCell() const -> bool {
-	return reference != nullptr && value != 0 && value != FOOD_VALUE;
+auto OrganismGrid::Space::fromOrganism() const -> bool {
+	return isFilled() && !fromEnvironment();
 }
 
 /** is filled AND is dropped as food, not part of an organism */
-auto OrganismGrid::Space::isFood() const -> bool {
-	return reference != nullptr && value == FOOD_VALUE;
+auto OrganismGrid::Space::fromEnvironment() const -> bool {
+	return value == FOOD_VALUE;
 }
 
 auto OrganismGrid::Space::index() const -> i32 {
-	return value - 1;
+	return (i32)(value - 1);
 }
 
-auto OrganismGrid::Space::cell() const -> Body::Cell & {
-	return *reference;
+auto OrganismGrid::Space::cell(std::vector<Organism> & organisms) const -> Body::Cell & {
+	if (fromEnvironment()) throw std::exception("space is not from organism");
+	return organisms[index()].body().directAccess(x, y);
+}
+
+auto OrganismGrid::Space::cell(Environment & environment) const -> Body::Cell & {
+	if (fromOrganism()) throw std::exception("space is not from environment");
+	return environment.accessUnsafe(x, y).food;
+}
+
+auto OrganismGrid::Space::cell(std::vector<Organism> & organisms, Environment & environment) const -> Body::Cell & {
+	if (fromOrganism()) {
+		return cell(organisms);
+	} else if (fromEnvironment()) {
+		return cell(environment);
+	} else {
+		throw std::exception("empty space");
+	}
 }

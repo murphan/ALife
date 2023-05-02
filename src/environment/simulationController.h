@@ -43,7 +43,13 @@ private:
 
 	auto replaceOrganismWithFood(Organism & organism) -> void;
 
-	auto findChildSpawnPoint(Organism & organism, Phenome & childPhenome) -> std::optional<Util::Coord>;
+	struct ChildSpawnPoint {
+		i32 x;
+		i32 y;
+		Direction rotation;
+	};
+
+	auto findChildSpawnPoint(Organism & organism, Phenome & childPhenome) -> std::optional<ChildSpawnPoint>;
 
     auto tryReproduce(Phenome & childPhenome, Organism & organism, i32 reproductionEnergy, i32 childBodyEnergy, i32 childEnergy) -> std::optional<Organism>;
 

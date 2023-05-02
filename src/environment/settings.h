@@ -57,6 +57,8 @@ public:
 	i32 sightRange;
 	i32 weaponDamage;
 	i32 armorPrevents;
+	i32 moveCost;
+	i32 baseMoveLength;
 
 	i32 bodyPartCosts[7];
 	/* not all parts can be upgraded, but list them anyway */

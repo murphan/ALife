@@ -1,5 +1,9 @@
-# A-Life
-2022 OSU Capstone Project
+<p align="center">
+    <img src="pysrc/icon.png" alt="A-Life Icon" width="128" height="128" style="margin-left: auto; margin-right: auto">
+</p>
+
+# A-Life Challenge
+2022-2023 OSU Capstone Project
 
 Depends on the JSON for Modern C++ library. You can download the `json.hpp` file from https://github.com/nlohmann/json/releases/tag/v3.11.2.
 

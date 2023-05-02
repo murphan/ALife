@@ -6,34 +6,40 @@
 #include "gene/upgradeGene.h"
 #include "gene/mutationRateGene.h"
 #include "gene/eyeGene.h"
+#include "geneWriter.h"
+#include "genome/gene/movementGene.h"
 
 /**
- * points index to the start of the pattern
- * @return the base value of double pattern found, or -1 if end reached
+ * GENE HEADERS: any combination of three base pairs of A or B
+ * examples:
+ * AAA BBB ABA BBA ABB
+ * @return the index of the start of the header, or -1 if no gene was found
  */
-inline auto seekDoubles(const Genome & genome, i32 & index) -> Genome::Base {
-	if (index >= genome.size() - 1) {
-		index = -1;
-		return Genome::A;
+inline auto findGeneHeader(const Genome & genome, const i32 startIndex) -> i32 {
+	if (startIndex >= genome.size() - 2) {
+		return -1;
 	}
 
-	auto last = genome.get(index);
-	for (++index; index < genome.size(); ++index) {
-		auto current = genome.get(index);
-		if (last == current) {
-			--index;
-			return last;
+	auto minus2 = genome[startIndex];
+	auto minus1 = genome[startIndex + 1];
+
+	auto isGood = [](Genome::Base base) -> bool { return base == Genome::A || base == Genome::B; };
+
+	for (auto index = startIndex + 2; index < genome.size() - 3; ++index) {
+		auto current = genome[index];
+		if (isGood(minus2) && isGood(minus1) && isGood(current)) {
+			return index - 2;
 		}
 
-		last = current;
+		minus2 = minus1;
+		minus1 = current;
 	}
 
-	index = -1;
-	return Genome::A;
+	return -1;
 }
 
 auto GeneMap::Segment::junk(i32 begin, i32 end) -> GeneMap::Segment {
-	return { false, Genome::A, begin, end };
+	return { false, Gene::BODY, begin, end };
 }
 
 auto GeneMap::Segment::length() const -> i32 {
@@ -58,27 +64,32 @@ GeneMap::GeneMap(const Genome & genome): segments() {
 		return;
 	}
 
-	segments.push_back({ true, Genome::A, 0, 6 });
+	segments.push_back({ true, Gene::BODY, 0, 6 });
 
 	auto index = 6;
 	while (true) {
 		auto lastStart = index;
-		auto headerBase = seekDoubles(genome, index);
+		index = findGeneHeader(genome, index);
 
 		if (index == -1) {
 			pushJunkSegment(lastStart, genome.size());
 			break;
 		} else {
-			auto geneLength = 2 + (
-				headerBase == Genome::A ? BodyGene::LENGTH :
-				headerBase == Genome::B ? EyeGene::LENGTH :
-				headerBase == Genome::C ? UpgradeGene::LENGTH :
-				/*         == Genome::D*/ MutationRateGene::LENGTH
+			auto geneType = (Gene::Type)GeneWriter::read5(genome, index + 3);
+			auto geneLength = 6 + (
+				geneType == Gene::BODY ? BodyGene::LENGTH :
+				geneType == Gene::EYE ? EyeGene::LENGTH :
+				geneType == Gene::UPGRADE ? UpgradeGene::LENGTH :
+				geneType == Gene::MUTATION ? MutationRateGene::LENGTH :
+				geneType == Gene::MOVEMENT ? MovementGene::LENGTH :
+				-1
             );
+
+			if (geneLength == -1) throw std::exception("Bad gene type???");
 
 			if (index + geneLength <= genome.size()) {
 				pushJunkSegment(lastStart, index);
-				segments.push_back({true, headerBase, index, index + geneLength });
+				segments.push_back({true, geneType, index, index + geneLength });
 				index += geneLength;
 			} else {
 				pushJunkSegment(lastStart, genome.size());
@@ -115,7 +126,7 @@ GeneMap::smartMutateCopy(
 					continue;
 			}
 
-			auto base = original.get(i);
+			auto base = original[i];
 
 			/* substitute with a random *other* base, cannot remain the same */
 			if (chance(random) < substitutionChance)

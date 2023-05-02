@@ -58,7 +58,7 @@ public:
     explicit Genome(std::string &&);
 
 	auto size() const -> i32;
-	auto get(i32) const -> Base;
+	auto operator[](i32) const -> Base;
 
 	auto toString() const -> std::string;
 
@@ -67,10 +67,10 @@ public:
 	/**
 	 * used for filler in between genes
 	 * @param n number of random bases to write
-	 * @param avoidEnd the last written base will not be this
 	 */
-	auto writeGarbage(i32 n, Base avoidEnd) -> void;
 	auto writeGarbage(i32 n) -> void;
+
+	auto writeHeader() -> void;
 
     static auto editDistance(Genome &, Genome &) -> std::vector<i32>;
 

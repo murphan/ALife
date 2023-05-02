@@ -22,7 +22,6 @@ public:
 	static const i32 LENGTH;
 
 	explicit UpgradeGene(GenomeView & view);
-	auto headerBase() -> Genome::Base override;
 
 	auto getBodyPart() const -> BodyPart;
 	auto getModifier() const -> i32;

@@ -10,8 +10,6 @@
 #include "../bodyPart.h"
 
 class BodyGene : public Gene {
-protected:
-	auto writeBody(Genome & genome) -> void override;
 
 public:
 	static const i32 LENGTH;
@@ -25,8 +23,6 @@ public:
 	auto usesAnchor() const -> bool;
 	auto setsAnchor() const -> bool;
 
-	auto headerBase() -> Genome::Base override;
-
 	BodyGene(Direction direction, BodyPart bodyPart, i32 usingAnchor, i32 setAnchor, i32 data);
 	explicit BodyGene(GenomeView & view);
 
@@ -36,6 +32,8 @@ public:
 	static auto createDuplicate(Direction, BodyPart, i32 data) -> BodyGene;
 	static auto createUseAnchor(Direction, BodyPart, i32, i32 data) -> BodyGene;
 	static auto createSetAnchor(Direction, BodyPart, i32, i32 data) -> BodyGene;
+
+	auto writeBody(Genome & genome) -> void override;
 };
 
 #endif //ALIFE_BODYGENE_H

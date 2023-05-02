@@ -37,7 +37,9 @@ auto main () -> int {
 		.mutationFactor = 1.5,
 		.sightRange = 8,
 		.weaponDamage = 32,
-		.armorPrevents = 32,
+		.armorPrevents = 16,
+		.moveCost = 1,
+		.baseMoveLength = 16,
 		.bodyPartCosts = {
 			16, /* MOUTH */
 			16, /* MOVER */
