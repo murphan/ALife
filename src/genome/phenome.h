@@ -45,7 +45,7 @@ public:
 
 	i32 moveLength;
 
-	std::vector<EyeGene> eyeReactions;
+	std::vector<EyeGene> reactions;
 
 	explicit Phenome(Genome && inGenome, Body && inBody, Settings & settings);
 

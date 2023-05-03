@@ -89,7 +89,7 @@ auto SimulationController::organismSeeingDirection(Organism & organism, i32 inde
 				return std::make_optional<Direction>(eyeDirection);
 
 			} else if (space.fromOrganism() && space.index() != index) {
-				for (auto && reaction : organism.phenome.eyeReactions) {
+				for (auto && reaction : organism.phenome.reactions) {
 					if (space.cell(organisms).bodyPart() == reaction.seeing) {
 						return std::make_optional<Direction>(reaction.actionType == EyeGene::ActionType::TOWARD ? eyeDirection : eyeDirection.opposite());
 					}

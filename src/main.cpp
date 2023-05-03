@@ -151,25 +151,21 @@ auto main () -> int {
 			socket.send(json.begin(), json.end());
 
 		} else if (parsedMessage.type == "request") {
-			//TODO update to use new integer ids
+			if (!parsedMessage.body.contains("id")) return;
+			auto && idField = parsedMessage.body["id"];
+			if (!idField.is_number()) return;
 
-			//if (!parsedMessage.body.contains("id")) return;
-			//auto id = parsedMessage.body["id"];
-			//if (!id.is_string()) return;
-//
-			//auto idString = id.get<std::string>();
-			//auto uuid = UUID::fromString(idString);
-			//if (!uuid.has_value()) return;
-//
-			//auto * organism = simulationController.getOrganism(uuid.value());
-			//if (organism == nullptr) {
-			//	auto json = MessageCreator::emptyOrganismRequestMessage().dump();
-			//	socket.send(json.begin(), json.end());
-			//	return;
-			//}
-//
-			//auto json = MessageCreator::organismRequestMessage(organism->serialize(true)).dump();
-			//socket.send(json.begin(), json.end());
+			auto id = idField.get<i32>();
+
+			auto && organism = simulationController.getOrganism(id);
+			if (organism == nullptr) {
+				auto json = MessageCreator::emptyOrganismRequestMessage().dump();
+				socket.send(json.begin(), json.end());
+				return;
+			}
+
+			auto json = MessageCreator::organismRequestMessage(organism->serialize(true)).dump();
+			socket.send(json.begin(), json.end());
 
 		} else if (parsedMessage.type == "settings") {
 			try {

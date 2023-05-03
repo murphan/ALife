@@ -35,7 +35,7 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 	baseBodyEnergy(0),
 	moveTries(0),
 	moveLength(settings.baseMoveLength),
-	eyeReactions()
+	reactions()
 {
 	if (genome.size() == 0) return;
 
@@ -72,7 +72,7 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 			);
 
 		} else if (segment.type == Gene::EYE) {
-			eyeReactions.emplace_back(gene);
+			reactions.emplace_back(gene);
 
 		} else if (segment.type == Gene::UPGRADE) {
 			upgradeGenes.emplace_back(gene);
