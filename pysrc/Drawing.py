@@ -36,10 +36,10 @@ def render_grid(render_info: RenderInfo):
 
             Global_access.ENVIRONMENT_GRID[x][y]["environment"] = cell
 
-            # if meta_type == Global_access.TILE_TYPE_ORGANISM:
-            #     Global_access.ENVIRONMENT_GRID[x][y]["organism"] = uuids[organism_index]
-            # else:
-            #     Global_access.ENVIRONMENT_GRID[x][y]["organism"] = None
+            if meta_type == Global_access.TILE_TYPE_ORGANISM:
+                Global_access.ENVIRONMENT_GRID[x][y]["organism"] = uuids[organism_index]
+            else:
+                Global_access.ENVIRONMENT_GRID[x][y]["organism"] = None
 
 
 def fill_cell(x: int, y: int, color: (int, int, int), circle: bool = False):

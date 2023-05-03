@@ -114,7 +114,8 @@ auto Renderer::render(Environment & environment, std::vector<Organism> & organis
 		}
 	}
 
-	for (auto && organism : organisms) {
+    for (auto index = 0; index < organisms.size(); ++index) {
+        auto && organism = organisms[index];
 		for (auto && cell : organism.body().getCells()) {
 			auto [x, y] = organism.absoluteXY(cell);
 
@@ -122,12 +123,8 @@ auto Renderer::render(Environment & environment, std::vector<Organism> & organis
 			insert2(
 				buffer,
 				bufferIndex(x, y) + 1,
-				organism.id
+				index
 			);
-			auto color = cell.dead() ? bodyPartDeadColors[cell.bodyPart() - 1] : bodyPartColors[cell.bodyPart() - 1];
-			if (color == 0) {
-				auto dfa = 23423;
-			}
 			insert3(
 				buffer,
 				bufferIndex(x, y) + 3,
