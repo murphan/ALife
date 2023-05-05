@@ -64,7 +64,7 @@ def square_clicked(event, envVars, conn):
     return # this function is broken right now
     mpos_x, mpos_y = event.pos
     # Grid coords are different in python than they are in c++ for y coordinates
-    coord = mpos_x // 10, int(Global_access.environment_size[1] - (mpos_y // 10) - 1)
+    # coord = mpos_x // 10, int(Global_access.____________[1] - (mpos_y // 10) - 1)
 
     # Check that the coordinates are within the bounds of the environment (only check height)
     if coord[1] < 0:

@@ -15,6 +15,22 @@ def render_grid(render_info: RenderInfo):
 
     Global_access.define_grid(width, height)
 
+    # precompute bounds
+    lefts: list[int] = []
+    ups: list[int] = []
+
+    runner = 0.0
+    for x in range(Global_access.grid_width):
+        lefts.append(int(runner))
+        runner += float(Global_access.ENVIRONMENT_BOX.width) / float(Global_access.grid_width)
+    lefts.append(Global_access.ENVIRONMENT_BOX.width)
+
+    runner = 0.0
+    for y in range(Global_access.grid_height):
+        ups.append(int(runner))
+        runner += float(Global_access.ENVIRONMENT_BOX.height) / float(Global_access.grid_height)
+    ups.append(Global_access.ENVIRONMENT_BOX.height)
+
     for y in range(height):
         for x in range(width):
             baseIndex = (y * width + x) * BYTES_PER_TILE
@@ -29,10 +45,10 @@ def render_grid(render_info: RenderInfo):
 
             cell = Environment_cell.EnvironmentCell(0, 0, 0, meta_type, 0, 0, 0)
 
-            fill_cell(x, y, color_0)
+            fill_cell(x, y, lefts, ups, color_0)
 
             if draw_circle:
-                fill_cell(x, y, color_1, circle=True)
+                fill_cell(x, y, lefts, ups, color_1, circle=True)
 
             Global_access.ENVIRONMENT_GRID[x][y]["environment"] = cell
 
@@ -42,28 +58,34 @@ def render_grid(render_info: RenderInfo):
                 Global_access.ENVIRONMENT_GRID[x][y]["organism"] = None
 
 
-def fill_cell(x: int, y: int, color: (int, int, int), circle: bool = False):
-    y = int(Global_access.environment_size[1] - y - 1)
-    cell_size = float(Global_access.ENVIRONMENT_BOX[2]) / Global_access.environment_size[0]
+def fill_cell(grid_x: int, grid_y: int, lefts: list[int], ups: list[int], color: int, circle: bool = False):
+    y = Global_access.grid_height - grid_y - 1
+    x = grid_x
+
+    left = Global_access.ENVIRONMENT_BOX.x + lefts[x]
+    right = Global_access.ENVIRONMENT_BOX.x + lefts[x + 1]
+
+    up = Global_access.ENVIRONMENT_BOX.y + ups[y]
+    down = Global_access.ENVIRONMENT_BOX.y + ups[y + 1]
 
     if circle:
         pygame.draw.circle(
-            Global_access.SCREEN,
-            color,
-            (
-                Global_access.ENVIRONMENT_BOX[0] + x * cell_size + (cell_size / 2),
-                Global_access.ENVIRONMENT_BOX[1] + y * cell_size + (cell_size / 2),
+            surface=Global_access.SCREEN,
+            color=color,
+            center=(
+                (left + right) / 2.0,
+                (down + up) / 2.0,
             ),
-            (cell_size / 2)
+            radius=(float(right - left) / 2.0)
         )
     else:
         pygame.draw.rect(
-            Global_access.SCREEN,
-            color,
-            (
-                Global_access.ENVIRONMENT_BOX[0] + x * cell_size,
-                Global_access.ENVIRONMENT_BOX[1] + y * cell_size,
-                cell_size,
-                cell_size,
+            surface=Global_access.SCREEN,
+            color=color,
+            rect=(
+                left,
+                up,
+                right - left,
+                down - up,
             )
         )

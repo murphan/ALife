@@ -41,8 +41,9 @@ updateDisplay = True
 # Used for environment sizing
 WINDOW_HEIGHT = 770
 WINDOW_WIDTH = 1500
-ENVIRONMENT_BOX: (int, int, int, int) = None
-environment_size = 0, 0
+ENVIRONMENT_BOX = pygame.Rect(0, 0, 0, 0)
+grid_width = 0
+grid_height = 0
 
 # variables used frequently in the environment
 SCREEN = None
@@ -57,7 +58,10 @@ TILE_TYPE_WALL = 3
 
 BUFFER_SIZE = 4096
 
-ENV_FONT: pygame.font
+ENV_FONT: pygame.font.Font
+
+# how much we leave for ui at the bottom of the screen
+BOTTOM_BUFFER = 45
 
 # TODO remove this I don't think it matters
 # ~~The Mutex needing to be acquired in order to update information~~
@@ -75,10 +79,10 @@ def define_grid(width: int, height: int):
     :param height: height of the environment
     :param type: int
     """
-    global environment_size, ENVIRONMENT_GRID, WINDOW_WIDTH, WINDOW_HEIGHT, SCREEN
+    global grid_width, grid_height, ENVIRONMENT_GRID
 
     # no need to reallocate memory
-    if environment_size[0] == width and environment_size[1] == height:
+    if grid_width == width and grid_height == height:
         return
 
     ENVIRONMENT_GRID = [
@@ -89,8 +93,9 @@ def define_grid(width: int, height: int):
         for _ in range(int(width))
     ]
 
-    environment_size = width, height
-    EnvironmentGUI.set_environment_box(WINDOW_WIDTH, WINDOW_HEIGHT)
+    grid_width = width
+    grid_height = height
+    EnvironmentGUI.set_environment_box()
 
 
 def update_grid(x, y):
@@ -104,13 +109,6 @@ def change_click_type(new_click_type):
     mutex.acquire()
     global CLICK_TYPE
     CLICK_TYPE = new_click_type
-    mutex.release()
-
-
-def set_environment_size(width, height):
-    mutex.acquire()
-    global environment_size
-    environment_size = width, height
     mutex.release()
 
 
