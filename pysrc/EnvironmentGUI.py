@@ -95,16 +95,16 @@ class EnvironmentGUI:
             Global_access.ENV_FONT,
             0xe09e24,
         )
-        #self.fps_slider.render(
-        #    Global_access.SCREEN,
-        #    'fps:',
-        #    fps_box,
-        #    font=Global_access.ENV_FONT,
-        #    text_area_width=80,
-        #    handle_width=10,
-        #    bar_height=5,
-        #    gutter=(10, 2),
-        #)
+        self.fps_slider.render(
+            Global_access.SCREEN,
+            'fps:',
+            fps_box,
+            font=Global_access.ENV_FONT,
+            text_area_width=80,
+            handle_width=10,
+            bar_height=5,
+            gutter=(10, 2),
+        )
         self.tree_button.render(
             Global_access.SCREEN,
             tree_box,

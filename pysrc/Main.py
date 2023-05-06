@@ -21,7 +21,6 @@ class Management:
     def __init__(self):
         self.conn = None
         self.thread = None
-        self.should_render_ui = True
         self.create_connection()
 
         self.environment_gui = EnvironmentGUI(lambda fps: EnvironmentControl.set_fps(self.conn, fps))
@@ -64,20 +63,21 @@ class Management:
 
                 if event.type == pygame.VIDEORESIZE:
                     self.environment_gui.on_window_resize(event)
-                    self.should_render_ui = True
+                    Global_access.set_should_render(True)
 
                 if self.environment_gui.settings_button.update(event):
                     Thread(target=self.open_settings).start()
 
                 if self.environment_gui.play_pause_button.update(event):
                     EnvironmentControl.toggle_start_stop(self.conn)
-                    self.should_render_ui = True
+                    Global_access.set_should_render(True)
 
                 if self.environment_gui.fps_slider.update(event):
-                    self.should_render_ui = True
+                    Global_access.set_should_render(True)
 
                 if self.environment_gui.tree_button.update(event):
                     tree.toggle_show_tree(self.conn)
+                    Global_access.set_should_render(True)
 
             should_render_environment = Global_access.latest_frame is not None and\
                 Global_access.latest_frame["should_render"]
@@ -87,12 +87,10 @@ class Management:
                 Drawing.render_grid(Global_access.latest_frame)
                 tree.draw(Global_access.SCREEN, Global_access.ENVIRONMENT_BOX, Global_access.tree)
 
-                Global_access.latest_frame["should_render"] = False
-
-            if self.should_render_ui:
                 Drawing.blackout_bottom()
                 self.environment_gui.render_ui()
-                self.should_render_ui = False
+
+                Global_access.set_should_render(False)
 
             pygame.display.update()
 

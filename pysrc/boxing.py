@@ -14,4 +14,4 @@ def from_bottom_right(box: pygame.Rect, x: int, y: int) -> pygame.Rect:
 
 
 def left_of(ref: pygame.Rect, box: pygame.Rect, x: int) -> pygame.Rect:
-    return pygame.Rect(ref.x - ref.width - x, ref.y, box.width, box.height)
+    return pygame.Rect(ref.x - box.width - x, ref.y, box.width, box.height)

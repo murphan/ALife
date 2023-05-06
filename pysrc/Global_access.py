@@ -101,6 +101,10 @@ def define_grid(width: int, height: int):
     EnvironmentGUI.set_environment_box()
 
 
+def set_should_render(should_render: bool):
+    if latest_frame is not None:
+        latest_frame["should_render"] = should_render
+
 def update_grid(x, y):
     mutex.acquire()
     global ENVIRONMENT_GRID

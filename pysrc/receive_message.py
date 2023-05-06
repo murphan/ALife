@@ -56,6 +56,7 @@ def process_data(message_buf: bytes):
 
 def handle_tree_data(tree):
     Global_access.tree = tree
+    Global_access.set_should_render(True)
 
 
 def handle_environment_data(environment_data_map):

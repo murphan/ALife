@@ -35,7 +35,7 @@ public:
 	};
 
 	std::vector<i32> levelTotals;
-	Node root;
+	std::unique_ptr<Node> root;
 
 	explicit Tree(const Genome & genome);
 

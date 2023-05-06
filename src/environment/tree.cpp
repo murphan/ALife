@@ -5,7 +5,9 @@
 #include "tree.h"
 #include "util.h"
 
-Tree::Tree(const Genome & genome): root(genome) {}
+Tree::Tree(const Genome & genome): root(std::make_unique<Node>(genome)) {
+	root->alive = false;
+}
 
 Tree::Node::Node(const Genome & genome): genome(genome), parent(nullptr), alive(true), children(), value(0), level(0), values() {}
 
@@ -21,15 +23,30 @@ auto Tree::Node::kill() -> void {
 	alive = false;
 	if (isRoot()) return;
 
-	if (children.empty()) {
-		auto && back = *parent;
-		auto thisInBack = Util::find(back.children, [&](std::unique_ptr<Node> & descendant) { return descendant.get() == this; });
-		Util::quickErase(back.children, thisInBack);
+	auto && back = *parent;
 
-		if (!back.alive) {
-			back.kill();
-		}
+	auto destroySelf = [&]() {
+		auto thisInBack = Util::find(back.children, [&](std::unique_ptr<Node> & child) { return child.get() == this; });
+		Util::quickErase(back.children, thisInBack);
+	};
+
+	if (children.empty()) {
+		destroySelf();
+
+		if (!back.alive) back.kill();
+
+	}/*
+ *  else if (children.size() == 1) {
+		auto && child = std::move(children.front());
+		children.pop_back();
+
+		destroySelf();
+
+		back.children.emplace_back(std::move(child));
 	}
+ */
+
+
 }
 
 auto Tree::Node::addDescendent(const Genome & newGenome) -> Node * {
@@ -54,11 +71,12 @@ auto Tree::serialize() -> json {
 	}
 
 	auto tree = json {
-		{ "levelTotals", levelTotalsArray }
+		{ "levelTotals", levelTotalsArray },
+		{ "root", json::array() },
 	};
 
 	auto stack = std::vector<QueueElement>();
-	stack.push_back({ tree, -1, &root });
+	stack.push_back({ *tree.find("root"), -1, root.get() });
 
 	while (!stack.empty()) {
 		auto && [parent_array, index, node] = stack.back();
@@ -66,15 +84,16 @@ auto Tree::serialize() -> json {
 
 		stack.pop_back();
 
-		object.push_back({ "value", node->value });
-		object.push_back({ "level", node->level });
-		object.push_back({ "children", json::array() });
+		object.push_back(node->value);
+		object.push_back(node->level);
+		object.push_back(node->alive ? 1 : 0);
+		object.push_back(json::array());
 
-		auto && child_array = object.find("children");
+		auto && child_array = object[3];
 
 		for (auto && childNode : node->children) {
-			child_array->push_back({});
-			stack.push_back({*child_array, (i32)child_array->size() - 1, childNode.get() });
+			child_array.push_back(json::array());
+			stack.push_back({ child_array, (i32)child_array.size() - 1, childNode.get() });
 		}
 	}
 
@@ -85,9 +104,9 @@ auto Tree::computeValues() -> void {
 	auto iterStack = std::vector<Tree::Node *>();
 	auto reverseStack = std::vector<Tree::Node *>();
 
-	iterStack.push_back(&root);
-	reverseStack.push_back(&root);
-	root.level = 0;
+	iterStack.push_back(root.get());
+	reverseStack.push_back(root.get());
+	root->level = 0;
 	auto maxLevel = 0;
 
 	while (!iterStack.empty()) {

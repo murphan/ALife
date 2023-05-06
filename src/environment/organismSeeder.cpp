@@ -42,7 +42,7 @@ auto OrganismSeeder::insertInitialOrganisms(
 			centerY + gridY * spaceTall - offsetY,
 			Direction::RIGHT,
 			initialEnergy,
-			tree.root.addDescendent(initialPhenome.genome)
+			tree.root->addDescendent(initialPhenome.genome)
 		);
 	}
 }
