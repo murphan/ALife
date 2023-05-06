@@ -41,7 +41,7 @@ public:
 
 	auto kill(Node * node) -> void;
 
-	auto computeValues() -> void;
+	auto computeValues(bool smart) -> void;
 
 	auto serialize() -> json;
 };

@@ -98,7 +98,7 @@ struct QueueElement {
 };
 
 auto Tree::serialize() -> json {
-	computeValues();
+	computeValues(false);
 
 	auto levelTotalsArray = json::array();
 	for (auto && total : levelTotals) {
@@ -144,7 +144,7 @@ inline auto interp(f32 along, f32 left, f32 right) -> f32 {
 	return along * (right - left) + left;
 }
 
-auto Tree::computeValues() -> void {
+auto Tree::computeValues(bool smart) -> void {
 	auto iterStack = std::vector<Tree::Node *>();
 	auto reverseStack = std::vector<Tree::Node *>();
 
@@ -179,24 +179,29 @@ auto Tree::computeValues() -> void {
 	for (auto j = (i32)reverseStack.size() - 1; j >= 0; --j) {
 		auto * node = reverseStack[j];
 
-		node->values.resize(levelTotals.size(), 0);
-		node->values[node->level] = 1;
+		if (smart) {
+			node->values.resize(levelTotals.size(), 0);
+			node->values[node->level] = 1;
 
-		if (node->isLeaf()) {
-			node->value = 1;
-		} else {
-			auto maxValue = 1;
+			if (node->isLeaf()) {
+				node->value = 1;
+			} else {
+				auto maxValue = 1;
 
-			for (auto i = node->level + 1; i < levelTotals.size(); ++i) {
-				for (auto && childNode : node->children) {
-					node->values[i] += childNode->values[i];
+				for (auto i = node->level + 1; i < levelTotals.size(); ++i) {
+					for (auto && childNode : node->children) {
+						node->values[i] += childNode->values[i];
+					}
+					if (node->values[i] > maxValue) maxValue = node->values[i];
 				}
-				if (node->values[i] > maxValue) maxValue = node->values[i];
+
+				node->value = maxValue;
 			}
 
-			node->value = maxValue;
+			levelTotals[node->level] += node->value;
+		} else {
+			node->value = 1;
+			levelTotals[node->level] += 1;
 		}
-
-		levelTotals[node->level] += node->value;
 	}
 }
