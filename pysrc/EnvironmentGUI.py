@@ -6,6 +6,7 @@ import Global_access
 from component.Slider import Slider
 from component.Button import Button
 from typing import Callable
+import boxing
 
 
 class EnvironmentGUI:
@@ -20,6 +21,7 @@ class EnvironmentGUI:
         self.settings_button = Button()
         self.play_pause_button = Button()
         self.fps_slider = Slider(1.0, 21.0, lambda: Global_access.fps, lambda fps: set_fps(fps))
+        self.tree_button = Button()
 
     @staticmethod
     def set_screen_sizes(width: int, height: int):
@@ -74,29 +76,41 @@ class EnvironmentGUI:
             Global_access.latest_frame["should_render"] = True
 
     def render_ui(self):
+        settings_box = boxing.from_bottom_right(boxing.box(70, 35), 5, 5)
+        play_box = boxing.left_of(ref=settings_box, box=boxing.box(70, 35), x=5)
+        fps_box = boxing.left_of(ref=play_box, box=boxing.box(210, 35), x=5)
+        tree_box = boxing.left_of(ref=fps_box, box=boxing.box(100, 35), x=5)
+
         self.play_pause_button.render(
             Global_access.SCREEN,
-            pygame.Rect(Global_access.WINDOW_WIDTH - 150, Global_access.WINDOW_HEIGHT - 40, 70, 35),
+            settings_box,
             "Pause" if Global_access.running else "Play",
             Global_access.ENV_FONT,
             0xe83a54 if Global_access.running else 0x75d943,
         )
         self.settings_button.render(
             Global_access.SCREEN,
-            pygame.Rect(Global_access.WINDOW_WIDTH - 75, Global_access.WINDOW_HEIGHT - 40, 70, 35),
+            play_box,
             "Settings",
             Global_access.ENV_FONT,
             0xe09e24,
         )
-        self.fps_slider.render(
+        #self.fps_slider.render(
+        #    Global_access.SCREEN,
+        #    'fps:',
+        #    fps_box,
+        #    font=Global_access.ENV_FONT,
+        #    text_area_width=80,
+        #    handle_width=10,
+        #    bar_height=5,
+        #    gutter=(10, 2),
+        #)
+        self.tree_button.render(
             Global_access.SCREEN,
-            'fps:',
-            pygame.Rect(Global_access.WINDOW_WIDTH - 150 - 5 - 210, Global_access.WINDOW_HEIGHT - 40, 210, 35),
-            font=Global_access.ENV_FONT,
-            text_area_width=80,
-            handle_width=10,
-            bar_height=5,
-            gutter=(10, 2),
+            tree_box,
+            'Show Tree' if Global_access.tree is None else 'Hide Tree',
+            Global_access.ENV_FONT,
+            0x4fbdae,
         )
 
     @staticmethod

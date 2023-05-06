@@ -4,10 +4,12 @@ It requires access to the mutex in order to update as there are threads in the a
 """
 
 from threading import Lock
+from typing import Any
+
 import Drawing
 import pygame
 
-from pysrc.Setup_EnvironmentGUI import EnvironmentGUI
+from pysrc.EnvironmentGUI import EnvironmentGUI
 from Noise import Noise
 
 # This is only set to be 1 when the program is exiting. Do not use unless ending execution
@@ -37,6 +39,7 @@ repro_substitution = 0.0
 
 running = False
 updateDisplay = True
+tree: Any = None
 
 # Used for environment sizing
 WINDOW_HEIGHT = 770
@@ -88,9 +91,9 @@ def define_grid(width: int, height: int):
     ENVIRONMENT_GRID = [
         [
             {"environment": None, "organism": None}
-            for _ in range(int(height))
+            for _ in range(height)
         ]
-        for _ in range(int(width))
+        for _ in range(width)
     ]
 
     grid_width = width

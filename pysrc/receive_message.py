@@ -1,6 +1,5 @@
 import base64
 import json
-from threading import Thread
 
 import Global_access
 
@@ -31,25 +30,32 @@ def decode_message(conn):
 
 
 def process_data(message_buf: bytes):
-        data_map = json.loads(message_buf)
+    data_map = json.loads(message_buf)
 
-        message_type = data_map["type"]
-        if message_type == "frame":
-            handle_environment_data(data_map["environment"])
+    message_type = data_map["type"]
+    if message_type == "frame":
+        handle_environment_data(data_map["environment"])
 
-        elif message_type == "init":
-            handle_environment_data(data_map["environment"])
-            handle_control_data(data_map["control"])
-            handle_settings_data(data_map["settings"])
+    elif message_type == "init":
+        handle_environment_data(data_map["environment"])
+        handle_control_data(data_map["control"])
+        handle_settings_data(data_map["settings"])
 
-        elif message_type == "organism_data":
-            print("organism data received")
+    elif message_type == "organism_data":
+        print("organism data received")
 
-        elif message_type == "control":
-            handle_control_data(data_map["control"])
+    elif message_type == "control":
+        handle_control_data(data_map["control"])
 
-        elif message_type == "settings":
-            handle_settings_data(data_map["settings"])
+    elif message_type == "settings":
+        handle_settings_data(data_map["settings"])
+
+    elif message_type == "tree":
+        handle_tree_data(data_map["tree"])
+
+
+def handle_tree_data(tree):
+    Global_access.tree = tree
 
 
 def handle_environment_data(environment_data_map):

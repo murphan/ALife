@@ -29,6 +29,8 @@ public:
 
 	static auto emptyOrganismRequestMessage() -> json;
 	static auto organismRequestMessage(json && organismBody) -> json;
+
+	static auto treeMessage(json && treeBody) -> json;
 };
 
 #endif //ALIFE_SERIALIZER_H

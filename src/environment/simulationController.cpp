@@ -13,7 +13,8 @@ SimulationController::SimulationController(
 	OrganismGrid && organismGrid,
 	std::default_random_engine & random,
 	Ids & ids,
-	Settings & settings
+	Settings & settings,
+	Tree && tree
 ) :
 	random(random),
 	organismGrid(std::move(organismGrid)),
@@ -21,7 +22,8 @@ SimulationController::SimulationController(
 	organisms(),
 	currentTick(0),
 	ids(ids),
-	settings(settings) {}
+	settings(settings),
+	tree(std::move(tree)) {}
 
 auto SimulationController::tick() -> void {
 	shuffleOrganisms();
@@ -172,6 +174,7 @@ auto SimulationController::checkOrganismsDie() -> void {
 		if (organism.phenome.numAliveCells == 0) {
 			replaceOrganismWithFood(organism);
 			ids.removeId(organism.id);
+			organism.node->kill();
 			return true;
 		}
 		return false;
@@ -347,7 +350,8 @@ auto SimulationController::tryReproduce(Phenome & childPhenome, Organism & organ
         ids.newId(),
         x, y,
         rotation,
-        childEnergy
+        childEnergy,
+		organism.node->addDescendent(childPhenome.genome)
 	);
 }
 

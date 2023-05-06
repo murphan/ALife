@@ -23,7 +23,8 @@ public:
 		const Settings & settings,
 		i32 count,
 		std::default_random_engine & random,
-		Ids & ids
+		Ids & ids,
+		Tree & tree
 	) -> void;
 };
 

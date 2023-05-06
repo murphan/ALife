@@ -10,7 +10,8 @@ auto OrganismSeeder::insertInitialOrganisms(
 	const Settings & settings,
 	i32 count,
 	std::default_random_engine & random,
-	Ids & ids
+	Ids & ids,
+	Tree & tree
 ) -> void {
 	insertList.reserve(count);
 
@@ -40,7 +41,8 @@ auto OrganismSeeder::insertInitialOrganisms(
 			centerX + gridX * spaceWide - offsetX,
 			centerY + gridY * spaceTall - offsetY,
 			Direction::RIGHT,
-			initialEnergy
+			initialEnergy,
+			tree.root.addDescendent(initialPhenome.genome)
 		);
 	}
 }

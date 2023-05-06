@@ -69,16 +69,17 @@ auto main () -> int {
 
 	constexpr auto WIDTH = 250, HEIGHT = 150;
 
+	auto initialPhenome = Phenome(InitialGenome::create(), Body(2), settings);
+
 	auto simulationController = SimulationController(
 		Environment(WIDTH, HEIGHT),
 		OrganismGrid(WIDTH, HEIGHT),
 		random,
 		ids,
-		settings
+		settings,
+		Tree(initialPhenome.genome)
 	);
 	simulationController.refreshFactors();
-
-	auto initialPhenome = Phenome(InitialGenome::create(), Body(2), settings);
 
 	OrganismSeeder::insertInitialOrganisms(
 		simulationController.organisms,
@@ -87,7 +88,8 @@ auto main () -> int {
 		settings,
 		80,
 		random,
-		ids
+		ids,
+		simulationController.tree
 	);
 
 	auto simulationMutex = std::mutex();
@@ -177,6 +179,15 @@ auto main () -> int {
 			} catch (...) {
 				std::cout << "bad settings message" << std::endl;
 			}
+		} else if (parsedMessage.type == "tree") {
+			highPriorityLock();
+
+			auto json = MessageCreator::treeMessage(simulationController.tree.serialize()).dump();
+
+			highPriorityUnlock();
+
+			socket.send(json.begin(), json.end());
+
 		} else {
 			std::cout << "unknown message of type" << parsedMessage.type << std::endl;
 			std::cout << parsedMessage.body << std::endl;

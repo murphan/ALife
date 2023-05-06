@@ -89,3 +89,19 @@ def fill_cell(grid_x: int, grid_y: int, lefts: list[int], ups: list[int], color:
                 down - up,
             )
         )
+
+
+def blackout_top():
+    pygame.draw.rect(
+        Global_access.SCREEN,
+        Global_access.BLACK,
+        pygame.Rect(0, 0, Global_access.WINDOW_WIDTH, Global_access.WINDOW_HEIGHT - Global_access.BOTTOM_BUFFER)
+    )
+
+
+def blackout_bottom():
+    pygame.draw.rect(
+        Global_access.SCREEN,
+        Global_access.BLACK,
+        pygame.Rect(0, Global_access.WINDOW_HEIGHT - Global_access.BOTTOM_BUFFER, Global_access.WINDOW_WIDTH, Global_access.BOTTOM_BUFFER)
+    )

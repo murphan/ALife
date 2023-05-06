@@ -11,7 +11,7 @@ class Button(object):
     def render(
         self,
         screen,
-        bounding_box: pygame.rect,
+        bounding_box: pygame.Rect,
         text: str,
         font: pygame.font,
         color: int,

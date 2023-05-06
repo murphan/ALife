@@ -44,6 +44,13 @@ auto MessageCreator::organismRequestMessage(json && organismBody) -> json {
 auto MessageCreator::settingsMessage(json && settingsBody) -> json {
 	return {
 		{ "type", "settings" },
-		{ "settings", settingsBody }
+		{ "settings", settingsBody },
+	};
+}
+
+auto MessageCreator::treeMessage(json && treeBody) -> json {
+	return {
+		{ "type", "tree" },
+		{ "tree", treeBody },
 	};
 }

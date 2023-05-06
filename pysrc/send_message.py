@@ -81,3 +81,7 @@ def create_message(message_type, data=None):
         return json.dumps({
             "type": "init"
         })
+    elif message_type == "tree":
+        return json.dumps({
+            "type": "tree"
+        })

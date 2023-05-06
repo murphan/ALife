@@ -12,6 +12,7 @@
 #include "organismGrid.h"
 #include "settings.h"
 #include "ids.h"
+#include "tree.h"
 
 using json = nlohmann::json;
 
@@ -57,12 +58,20 @@ public:
 	OrganismGrid organismGrid;
 	Environment environment;
 	std::vector<Organism> organisms;
+	Tree tree;
 
 	int currentTick;
 
 	auto renderOrganismGrid() -> void;
 
-    explicit SimulationController(Environment && environment, OrganismGrid && organismGrid, std::default_random_engine & random, Ids & ids, Settings & settings);
+    explicit SimulationController(
+		Environment && environment,
+		OrganismGrid && organismGrid,
+		std::default_random_engine & random,
+		Ids & ids,
+		Settings & settings,
+		Tree && tree
+	);
 
 	auto refreshFactors() -> void;
 	auto tick() -> void;
