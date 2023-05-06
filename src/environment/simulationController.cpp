@@ -174,7 +174,7 @@ auto SimulationController::checkOrganismsDie() -> void {
 		if (organism.phenome.numAliveCells == 0) {
 			replaceOrganismWithFood(organism);
 			ids.removeId(organism.id);
-			organism.node->kill();
+			tree.kill(organism.node);
 			return true;
 		}
 		return false;

@@ -29,8 +29,6 @@ public:
 		auto isLeaf() const -> bool;
 		auto isRoot() const -> bool;
 
-		auto kill() -> void;
-
 		auto addDescendent(const Genome & newGenome) -> Node *;
 	};
 
@@ -38,6 +36,8 @@ public:
 	std::unique_ptr<Node> root;
 
 	explicit Tree(const Genome & genome);
+
+	auto kill(Node * node) -> void;
 
 	auto computeValues() -> void;
 

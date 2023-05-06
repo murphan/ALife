@@ -19,34 +19,28 @@ auto Tree::Node::isLeaf() const -> bool {
 	return children.empty();
 }
 
-auto Tree::Node::kill() -> void {
-	alive = false;
-	if (isRoot()) return;
+auto Tree::kill(Node * node) -> void {
+	auto * current = node;
+	current->alive = false;
 
-	auto && back = *parent;
+	while (!current->alive && !current->isRoot()) {
+		auto * parent = current->parent;
 
-	auto destroySelf = [&]() {
-		auto thisInBack = Util::find(back.children, [&](std::unique_ptr<Node> & child) { return child.get() == this; });
-		Util::quickErase(back.children, thisInBack);
-	};
+		if (current->children.empty()) {
+			auto currentInBack = Util::find(parent->children, [&](std::unique_ptr<Node> & child) { return child.get() == current; });
+			Util::quickErase(parent->children, currentInBack);
 
-	if (children.empty()) {
-		destroySelf();
+		} else if (current->children.size() == 1) {
+			auto && onlyChild = std::move(current->children.front());
 
-		if (!back.alive) back.kill();
+			onlyChild->parent = parent;
 
-	}/*
- *  else if (children.size() == 1) {
-		auto && child = std::move(children.front());
-		children.pop_back();
+			auto currentInBack = Util::find(parent->children, [&](std::unique_ptr<Node> & child) { return child.get() == current; });
+			*currentInBack = std::move(onlyChild);
+		}
 
-		destroySelf();
-
-		back.children.emplace_back(std::move(child));
+		current = parent;
 	}
- */
-
-
 }
 
 auto Tree::Node::addDescendent(const Genome & newGenome) -> Node * {
