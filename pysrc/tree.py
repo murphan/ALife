@@ -32,7 +32,7 @@ def draw(screen: pygame.Surface, bounds: pygame.Rect, tree_json: Any):
     if tree_json is None:
         return
 
-    pygame.draw.rect(screen, 0xd9dbdb, bounds)
+    pygame.draw.rect(screen, 0x000000, bounds)
 
     level_totals: list[int] = tree_json["levelTotals"]
 
@@ -49,22 +49,23 @@ def draw(screen: pygame.Surface, bounds: pygame.Rect, tree_json: Any):
         this_value = node[0]
         this_level = node[1]
         this_alive = node[2]
-        this_children = node[3]
-        this_parent = node[4] if len(node) == 5 else None
+        this_color = node[3]
+        this_children = node[4]
+        this_parent = node[5] if len(node) == 6 else None
 
         box = this_box(level_totals, levels_already_inserted, this_value, this_level, level_height, bounds.width)
 
         x = bounds.x + box.x + box.width / 2
         y = bounds.y + box.y + box.height / 2
 
-        pygame.draw.circle(screen, 0xe3b129 if this_alive == 1 else 0x000000, (x, y), 8)
-
         if this_parent is not None:
-            pygame.draw.line(screen, 0x000000, (x, y), (this_parent[0], this_parent[1]), width=2)
+            pygame.draw.line(screen, this_color, (x, y), (this_parent[0], this_parent[1]), width=2)
+
+        pygame.draw.circle(screen, this_color, (x, y), 8)
 
         levels_already_inserted[this_level] += this_value
 
         for child_node in this_children:
-            if len(child_node) == 4:
+            if len(child_node) == 5:
                 child_node.append((x, y))
             traverse_queue.appendleft(child_node)

@@ -23,11 +23,13 @@ public:
 		i32 value;
 		i32 level;
 		std::vector<i32> values;
+		f32 hueLeft;
+		f32 hueRight;
 
 		explicit Node(const Genome & genome);
 
-		auto isLeaf() const -> bool;
-		auto isRoot() const -> bool;
+		[[nodiscard]] auto isLeaf() const -> bool;
+		[[nodiscard]] auto isRoot() const -> bool;
 
 		auto addDescendent(const Genome & newGenome) -> Node *;
 	};

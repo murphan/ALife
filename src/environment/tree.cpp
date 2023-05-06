@@ -50,6 +50,47 @@ auto Tree::Node::addDescendent(const Genome & newGenome) -> Node * {
 	return newNode.get();
 }
 
+/* adapted from https://stackoverflow.com/questions/3018313/algorithm-to-convert-rgb-to-hsv-and-hsv-to-rgb-in-range-0-255-for-both */
+/* user David H on Stackoverflow */
+
+inline auto clamp(f32 value) -> f32 {
+	if (value < 0.0_f32) return 0.0_f32;
+	else if (value > 1.0_f32) return 1.0_f32;
+	return value;
+}
+
+inline auto channelFloats2Int(f32 r, f32 g, f32 b) -> u32 {
+	return ((u32)(clamp(r) * 255.0_f32) << 16) | ((u32)(clamp(g) * 255.0_f32) << 8) | (u32)(clamp(b) * 255.0_f32);
+}
+
+inline auto hsv2rgb(f32 h, f32 s, f32 v) -> u32 {
+	if(s <= 0.0_f32)
+		return channelFloats2Int(v, v, v);
+
+	auto hh = fmod(h, 1.0_f32) * 6.0_f32;
+	auto i = (i32)hh;
+	auto ff = hh - (f32)i;
+	auto p = v * (1.0_f32 - s);
+	auto q = v * (1.0_f32 - (s * ff));
+	auto t = v * (1.0_f32 - (s * (1.0_f32 - ff)));
+
+	switch(i) {
+		case 0:
+			return channelFloats2Int(v, t, p);
+		case 1:
+			return channelFloats2Int(q, v, p);
+		case 2:
+			return channelFloats2Int(p, v, t);
+		case 3:
+			return channelFloats2Int(p, q, v);
+		case 4:
+			return channelFloats2Int(t, p, v);
+		case 5:
+		default:
+			return channelFloats2Int(v, p, q);
+	}
+}
+
 struct QueueElement {
 	json::reference parent_array;
 	i32 index;
@@ -81,9 +122,14 @@ auto Tree::serialize() -> json {
 		object.push_back(node->value);
 		object.push_back(node->level);
 		object.push_back(node->alive ? 1 : 0);
+		object.push_back(hsv2rgb(
+			(node->hueLeft + node->hueRight) / 2.0_f32,
+			node->alive ? 1.0_f32 : 0.5_f32,
+			node->alive ? 1.0_f32 : 0.5_f32
+		));
 		object.push_back(json::array());
 
-		auto && child_array = object[3];
+		auto && child_array = object[4];
 
 		for (auto && childNode : node->children) {
 			child_array.push_back(json::array());
@@ -94,6 +140,10 @@ auto Tree::serialize() -> json {
 	return tree;
 }
 
+inline auto interp(f32 along, f32 left, f32 right) -> f32 {
+	return along * (right - left) + left;
+}
+
 auto Tree::computeValues() -> void {
 	auto iterStack = std::vector<Tree::Node *>();
 	auto reverseStack = std::vector<Tree::Node *>();
@@ -101,6 +151,8 @@ auto Tree::computeValues() -> void {
 	iterStack.push_back(root.get());
 	reverseStack.push_back(root.get());
 	root->level = 0;
+	root->hueLeft = 0.0_f32;
+	root->hueRight = 1.0_f32;
 	auto maxLevel = 0;
 
 	while (!iterStack.empty()) {
@@ -110,8 +162,13 @@ auto Tree::computeValues() -> void {
 		node->values.clear();
 		if (node->level > maxLevel) maxLevel = node->level;
 
-		for (auto && childNode : node->children) {
+		for (auto i = 0; i < node->children.size(); ++i) {
+			auto && childNode = node->children[i];
+
 			childNode->level = node->level + 1;
+			childNode->hueLeft = interp((f32)i / (f32)node->children.size(), node->hueLeft, node->hueRight);
+			childNode->hueRight = interp((f32)(i + 1) / (f32)node->children.size(), node->hueLeft, node->hueRight);
+
 			iterStack.push_back(childNode.get());
 			reverseStack.push_back(childNode.get());
 		}
