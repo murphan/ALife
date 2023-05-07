@@ -18,8 +18,6 @@
 #include "genome/initialGenome.h"
 #include "ids.h"
 
-#include <memory>
-
 auto main () -> int {
 	auto random = std::default_random_engine(std::random_device()());
 
@@ -88,7 +86,7 @@ auto main () -> int {
 		simulationController.environment,
 		initialPhenome,
 		settings,
-		5,
+		2,
 		random,
 		ids,
 		simulationController.tree

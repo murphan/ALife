@@ -23,16 +23,25 @@ auto Tree::kill(Node * node) -> void {
 	auto * current = node;
 	current->alive = false;
 
-	while (!current->alive && !current->isRoot()) {
+	while (!current->alive) {
 		auto * parent = current->parent;
 
-		if (current->children.empty()) {
+		if (parent == nullptr) {
+			if (current->children.size() == 1) {
+				auto && front = std::move(current->children.front());
+				front->parent = nullptr;
+
+				root = std::move(current->children.front());
+			}
+
+			return;
+
+		} else if (current->children.empty()) {
 			auto currentInBack = Util::find(parent->children, [&](std::unique_ptr<Node> & child) { return child.get() == current; });
 			Util::quickErase(parent->children, currentInBack);
 
 		} else if (current->children.size() == 1) {
 			auto && onlyChild = std::move(current->children.front());
-
 			onlyChild->parent = parent;
 
 			auto currentInBack = Util::find(parent->children, [&](std::unique_ptr<Node> & child) { return child.get() == current; });
