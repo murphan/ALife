@@ -26,18 +26,17 @@ public:
 		f32 hueLeft;
 		f32 hueRight;
 
-		explicit Node(const Genome & genome);
+		explicit Node(Genome genome);
 
 		[[nodiscard]] auto isLeaf() const -> bool;
-		[[nodiscard]] auto isRoot() const -> bool;
-
-		auto addDescendent(const Genome & newGenome) -> Node *;
 	};
 
 	std::vector<i32> levelTotals;
 	std::unique_ptr<Node> root;
 
-	explicit Tree(const Genome & genome);
+	explicit Tree();
+
+	auto add(Node * parent, const Genome & newGenome) -> Node *;
 
 	auto kill(Node * node) -> void;
 

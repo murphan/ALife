@@ -3,17 +3,22 @@
 //
 
 #include "tree.h"
+
+#include <utility>
 #include "util.h"
 
-Tree::Tree(const Genome & genome): root(std::make_unique<Node>(genome)) {
-	root->alive = false;
-}
+Tree::Tree(): root(nullptr) {}
 
-Tree::Node::Node(const Genome & genome): genome(genome), parent(nullptr), alive(true), children(), value(0), level(0), values() {}
-
-auto Tree::Node::isRoot() const -> bool {
-	return parent == nullptr;
-}
+Tree::Node::Node(Genome genome):
+	genome(std::move(genome)),
+	parent(nullptr),
+	alive(true),
+	children(),
+	value(0),
+	level(0),
+	values(),
+	hueLeft(0),
+	hueRight(0) {}
 
 auto Tree::Node::isLeaf() const -> bool {
 	return children.empty();
@@ -52,11 +57,18 @@ auto Tree::kill(Node * node) -> void {
 	}
 }
 
-auto Tree::Node::addDescendent(const Genome & newGenome) -> Node * {
-	children.emplace_back(std::make_unique<Node>(newGenome));
-	auto && newNode = children.back();
-	newNode->parent = this;
-	return newNode.get();
+auto Tree::add(Tree::Node * parent, const Genome & newGenome) -> Node * {
+	if (parent == nullptr) {
+		root = std::make_unique<Node>(newGenome);
+		root->alive = false;
+		return root.get();
+
+	} else {
+		parent->children.emplace_back(std::make_unique<Node>(newGenome));
+		auto && newNode = parent->children.back();
+		newNode->parent = parent;
+		return newNode.get();
+	}
 }
 
 /* adapted from https://stackoverflow.com/questions/3018313/algorithm-to-convert-rgb-to-hsv-and-hsv-to-rgb-in-range-0-255-for-both */
@@ -120,11 +132,13 @@ auto Tree::serialize() -> json {
 	};
 
 	auto stack = std::vector<QueueElement>();
-	stack.push_back({ *tree.find("root"), -1, root.get() });
+	if (root != nullptr) {
+		stack.push_back({*tree.find("root"), -1, root.get()});
+	}
 
 	while (!stack.empty()) {
-		auto && [parent_array, index, node] = stack.back();
-		auto && object = index == -1 ? parent_array : parent_array[index];
+		auto && [parentArray, index, node] = stack.back();
+		auto && object = index == -1 ? parentArray : parentArray[index];
 
 		stack.pop_back();
 
@@ -154,6 +168,8 @@ inline auto interp(f32 along, f32 left, f32 right) -> f32 {
 }
 
 auto Tree::computeValues(bool smart) -> void {
+	if (root == nullptr) return;
+
 	auto iterStack = std::vector<Tree::Node *>();
 	auto reverseStack = std::vector<Tree::Node *>();
 

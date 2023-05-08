@@ -85,3 +85,7 @@ def create_message(message_type, data=None):
         return json.dumps({
             "type": "tree"
         })
+    elif message_type == 'reset':
+        return json.dumps({
+            "type": "reset"
+        })

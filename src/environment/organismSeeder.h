@@ -19,12 +19,12 @@ public:
 	static auto insertInitialOrganisms(
 		std::vector<Organism> & insertList,
 		const Environment & environment,
-		const Phenome & initialPhenome,
-		const Settings & settings,
-		i32 count,
 		std::default_random_engine & random,
 		Ids & ids,
-		Tree & tree
+		Tree & tree,
+		const Phenome & initialPhenome,
+		const Settings & settings,
+		i32 count
 	) -> void;
 };
 

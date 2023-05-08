@@ -79,6 +79,9 @@ class Management:
                     tree.toggle_show_tree(self.conn)
                     Global_access.set_should_render(True)
 
+                if self.environment_gui.reset_button.update(event):
+                    send_message(self.conn, 'reset')
+
             should_render_environment = Global_access.latest_frame is not None and\
                 Global_access.latest_frame["should_render"]
 

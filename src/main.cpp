@@ -17,11 +17,41 @@
 #include "loop.h"
 #include "genome/initialGenome.h"
 #include "ids.h"
+#include "priorityMutex.h"
+
+constexpr auto WIDTH = 250, HEIGHT = 150;
+
+auto createSimulation(Settings & settings, Controls & controls, i32 width, i32 height) -> SimulationController {
+	controls.playing = false;
+	controls.fps = 20;
+	controls.updateDisplay = true;
+
+	return SimulationController(
+		settings,
+		Environment(width, height),
+		OrganismGrid(width, height),
+		std::default_random_engine(std::random_device()()),
+		Ids(),
+		Tree()
+	);
+}
+
+auto initSimulation(Settings & settings, SimulationController & simulationController) -> void {
+	simulationController.refreshFactors();
+
+	OrganismSeeder::insertInitialOrganisms(
+		simulationController.organisms,
+		simulationController.environment,
+		simulationController.random,
+		simulationController.ids,
+		simulationController.tree,
+		Phenome(InitialGenome::create(), Body(2), settings),
+		settings,
+		1
+	);
+}
 
 auto main () -> int {
-	auto random = std::default_random_engine(std::random_device()());
-
-	auto controls = Controls { .playing=false, .fps=20, .updateDisplay=true };
 	auto settings = Settings {
 		.lifetimeFactor = 100,
 		.photosynthesisFactor = 1,
@@ -64,60 +94,12 @@ auto main () -> int {
 			Noise(Factor::OXYGEN, false, -1.0_f32, 0.01_f32, 100.0_f32, 1.0_f32),
 		}
 	};
+	auto controls = Controls {};
 
-	auto ids = Ids(random);
+	auto simulationController = createSimulation(settings, controls, WIDTH, HEIGHT);
+	initSimulation(settings, simulationController);
 
-	constexpr auto WIDTH = 250, HEIGHT = 150;
-
-	auto initialPhenome = Phenome(InitialGenome::create(), Body(2), settings);
-
-	auto simulationController = SimulationController(
-		Environment(WIDTH, HEIGHT),
-		OrganismGrid(WIDTH, HEIGHT),
-		random,
-		ids,
-		settings,
-		Tree(initialPhenome.genome)
-	);
-	simulationController.refreshFactors();
-
-	OrganismSeeder::insertInitialOrganisms(
-		simulationController.organisms,
-		simulationController.environment,
-		initialPhenome,
-		settings,
-		2,
-		random,
-		ids,
-		simulationController.tree
-	);
-
-	auto simulationMutex = std::mutex();
-	auto lowPriorityMutex = std::mutex();
-	auto nextAccessMutex = std::mutex();
-
-	auto lowPriorityLock = [&]() {
-		lowPriorityMutex.lock();
-		nextAccessMutex.lock();
-		simulationMutex.lock();
-		nextAccessMutex.unlock();
-	};
-
-	auto lowPriorityUnlock = [&]() {
-		simulationMutex.unlock();
-		lowPriorityMutex.unlock();
-	};
-
-	auto highPriorityLock = [&]() {
-		nextAccessMutex.lock();
-		simulationMutex.lock();
-		nextAccessMutex.unlock();
-	};
-
-	auto highPriorityUnlock = [&]() {
-		simulationMutex.unlock();
-	};
-
+	auto mutex = PriorityMutex();
 	auto socket = Socket();
 
 	socket.init("51679", [&](const std::vector<char> & message) -> void {
@@ -128,27 +110,27 @@ auto main () -> int {
 		auto && parsedMessage = messageResult.value();
 
 		if (parsedMessage.type == "init") {
-			highPriorityLock();
+			std::string json;
 
-			auto json = MessageCreator::initMessage(
-				simulationController.serialize(),
-				controls.serialize(),
-				settings.serialize()
-			).dump();
-
-			highPriorityUnlock();
+			mutex.highPriorityLock([&]() {
+				json = MessageCreator::initMessage(
+					simulationController.serialize(),
+					controls.serialize(),
+					settings.serialize()
+				).dump();
+			});
 
 			socket.send(json.begin(), json.end());
 
 		} else if (parsedMessage.type == "control") {
 			if (!parsedMessage.body.contains("control")) return;
 
-			highPriorityLock();
+			std::string json;
 
-			controls.updateFromSerialized(parsedMessage.body["control"]);
-			auto json = MessageCreator::controlsMessage(controls.serialize()).dump();
-
-			highPriorityUnlock();
+			mutex.highPriorityLock([&]() {
+				controls.updateFromSerialized(parsedMessage.body["control"]);
+				json = MessageCreator::controlsMessage(controls.serialize()).dump();
+			});
 
 			socket.send(json.begin(), json.end());
 
@@ -180,11 +162,27 @@ auto main () -> int {
 				std::cout << "bad settings message" << std::endl;
 			}
 		} else if (parsedMessage.type == "tree") {
-			highPriorityLock();
+			std::string json;
 
-			auto json = MessageCreator::treeMessage(simulationController.tree.serialize()).dump();
+			mutex.highPriorityLock([&]() {
+				json = MessageCreator::treeMessage(simulationController.tree.serialize()).dump();
+			});
 
-			highPriorityUnlock();
+			socket.send(json.begin(), json.end());
+
+		} else if  (parsedMessage.type == "reset") {
+			std::string json;
+
+			mutex.highPriorityLock([&]() {
+				simulationController = std::move(createSimulation(settings, controls, WIDTH, HEIGHT));
+				initSimulation(settings, simulationController);
+
+				json = MessageCreator::initMessage(
+					simulationController.serialize(),
+					controls.serialize(),
+					settings.serialize()
+				).dump();
+			});
 
 			socket.send(json.begin(), json.end());
 
@@ -202,23 +200,21 @@ auto main () -> int {
 	auto loop = Loop();
 
 	loop.enter([&](Loop::timePoint now) -> Fps {
-		lowPriorityLock();
+		mutex.lowPriorityLock([&]() {
+			if (controls.playing) {
+				simulationController.tick();
+			}
 
-		if (controls.playing) {
-			simulationController.tick();
-		}
+			if (socket.isConnected() && controls.updateDisplay && controls.playing &&
+			    (now - lastSendTime) >= minSendTime) {
+				auto stateJson = MessageCreator::frameMessage(simulationController.serialize());
 
-		if (socket.isConnected() && controls.updateDisplay && controls.playing &&
-		    (now - lastSendTime) >= minSendTime) {
-			auto stateJson = MessageCreator::frameMessage(simulationController.serialize());
+				auto jsonData = stateJson.dump();
+				socket.send(jsonData.begin(), jsonData.end());
 
-			auto jsonData = stateJson.dump();
-			socket.send(jsonData.begin(), jsonData.end());
-
-			lastSendTime = now;
-		}
-
-		lowPriorityUnlock();
+				lastSendTime = now;
+			}
+		});
 
 		return controls.unlimitedFPS() ? Fps::unlimited() : Fps(controls.fps);
 	});

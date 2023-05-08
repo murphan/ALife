@@ -18,8 +18,6 @@ using json = nlohmann::json;
 
 class SimulationController {
 private:
-	std::default_random_engine & random;
-	Ids & ids;
 	Settings & settings;
 
 	/* substep functions */
@@ -55,23 +53,27 @@ private:
     auto tryReproduce(Phenome & childPhenome, Organism & organism, i32 reproductionEnergy, i32 childBodyEnergy, i32 childEnergy) -> std::optional<Organism>;
 
 public:
-	OrganismGrid organismGrid;
 	Environment environment;
-	std::vector<Organism> organisms;
+	OrganismGrid organismGrid;
+	std::default_random_engine random;
+	Ids ids;
 	Tree tree;
+	std::vector<Organism> organisms;
 
 	int currentTick;
 
 	auto renderOrganismGrid() -> void;
 
     explicit SimulationController(
+	    Settings & settings,
 		Environment && environment,
 		OrganismGrid && organismGrid,
-		std::default_random_engine & random,
-		Ids & ids,
-		Settings & settings,
+		std::default_random_engine random,
+		Ids && ids,
 		Tree && tree
 	);
+
+	auto operator=(SimulationController && other) noexcept -> SimulationController &;
 
 	auto refreshFactors() -> void;
 	auto tick() -> void;

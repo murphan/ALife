@@ -22,6 +22,7 @@ class EnvironmentGUI:
         self.play_pause_button = Button()
         self.fps_slider = Slider(1.0, 21.0, lambda: Global_access.fps, lambda fps: set_fps(fps))
         self.tree_button = Button()
+        self.reset_button = Button()
 
     @staticmethod
     def set_screen_sizes(width: int, height: int):
@@ -81,6 +82,8 @@ class EnvironmentGUI:
         fps_box = boxing.left_of(ref=play_box, box=boxing.box(210, 35), x=5)
         tree_box = boxing.left_of(ref=fps_box, box=boxing.box(100, 35), x=5)
 
+        reset_box = boxing.from_bottom_left(boxing.box(70, 35), 5, 5)
+
         self.play_pause_button.render(
             Global_access.SCREEN,
             settings_box,
@@ -112,6 +115,14 @@ class EnvironmentGUI:
             Global_access.ENV_FONT,
             0x4fbdae,
         )
+        self.reset_button.render(
+            Global_access.SCREEN,
+            reset_box,
+            'Reset',
+            Global_access.ENV_FONT,
+            0xff0000,
+        )
+
 
     @staticmethod
     def add_organism_display(organism):

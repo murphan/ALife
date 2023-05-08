@@ -1,5 +1,4 @@
 
-#include <iostream>
 #include "environment/simulationController.h"
 #include "renderer.h"
 #include "../genome/geneMap.h"
@@ -9,11 +8,11 @@
 #include "environment/cell/photosynthesizer.h"
 
 SimulationController::SimulationController(
+	Settings & settings,
 	Environment && environment,
 	OrganismGrid && organismGrid,
-	std::default_random_engine & random,
-	Ids & ids,
-	Settings & settings,
+	std::default_random_engine random,
+	Ids && ids,
 	Tree && tree
 ) :
 	random(random),
@@ -21,9 +20,20 @@ SimulationController::SimulationController(
 	environment(std::move(environment)),
 	organisms(),
 	currentTick(0),
-	ids(ids),
+	ids(std::move(ids)),
 	settings(settings),
 	tree(std::move(tree)) {}
+
+auto SimulationController::operator=(SimulationController && other) noexcept -> SimulationController & {
+	environment = std::move(other.environment);
+	organismGrid = std::move(other.organismGrid);
+	random = other.random;
+	ids = std::move(other.ids);
+	tree = std::move(other.tree);
+	organisms = std::move(other.organisms);
+
+	return *this;
+}
 
 auto SimulationController::tick() -> void {
 	shuffleOrganisms();
@@ -347,11 +357,11 @@ auto SimulationController::tryReproduce(Phenome & childPhenome, Organism & organ
 
 	return std::make_optional<Organism>(
 		std::move(childPhenome),
-        ids.newId(),
+        ids.newId(random),
         x, y,
         rotation,
         childEnergy,
-		organism.node->addDescendent(childPhenome.genome)
+		tree.add(organism.node, childPhenome.genome)
 	);
 }
 
