@@ -25,6 +25,9 @@ auto createSimulation(Settings & settings, Controls & controls, i32 width, i32 h
 	controls.playing = false;
 	controls.fps = 20;
 	controls.updateDisplay = true;
+	controls.activeNode = nullptr;
+	controls.displayMode = Controls::DisplayMode::ENVIRONMENT;
+	controls.smartTree = false;
 
 	return SimulationController(
 		settings,
@@ -128,7 +131,7 @@ auto main () -> int {
 			std::string json;
 
 			mutex.highPriorityLock([&]() {
-				controls.updateFromSerialized(parsedMessage.body["control"]);
+				controls.updateFromSerialized(parsedMessage.body["control"], simulationController.tree);
 				json = MessageCreator::controlsMessage(controls.serialize()).dump();
 			});
 
@@ -161,15 +164,6 @@ auto main () -> int {
 			} catch (...) {
 				std::cout << "bad settings message" << std::endl;
 			}
-		} else if (parsedMessage.type == "tree") {
-			std::string json;
-
-			mutex.highPriorityLock([&]() {
-				json = MessageCreator::treeMessage(simulationController.tree.serialize()).dump();
-			});
-
-			socket.send(json.begin(), json.end());
-
 		} else if  (parsedMessage.type == "reset") {
 			std::string json;
 
@@ -200,21 +194,34 @@ auto main () -> int {
 	auto loop = Loop();
 
 	loop.enter([&](Loop::timePoint now) -> Fps {
+		std::string jsonData;
+
 		mutex.lowPriorityLock([&]() {
 			if (controls.playing) {
 				simulationController.tick();
 			}
 
-			if (socket.isConnected() && controls.updateDisplay && controls.playing &&
-			    (now - lastSendTime) >= minSendTime) {
-				auto stateJson = MessageCreator::frameMessage(simulationController.serialize());
+			if (
+				socket.isConnected() &&
+				controls.updateDisplay &&
+				controls.playing &&
+				(now - lastSendTime) >= minSendTime
+			) {
+				//TODO different modes for display modes
+				if (controls.updateDisplay) {
+					simulationController.tree.update()
+					jsonData = MessageCreator::frameMessage(simulationController.serialize()).dump();
+				} else {
 
-				auto jsonData = stateJson.dump();
-				socket.send(jsonData.begin(), jsonData.end());
+				}
 
 				lastSendTime = now;
 			}
 		});
+
+		if (!jsonData.empty()) {
+			socket.send(jsonData.begin(), jsonData.end());
+		}
 
 		return controls.unlimitedFPS() ? Fps::unlimited() : Fps(controls.fps);
 	});

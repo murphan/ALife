@@ -7,18 +7,20 @@
 #include <utility>
 #include "util.h"
 
-Tree::Tree(): root(nullptr) {}
+Tree::Tree(): lastUUID(0_u64), root(nullptr) {}
 
-Tree::Node::Node(Genome genome):
+Tree::Node::Node(Genome genome, u64 uuid):
 	genome(std::move(genome)),
 	parent(nullptr),
 	alive(true),
 	children(),
+	uuid(uuid),
 	value(0),
 	level(0),
 	values(),
 	hueLeft(0),
-	hueRight(0) {}
+	hueRight(0),
+	active(false) {}
 
 auto Tree::Node::isLeaf() const -> bool {
 	return children.empty();
@@ -58,13 +60,15 @@ auto Tree::kill(Node * node) -> void {
 }
 
 auto Tree::add(Tree::Node * parent, const Genome & newGenome) -> Node * {
+	auto nextUUID = lastUUID++;
+
 	if (parent == nullptr) {
-		root = std::make_unique<Node>(newGenome);
+		root = std::make_unique<Node>(newGenome, nextUUID);
 		root->alive = false;
 		return root.get();
 
 	} else {
-		parent->children.emplace_back(std::make_unique<Node>(newGenome));
+		parent->children.emplace_back(std::make_unique<Node>(newGenome, nextUUID));
 		auto && newNode = parent->children.back();
 		newNode->parent = parent;
 		return newNode.get();
@@ -113,14 +117,12 @@ inline auto hsv2rgb(f32 h, f32 s, f32 v) -> u32 {
 }
 
 struct QueueElement {
-	json::reference parent_array;
-	i32 index;
+	json::reference parentArray;
+	i32 indexInArray;
 	Tree::Node * node;
 };
 
 auto Tree::serialize() -> json {
-	computeValues(false);
-
 	auto levelTotalsArray = json::array();
 	for (auto && total : levelTotals) {
 		levelTotalsArray.push_back(total);
@@ -137,19 +139,20 @@ auto Tree::serialize() -> json {
 	}
 
 	while (!stack.empty()) {
-		auto && [parentArray, index, node] = stack.back();
-		auto && object = index == -1 ? parentArray : parentArray[index];
+		auto && [parentArray, indexInArray, node] = stack.back();
+		auto && object = indexInArray == -1 ? parentArray : parentArray[indexInArray];
 
 		stack.pop_back();
 
+		object.push_back(node->uuid);
 		object.push_back(node->value);
 		object.push_back(node->level);
 		object.push_back(node->alive ? 1 : 0);
-		object.push_back(hsv2rgb(
+		object.push_back(node->active ? hsv2rgb(
 			(node->hueLeft + node->hueRight) / 2.0_f32,
 			node->alive ? 1.0_f32 : 0.5_f32,
 			node->alive ? 1.0_f32 : 0.5_f32
-		));
+		) : 0x4f4f4f);
 		object.push_back(json::array());
 
 		auto && child_array = object[4];
@@ -167,7 +170,7 @@ inline auto interp(f32 along, f32 left, f32 right) -> f32 {
 	return along * (right - left) + left;
 }
 
-auto Tree::computeValues(bool smart) -> void {
+auto Tree::update(bool smart, bool updatePositions, Node * activeNode) -> void {
 	if (root == nullptr) return;
 
 	auto iterStack = std::vector<Tree::Node *>();
@@ -178,6 +181,7 @@ auto Tree::computeValues(bool smart) -> void {
 	root->level = 0;
 	root->hueLeft = 0.0_f32;
 	root->hueRight = 1.0_f32;
+	root->active = false;
 	auto maxLevel = 0;
 
 	while (!iterStack.empty()) {
@@ -187,6 +191,14 @@ auto Tree::computeValues(bool smart) -> void {
 		node->values.clear();
 		if (node->level > maxLevel) maxLevel = node->level;
 
+		if (activeNode == nullptr) {
+			node->active = true;
+		} else if (node == activeNode) {
+			node->active = true;
+		} else {
+			node->active = node->parent != nullptr && node->parent->active;
+		}
+
 		for (auto i = 0; i < node->children.size(); ++i) {
 			auto && childNode = node->children[i];
 
@@ -195,9 +207,11 @@ auto Tree::computeValues(bool smart) -> void {
 			childNode->hueRight = interp((f32)(i + 1) / (f32)node->children.size(), node->hueLeft, node->hueRight);
 
 			iterStack.push_back(childNode.get());
-			reverseStack.push_back(childNode.get());
+			if (updatePositions) reverseStack.push_back(childNode.get());
 		}
 	}
+
+	if (!updatePositions) return;
 
 	levelTotals = std::vector(maxLevel + 1, 0);
 
@@ -228,5 +242,20 @@ auto Tree::computeValues(bool smart) -> void {
 			node->value = 1;
 			levelTotals[node->level] += 1;
 		}
+	}
+}
+
+auto Tree::getNodeByUUID(u32 uuid) const -> Tree::Node * {
+	if (root == nullptr) return nullptr;
+
+	auto stack = std::vector<Tree::Node *>(1, root.get());
+
+	while (!stack.empty()) {
+		auto * node = stack.back();
+		stack.pop_back();
+
+		if (node->uuid == uuid) return node;
+
+		for (auto && child : node->children) stack.push_back(child.get());
 	}
 }

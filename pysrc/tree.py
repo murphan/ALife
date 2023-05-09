@@ -46,12 +46,13 @@ def draw(screen: pygame.Surface, bounds: pygame.Rect, tree_json: Any):
     while len(traverse_queue) > 0:
         node: list = traverse_queue.pop()
 
-        this_value = node[0]
-        this_level = node[1]
-        this_alive = node[2]
-        this_color = node[3]
-        this_children = node[4]
-        this_parent = node[5] if len(node) == 6 else None
+        this_uuid = node[0]
+        this_value = node[1]
+        this_level = node[2]
+        this_alive = node[3]
+        this_color = node[4]
+        this_children = node[5]
+        this_parent = node[6] if len(node) == 7 else None
 
         box = this_box(level_totals, levels_already_inserted, this_value, this_level, level_height, bounds.width)
 
@@ -66,6 +67,6 @@ def draw(screen: pygame.Surface, bounds: pygame.Rect, tree_json: Any):
         levels_already_inserted[this_level] += this_value
 
         for child_node in this_children:
-            if len(child_node) == 5:
+            if len(child_node) == 6:
                 child_node.append((x, y))
             traverse_queue.appendleft(child_node)
