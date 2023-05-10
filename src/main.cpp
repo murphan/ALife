@@ -93,10 +93,8 @@ auto main () -> int {
 			0, /* EYE */
 			2, /* SCAFFOLD */
 		},
-		.factorNoises = {
-			Noise(Factor::TEMPERATURE, false, -1.0_f32, 0.01_f32, 100.0_f32, 1.0_f32),
+		.factors = {
 			Noise(Factor::LIGHT, false, 0.35_f32, 0.0_f32, 50.0_f32, 1.0_f32),
-			Noise(Factor::OXYGEN, false, -1.0_f32, 0.01_f32, 100.0_f32, 1.0_f32),
 		}
 	};
 	auto controls = Controls {};

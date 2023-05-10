@@ -91,7 +91,7 @@ def handle_control_data(controls):
 def handle_settings_data(settings):
     factors = settings["factors"]
 
-    for factor in range(3):
+    for factor in range(1):
         noise = Global_access.noises[factor]
         noise.use_noise = factors[factor]["useNoise"]
         noise.center = factors[factor]["center"]

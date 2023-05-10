@@ -64,7 +64,7 @@ public:
 	/* not all parts can be upgraded, but list them anyway */
 	i32 upgradedPartCosts[7];
 
-	Noise factorNoises[3];
+	Noise factors[1];
 
 	auto handleSettingsMessage(json & body) -> void;
 

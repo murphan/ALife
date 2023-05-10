@@ -11,6 +11,4 @@ class Noise(object):
 
 
 class Factor(Enum):
-    TEMPERATURE = 0
-    LIGHT = 1
-    OXYGEN = 2
+    LIGHT = 0

@@ -6,9 +6,7 @@
 #define ALIFE_FACTOR_H
 
 enum Factor {
-	TEMPERATURE = 0,
-	LIGHT = 1,
-	OXYGEN = 2,
+	LIGHT = 0,
 };
 
 #endif //ALIFE_FACTOR_H

@@ -1,7 +1,7 @@
 
 #include "mapCell.h"
 
-MapCell::MapCell() : factors { 0, 0, 0 }, hasWall(false), food(Body::Cell::makeEmpty()) {}
+MapCell::MapCell() : factors { 0 }, hasWall(false), food(Body::Cell::makeEmpty()) {}
 
 auto MapCell::getFactor(Factor factor) const -> i8 {
 	return factors[factor];

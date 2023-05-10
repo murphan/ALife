@@ -215,13 +215,7 @@ class SetupSettings:
         top_frame.pack(side=TOP, expand=True)
 
         self.noise_controls.append(
-            self.create_noise_control('Temperature Control', temp_frame, Factor.TEMPERATURE)
-        )
-        self.noise_controls.append(
             self.create_noise_control('Light Control', light_frame, Factor.LIGHT)
-        )
-        self.noise_controls.append(
-            self.create_noise_control('Oxygen Control', oxygen_frame, Factor.OXYGEN)
         )
 
         bottom_frame.pack(side=TOP, expand=True)

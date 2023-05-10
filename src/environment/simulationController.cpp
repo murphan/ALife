@@ -380,9 +380,7 @@ auto SimulationController::getOrganism(u32 id) -> Organism * {
 }
 
 auto SimulationController::updateFactors() -> void {
-	settings.factorNoises[Factor::TEMPERATURE].tick();
-	settings.factorNoises[Factor::LIGHT].tick();
-	settings.factorNoises[Factor::OXYGEN].tick();
+	settings.factors[Factor::LIGHT].tick();
 
 	refreshFactors();
 }
@@ -392,9 +390,7 @@ auto SimulationController::refreshFactors() -> void {
 		for (auto x = 0; x < environment.getWidth(); ++x) {
 			auto && cell = environment.accessUnsafe(x, y);
 
-			cell.setFactor(Factor::TEMPERATURE, settings.factorNoises[Factor::TEMPERATURE].getValue(x, y));
-			cell.setFactor(Factor::LIGHT, settings.factorNoises[Factor::LIGHT].getValue(x, y));
-			cell.setFactor(Factor::OXYGEN, settings.factorNoises[Factor::OXYGEN].getValue(x, y));
+			cell.setFactor(Factor::LIGHT, settings.factors[Factor::LIGHT].getValue(x, y));
 		}
 	}
 }

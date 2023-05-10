@@ -27,8 +27,6 @@ PINK = '#f00ce1'
 # Environment factors
 noises: list[Noise] = [
     Noise(False, 0.0, 0.0, 0.0, 0.0),
-    Noise(False, 0.0, 0.0, 0.0, 0.0),
-    Noise(False, 0.0, 0.0, 0.0, 0.0),
 ]
 
 repro_insertion = 0.0

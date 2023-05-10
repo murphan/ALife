@@ -10,11 +10,9 @@ constexpr static i32 BYTES_PER_TILE = 9;
 constexpr static f32 BACKGROUND_DIM = 0.3333333333_f32;
 
 inline auto getFactorsColor(MapCell & mapCell) -> u32 {
-	return Color::channelFloats2Int(
-		((f32)mapCell.getFactor(Factor::TEMPERATURE) / 127.0_f32) * BACKGROUND_DIM,
-		((f32)mapCell.getFactor(Factor::LIGHT) / 127.0_f32) * BACKGROUND_DIM,
-		((f32)mapCell.getFactor(Factor::OXYGEN) / 127.0_f32) * BACKGROUND_DIM
-	);
+	auto value = ((f32)mapCell.getFactor(Factor::LIGHT) / 127.0_f32) * BACKGROUND_DIM;
+
+	return Color::channelFloats2Int(value, value, value);
 }
 
 template<usize SIZE>
@@ -38,11 +36,11 @@ auto modifyColor(bool dead, bool inactive, u32 color) -> u32 {
 
 	auto hsv = Color::rgb2hsv(color);
 
-	if (dead) hsv.s *= 0.25_f32;
-	if (inactive) hsv.s *= 0.80_f32;
+	if (dead) hsv.s *= 0.75_f32;
+	//if (inactive) hsv.s *= 0.80_f32;
 
-	if (dead) hsv.v *= 0.66_f32;
-	if (inactive) hsv.v *= 0.25_f32;
+	if (dead) hsv.v *= 0.50_f32;
+	if (inactive) hsv.v *= 0.10_f32;
 
 	return Color::hsv2rgb(hsv);
 }
@@ -110,7 +108,7 @@ auto Renderer::render(Environment & environment, std::vector<Organism> & organis
 			insert3(
 				buffer,
 				bufferIndex(x, y) + 3,
-				getFactorsColor(mapCell)
+				activeNode == nullptr ? getFactorsColor(mapCell) : 0x000000
 			);
 
 			if (food.filled()) {
@@ -118,8 +116,15 @@ auto Renderer::render(Environment & environment, std::vector<Organism> & organis
 				insert3(
 					buffer,
 					bufferIndex(x, y) + (food.broken() ? 6 : 3),
-					modifyColor(food.dead(), false,  bodyPartColors[food.bodyPart() - 1])
+					modifyColor(food.dead(), activeNode != nullptr,  bodyPartColors[food.bodyPart() - 1])
 				);
+				if (food.isModified()) {
+					insert3(
+						buffer,
+						bufferIndex(x, y) + 6,
+						modifyColor(food.dead(), activeNode != nullptr, upgradeColors[food.bodyPart() - 1][food.modifier()])
+					);
+				}
 			}
 		}
 	}
