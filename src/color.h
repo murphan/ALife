@@ -35,7 +35,8 @@ namespace Color {
 
 		auto hh = fractionalPart(h) * 6.0_f32;
 		auto i = (i32)hh;
-		auto ff = hh - (f32)i;
+		//auto ff = hh - (f32)i;
+		auto ff = fractionalPart(hh);
 		auto p = v * (1.0_f32 - s);
 		auto q = v * (1.0_f32 - (s * ff));
 		auto t = v * (1.0_f32 - (s * (1.0_f32 - ff)));
@@ -58,9 +59,9 @@ namespace Color {
 	}
 
 	constexpr auto rgb2hsv(u32 rgb) -> HSV {
-		auto r = (rgb >> 16) & 0xff;
-		auto g = (rgb >> 8) & 0xff;
-		auto b = rgb & 0xff;
+		auto r = (i32)((rgb >> 16) & 0xff);
+		auto g = (i32)((rgb >> 8) & 0xff);
+		auto b = (i32)(rgb & 0xff);
 
 		auto min = r < g ? r : g;
 		min = min < b ? min : b;
@@ -93,12 +94,11 @@ namespace Color {
 			out.h = (f32)(g - b) / (f32)delta;
 		} else if (g == max) {
 			out.h = 2.0_f32 + (f32)(b - r) / (f32)delta;
-		} else {
+		} else { /* if (b == max) */
 			out.h = 4.0_f32 + (f32)(r - g) / (f32)delta;
 		}
 
-		out.h /= 6.0_f32;
-		if (out.h < 0.0_f32) out.h += 1.0_f32;
+		out.h = fractionalPart(out.h / 6.0_f32);
 
 		return out;
 	}
