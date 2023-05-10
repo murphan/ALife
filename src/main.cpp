@@ -132,10 +132,11 @@ auto main () -> int {
 
 			mutex.highPriorityLock([&]() {
 				auto displayModeBefore = controls.displayMode;
+				auto * activeNodeBefore = controls.activeNode;
 
 				controls.updateFromSerialized(parsedMessage.body["controls"], simulationController.tree);
 
-				if (displayModeBefore != controls.displayMode) {
+				if (displayModeBefore != controls.displayMode || activeNodeBefore != controls.activeNode) {
 					simulationController.tree.update(controls.smartTree, controls.displayMode == Controls::DisplayMode::TREE, controls.activeNode);
 					json = MessageCreator::controlsMessageAndFrame(controls.serialize(), simulationController.serialize(controls)).dump();
 				} else {

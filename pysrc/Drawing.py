@@ -168,7 +168,7 @@ def render_tree(screen: pygame.Surface, bounds: pygame.Rect, tree_json: Tree):
             pygame.Rect(x - 8, y - 8, 16, 16),
             uuid,
             True if level == 0 else active
-        )) 
+        ))
 
         levels_already_inserted[level] += value
 
