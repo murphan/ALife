@@ -41,14 +41,10 @@ def create_message(message_type, data=None):
         })
     elif message_type == "request_all":
         return json.dumps({"type": "request_all"})
-    elif message_type == "control":
+    elif message_type == "controls":
         return json.dumps({
-            "type": "control",
-            "control": {
-                "playing": Global_access.running,
-                "fps": Global_access.fps,
-                "updateDisplay": Global_access.updateDisplay
-            }
+            "type": "controls",
+            "controls": Global_access.controls
         })
     elif message_type == "new_filled":
         return json.dumps({

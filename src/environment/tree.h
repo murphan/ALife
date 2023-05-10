@@ -43,13 +43,13 @@ public:
 
 	auto add(Node * parent, const Genome & newGenome) -> Node *;
 
-	auto kill(Node * node) -> void;
+	auto kill(Node * node, Node *& activeNode) -> void;
 
 	auto update(bool smart, bool updatePositions, Node * activeNode) -> void;
 
-	auto serialize() -> json;
+	auto serialize(Node * activeNode) -> json;
 
-	auto getNodeByUUID(u32 uuid) const -> Node *;
+	[[nodiscard]] auto getNodeByUUID(u32 uuid) const -> Node *;
 };
 
 #endif //ALIFE_TREE_H

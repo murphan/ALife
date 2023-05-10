@@ -15,7 +15,7 @@ import Global_access
 import receive_message
 import Drawing
 from send_message import send_message
-import tree
+
 
 class Management:
     def __init__(self):
@@ -23,7 +23,7 @@ class Management:
         self.thread = None
         self.create_connection()
 
-        self.environment_gui = EnvironmentGUI(lambda fps: EnvironmentControl.set_fps(self.conn, fps))
+        self.environment_gui = EnvironmentGUI()
 
         Global_access.ENV_FONT = pygame.font.SysFont('Arial', 20)
 
@@ -70,25 +70,25 @@ class Management:
 
                 if self.environment_gui.play_pause_button.update(event):
                     EnvironmentControl.toggle_start_stop(self.conn)
-                    Global_access.set_should_render(True)
 
-                if self.environment_gui.fps_slider.update(event):
-                    Global_access.set_should_render(True)
+                fps_value = self.environment_gui.fps_slider.update(event)
+                if fps_value is not None:
+                    EnvironmentControl.set_fps(self.conn, int(fps_value))
 
                 if self.environment_gui.tree_button.update(event):
-                    tree.toggle_show_tree(self.conn)
-                    Global_access.set_should_render(True)
+                    EnvironmentControl.toggle_display_mode(self.conn)
 
                 if self.environment_gui.reset_button.update(event):
                     send_message(self.conn, 'reset')
+
+                EnvironmentControl.click_tree(self.conn, event)
 
             should_render_environment = Global_access.latest_frame is not None and\
                 Global_access.latest_frame["should_render"]
 
             if should_render_environment:
                 Drawing.blackout_top()
-                Drawing.render_grid(Global_access.latest_frame)
-                tree.draw(Global_access.SCREEN, Global_access.ENVIRONMENT_BOX, Global_access.tree)
+                Drawing.render(Global_access.latest_frame)
 
                 Drawing.blackout_bottom()
                 self.environment_gui.render_ui()

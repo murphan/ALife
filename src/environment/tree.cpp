@@ -6,6 +6,7 @@
 
 #include <utility>
 #include "util.h"
+#include "color.h"
 
 Tree::Tree(): lastUUID(0_u64), root(nullptr) {}
 
@@ -26,7 +27,7 @@ auto Tree::Node::isLeaf() const -> bool {
 	return children.empty();
 }
 
-auto Tree::kill(Node * node) -> void {
+auto Tree::kill(Node * node, Node *& activeNode) -> void {
 	auto * current = node;
 	current->alive = false;
 
@@ -39,6 +40,8 @@ auto Tree::kill(Node * node) -> void {
 				front->parent = nullptr;
 
 				root = std::move(current->children.front());
+
+				if (activeNode == current) activeNode = root.get();
 			}
 
 			return;
@@ -47,12 +50,16 @@ auto Tree::kill(Node * node) -> void {
 			auto currentInBack = Util::find(parent->children, [&](std::unique_ptr<Node> & child) { return child.get() == current; });
 			Util::quickErase(parent->children, currentInBack);
 
+			if (activeNode == current) activeNode = nullptr;
+
 		} else if (current->children.size() == 1) {
 			auto && onlyChild = std::move(current->children.front());
 			onlyChild->parent = parent;
 
 			auto currentInBack = Util::find(parent->children, [&](std::unique_ptr<Node> & child) { return child.get() == current; });
 			*currentInBack = std::move(onlyChild);
+
+			if (activeNode == current) activeNode = currentInBack->get();
 		}
 
 		current = parent;
@@ -64,7 +71,6 @@ auto Tree::add(Tree::Node * parent, const Genome & newGenome) -> Node * {
 
 	if (parent == nullptr) {
 		root = std::make_unique<Node>(newGenome, nextUUID);
-		root->alive = false;
 		return root.get();
 
 	} else {
@@ -75,54 +81,13 @@ auto Tree::add(Tree::Node * parent, const Genome & newGenome) -> Node * {
 	}
 }
 
-/* adapted from https://stackoverflow.com/questions/3018313/algorithm-to-convert-rgb-to-hsv-and-hsv-to-rgb-in-range-0-255-for-both */
-/* user David H on Stackoverflow */
-
-inline auto clamp(f32 value) -> f32 {
-	if (value < 0.0_f32) return 0.0_f32;
-	else if (value > 1.0_f32) return 1.0_f32;
-	return value;
-}
-
-inline auto channelFloats2Int(f32 r, f32 g, f32 b) -> u32 {
-	return ((u32)(clamp(r) * 255.0_f32) << 16) | ((u32)(clamp(g) * 255.0_f32) << 8) | (u32)(clamp(b) * 255.0_f32);
-}
-
-inline auto hsv2rgb(f32 h, f32 s, f32 v) -> u32 {
-	if(s <= 0.0_f32)
-		return channelFloats2Int(v, v, v);
-
-	auto hh = fmod(h, 1.0_f32) * 6.0_f32;
-	auto i = (i32)hh;
-	auto ff = hh - (f32)i;
-	auto p = v * (1.0_f32 - s);
-	auto q = v * (1.0_f32 - (s * ff));
-	auto t = v * (1.0_f32 - (s * (1.0_f32 - ff)));
-
-	switch(i) {
-		case 0:
-			return channelFloats2Int(v, t, p);
-		case 1:
-			return channelFloats2Int(q, v, p);
-		case 2:
-			return channelFloats2Int(p, v, t);
-		case 3:
-			return channelFloats2Int(p, q, v);
-		case 4:
-			return channelFloats2Int(t, p, v);
-		case 5:
-		default:
-			return channelFloats2Int(v, p, q);
-	}
-}
-
 struct QueueElement {
 	json::reference parentArray;
 	i32 indexInArray;
 	Tree::Node * node;
 };
 
-auto Tree::serialize() -> json {
+auto Tree::serialize(Node * activeNode) -> json {
 	auto levelTotalsArray = json::array();
 	for (auto && total : levelTotals) {
 		levelTotalsArray.push_back(total);
@@ -148,14 +113,15 @@ auto Tree::serialize() -> json {
 		object.push_back(node->value);
 		object.push_back(node->level);
 		object.push_back(node->alive ? 1 : 0);
-		object.push_back(node->active ? hsv2rgb(
+		object.push_back(node->active);
+		object.push_back(activeNode == nullptr || node->active ? Color::hsv2rgb({
 			(node->hueLeft + node->hueRight) / 2.0_f32,
 			node->alive ? 1.0_f32 : 0.5_f32,
 			node->alive ? 1.0_f32 : 0.5_f32
-		) : 0x4f4f4f);
+		}) : 0x4f4f4f);
 		object.push_back(json::array());
 
-		auto && child_array = object[4];
+		auto && child_array = object[6];
 
 		for (auto && childNode : node->children) {
 			child_array.push_back(json::array());
@@ -191,9 +157,7 @@ auto Tree::update(bool smart, bool updatePositions, Node * activeNode) -> void {
 		node->values.clear();
 		if (node->level > maxLevel) maxLevel = node->level;
 
-		if (activeNode == nullptr) {
-			node->active = true;
-		} else if (node == activeNode) {
+		if (node == activeNode) {
 			node->active = true;
 		} else {
 			node->active = node->parent != nullptr && node->parent->active;
@@ -258,4 +222,6 @@ auto Tree::getNodeByUUID(u32 uuid) const -> Tree::Node * {
 
 		for (auto && child : node->children) stack.push_back(child.get());
 	}
+
+	return nullptr;
 }

@@ -35,7 +35,7 @@ auto SimulationController::operator=(SimulationController && other) noexcept -> 
 	return *this;
 }
 
-auto SimulationController::tick() -> void {
+auto SimulationController::tick(Tree::Node *& activeNode) -> void {
 	shuffleOrganisms();
 
 	renderOrganismGrid();
@@ -48,7 +48,7 @@ auto SimulationController::tick() -> void {
 
 	organismCellsTick();
 
-	checkOrganismsDie();
+	checkOrganismsDie(activeNode);
 
     organismsReproduce();
 
@@ -121,8 +121,6 @@ auto SimulationController::moveOrganisms() -> void {
 		auto moveTries = organism.phenome.moveTries;
 		if (moveTries == 0 || organism.energy == 0) continue;
 
-		//if (moveTries < std::uniform_int_distribution(1, 2)(random)) continue;
-
 		auto seeingDirection = organismSeeingDirection(organism, index);
 
 		auto tryMovingDirection = seeingDirection.has_value() ? seeingDirection.value() : organism.rotation;
@@ -179,12 +177,12 @@ auto SimulationController::moveOrganisms() -> void {
 	}
 }
 
-auto SimulationController::checkOrganismsDie() -> void {
+auto SimulationController::checkOrganismsDie(Tree::Node *& activeNode) -> void {
 	std::erase_if(organisms, [&, this](Organism & organism) {
 		if (organism.phenome.numAliveCells == 0) {
 			replaceOrganismWithFood(organism);
 			ids.removeId(organism.id);
-			tree.kill(organism.node);
+			tree.kill(organism.node, activeNode);
 			return true;
 		}
 		return false;
@@ -198,20 +196,25 @@ auto SimulationController::replaceOrganismWithFood(Organism & organism) -> void 
 	}
 }
 
-auto SimulationController::serialize() -> json {
-	auto renderedBuffer = Renderer::render(environment, organisms);
-
+auto SimulationController::serialize(Controls & controls) -> json {
 	auto organismsArray = json::array();
 	for (auto && organism : organisms)
 		organismsArray.push_back(organism.id);
 
-	return json {
+	auto messageBody = json {
 		{ "width",     environment.getWidth() },
 		{ "height",    environment.getHeight() },
 		{ "tick",      currentTick },
-		{ "grid",      Util::base64Encode(renderedBuffer) },
-		{ "organisms", organismsArray },
+		{ "organisms", std::move(organismsArray) },
 	};
+
+	if (controls.displayMode == Controls::DisplayMode::ENVIRONMENT) {
+		messageBody.push_back({ "grid", Util::base64Encode(Renderer::render(environment, organisms, controls.activeNode)) });
+	} else {
+		messageBody.push_back({ "tree", tree.serialize(controls.activeNode) });
+	}
+
+	return messageBody;
 }
 
 static auto fiftyFifty = std::uniform_int_distribution(0, 1);

@@ -31,20 +31,46 @@ noises: list[Noise] = [
     Noise(False, 0.0, 0.0, 0.0, 0.0),
 ]
 
-fps = 1
-
 repro_insertion = 0.0
 repro_deletion = 0.0
 repro_substitution = 0.0
 
-running = False
-updateDisplay = True
-tree: Any = None
+DISPLAY_MODE_ENVIRONMENT = 0
+DISPLAY_MODE_TREE = 1
+
+ControlsType = {
+    "playing": bool,
+    'fps': int,
+    'updateDisplay': bool,
+    'displayMode': int,
+    'smartTree': bool,
+    'activeNode': int
+}
+
+controls: ControlsType = {
+    "playing": False,
+    "fps": 0,
+    "updateDisplay": True,
+    "displayMode": DISPLAY_MODE_ENVIRONMENT,
+    "smartTree": False,
+    'activeNode': None,
+}
+
+
+class TreeNode(object):
+    def __init__(self, rect: pygame.Rect, uuid: int, active: bool):
+        self.rect = rect
+        self.uuid = uuid
+        self.active = active
+
+
+tree_nodes: list[TreeNode]
 
 # Used for environment sizing
 WINDOW_HEIGHT = 770
 WINDOW_WIDTH = 1500
 ENVIRONMENT_BOX = pygame.Rect(0, 0, 0, 0)
+TREE_BOX = pygame.Rect(0, 0, 0, 0)
 grid_width = 0
 grid_height = 0
 
@@ -69,6 +95,10 @@ BOTTOM_BUFFER = 45
 # TODO remove this I don't think it matters
 # ~~The Mutex needing to be acquired in order to update information~~
 mutex = Lock()
+
+# needed because drawing can take a bit
+# used in message receiving and drawing
+drawing_lock = Lock()
 
 
 def define_grid(width: int, height: int):
@@ -104,6 +134,7 @@ def define_grid(width: int, height: int):
 def set_should_render(should_render: bool):
     if latest_frame is not None:
         latest_frame["should_render"] = should_render
+
 
 def update_grid(x, y):
     mutex.acquire()

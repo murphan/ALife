@@ -5,12 +5,11 @@ import pygame
 import Global_access
 from component.Slider import Slider
 from component.Button import Button
-from typing import Callable
 import boxing
 
 
 class EnvironmentGUI:
-    def __init__(self, set_fps: Callable[[float], None]):
+    def __init__(self):
         pygame.init()
         pygame.display.set_caption('ALife Challenge')
         pygame.display.set_icon(pygame.image.load('icon.png'))
@@ -20,7 +19,7 @@ class EnvironmentGUI:
 
         self.settings_button = Button()
         self.play_pause_button = Button()
-        self.fps_slider = Slider(1.0, 21.0, lambda: Global_access.fps, lambda fps: set_fps(fps))
+        self.fps_slider = Slider(1.0, 21.0)
         self.tree_button = Button()
         self.reset_button = Button()
 
@@ -31,7 +30,6 @@ class EnvironmentGUI:
 
         EnvironmentGUI.set_environment_box()
 
-        # Global_access.new_frame = True
         Global_access.SCREEN = pygame.display.set_mode(
             size=(width, height),
             flags=pygame.RESIZABLE,
@@ -43,6 +41,12 @@ class EnvironmentGUI:
             1.0 if Global_access.grid_width == 0 or Global_access.grid_height == 0 else float(Global_access.grid_width) / Global_access.grid_height,
             Global_access.WINDOW_WIDTH,
             Global_access.WINDOW_HEIGHT - Global_access.BOTTOM_BUFFER,
+        )
+        Global_access.TREE_BOX = pygame.Rect(
+            10,
+            10,
+            Global_access.WINDOW_WIDTH - 20,
+            Global_access.WINDOW_HEIGHT - Global_access.BOTTOM_BUFFER - 10,
         )
 
     @staticmethod
@@ -87,9 +91,9 @@ class EnvironmentGUI:
         self.play_pause_button.render(
             Global_access.SCREEN,
             settings_box,
-            "Pause" if Global_access.running else "Play",
+            "Pause" if Global_access.controls['playing'] else "Play",
             Global_access.ENV_FONT,
-            0xe83a54 if Global_access.running else 0x75d943,
+            0xe83a54 if Global_access.controls['playing'] else 0x75d943,
         )
         self.settings_button.render(
             Global_access.SCREEN,
@@ -107,13 +111,14 @@ class EnvironmentGUI:
             handle_width=10,
             bar_height=5,
             gutter=(10, 2),
+            value=Global_access.controls['fps'],
         )
         self.tree_button.render(
             Global_access.SCREEN,
             tree_box,
-            'Show Tree' if Global_access.tree is None else 'Hide Tree',
+            'Show Tree' if Global_access.controls['displayMode'] == Global_access.DISPLAY_MODE_ENVIRONMENT else 'Show Grid',
             Global_access.ENV_FONT,
-            0x4fbdae,
+            0x4fbdae if Global_access.controls['displayMode'] == Global_access.DISPLAY_MODE_ENVIRONMENT else 0x6acc43,
         )
         self.reset_button.render(
             Global_access.SCREEN,

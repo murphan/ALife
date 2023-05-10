@@ -1,15 +1,12 @@
 import pygame.event
-from typing import Callable
 
 
 class Slider(object):
-    def __init__(self, low: float, high: float, get_value: Callable[[], int], set_value: Callable[[int], None]):
+    def __init__(self, low: float, high: float):
         self.handle_width = 0
         self.low = low
         self.high = high
         self.dragging = False
-        self.get_value = get_value
-        self.set_value = set_value
 
         self.slider_box = pygame.Rect(0, 0, 0, 0)
 
@@ -23,6 +20,7 @@ class Slider(object):
         handle_width: int,
         bar_height: int,
         gutter: (int, int),
+        value: float,
     ):
         self.handle_width = handle_width
 
@@ -37,7 +35,7 @@ class Slider(object):
         pygame.draw.rect(screen, 0x887894, bounding_box)
 
         # draw text
-        rendered_text = font.render(f'{label} {self.get_value()}', True, (0, 0, 0))
+        rendered_text = font.render(f'{label} {value}', True, (0, 0, 0))
         text_rect = rendered_text.get_rect()
         screen.blit(source=rendered_text, dest=(
             bounding_box.x + (text_area_width / 2) - (text_rect.width / 2),
@@ -54,13 +52,13 @@ class Slider(object):
 
         # draw handle
         pygame.draw.rect(screen, 0x842cc7, (
-            self.slider_x(),
+            self.slider_x(value),
             self.slider_box.y,
             self.handle_width,
             self.slider_box.height,
         ))
 
-    def update(self, event: pygame.event.Event) -> bool:
+    def update(self, event: pygame.event.Event) -> float | None:
         """
         :return: did it update
         """
@@ -68,8 +66,7 @@ class Slider(object):
             mouse_x, mouse_y = pygame.mouse.get_pos()
             if self.slider_box.collidepoint(mouse_x, mouse_y):
                 self.dragging = True
-                self.update_position(mouse_x)
-                return True
+                return self.update_position(mouse_x)
 
         elif event.type == pygame.MOUSEBUTTONUP:
             self.dragging = False
@@ -77,17 +74,16 @@ class Slider(object):
         elif event.type == pygame.MOUSEMOTION:
             if self.dragging:
                 mouse_x, _ = pygame.mouse.get_pos()
-                self.update_position(mouse_x)
-                return True
+                return self.update_position(mouse_x)
 
-        return False
+        return None
 
     def update_position(self, mouse_x: int):
-        self.set_value(int(Slider.interp(
+        return Slider.interp(
             self.low, self.high, Slider.clamp(
                 self.inverse_interp(self.slider_left(), self.slider_right(), mouse_x)
             )
-        )))
+        )
 
     def slider_left(self) -> float:
         return self.slider_box.x + (self.handle_width / 2)
@@ -95,8 +91,8 @@ class Slider(object):
     def slider_right(self) -> float:
         return self.slider_box.x + (self.slider_box.width - self.handle_width / 2)
 
-    def slider_x(self) -> float:
-        along = Slider.clamp(Slider.inverse_interp(self.low, self.high, self.get_value()))
+    def slider_x(self, value: float) -> float:
+        along = Slider.clamp(Slider.inverse_interp(self.low, self.high, value))
         return Slider.interp(self.slider_left(), self.slider_right(), along) - (self.handle_width / 2)
 
     # utility

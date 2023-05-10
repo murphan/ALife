@@ -3,27 +3,48 @@
 //
 
 #include "renderer.h"
+#include "color.h"
 
 constexpr static i32 BYTES_PER_TILE = 9;
-
-inline auto minMax(i32 value, u32 min, u32 max) -> u32 {
-	return value < min ? min : value > max ? max : value;
-}
-
-inline auto rgbToColor(f32 red, f32 green, f32 blue) -> u32 {
-	return (minMax((i32)(std::max(red, 0._f32) * 255), 0, 255) << 16) |
-		(minMax((i32)(std::max(green, 0._f32) * 255), 0, 255) << 8) |
-		minMax((i32)(std::max(blue, 0._f32) * 255), 0, 255);
-}
 
 constexpr static f32 BACKGROUND_DIM = 0.3333333333_f32;
 
 inline auto getFactorsColor(MapCell & mapCell) -> u32 {
-	return rgbToColor(
+	return Color::channelFloats2Int(
 		((f32)mapCell.getFactor(Factor::TEMPERATURE) / 127.0_f32) * BACKGROUND_DIM,
 		((f32)mapCell.getFactor(Factor::LIGHT) / 127.0_f32) * BACKGROUND_DIM,
 		((f32)mapCell.getFactor(Factor::OXYGEN) / 127.0_f32) * BACKGROUND_DIM
 	);
+}
+
+template<usize SIZE>
+constexpr auto colorShiftArray(const u32 (&colorArray)[SIZE], f32 saturationFactor, f32 valueFactor) -> std::array<u32, SIZE> {
+	auto array = std::array<u32, SIZE>();
+
+	for (auto i = 0; i < SIZE; ++i) {
+		auto hsv = Color::rgb2hsv(colorArray[i]);
+
+		hsv.s *= saturationFactor;
+		hsv.v *= valueFactor;
+
+		array[i] = Color::hsv2rgb(hsv);
+	}
+
+	return array;
+}
+
+auto modifyColor(bool dead, bool inactive, u32 color) -> u32 {
+	if (!dead && !inactive) return color;
+
+	auto hsv = Color::rgb2hsv(color);
+
+	if (dead) hsv.s *= 0.25_f32;
+	if (inactive) hsv.s *= 0.80_f32;
+
+	if (dead) hsv.v *= 0.66_f32;
+	if (inactive) hsv.v *= 0.25_f32;
+
+	return Color::hsv2rgb(hsv);
 }
 
 constexpr u32 bodyPartColors[] = {
@@ -36,35 +57,24 @@ constexpr u32 bodyPartColors[] = {
 	0xede6da, /* Scaffolding */
 };
 
-constexpr u32 bodyPartDeadColors[] = {
-	0x705d41, /* Mouth */
-	0x316e6b, /* Mover */
-	0x425945, /* Photosynthesizer */
-	0x54333c, /* Weapon */
-	0x423b54, /* Armor */
-	0x4a5559, /* Eye */
-	0x63625f, /* Scaffolding */
-};
-
-constexpr u32 weaponUpgradeColors[] = {
-	0x820c29,
-	0xa24f64,
-	0xe9b2c0,
-};
-
-constexpr u32 armorUpgradeColors[] = {
-	0x220b5d,
-	0x5a23e7,
-	0xc8bde6,
-};
-
-constexpr u32 scaffoldingUpgradeColor = 0xf0c47a;
-
-constexpr u32 foodColors[] = {
-	0x8d9400,
-	0x945900,
-	0x940000,
-	0x940059,
+constexpr u32 upgradeColors[][3] = {
+	{},
+	{},
+	{},
+	{ /* Weapon */
+		0x820c29,
+		0xa24f64,
+		0xe9b2c0,
+	},
+	{ /* Armor */
+		0x220b5d,
+		0x5a23e7,
+		0xc8bde6,
+	},
+	{},
+	{ /* Scaffolding */
+		0xf0c47a,
+	}
 };
 
 inline auto insert3(std::vector<u8> & buffer, i32 index, u32 value) -> void {
@@ -85,7 +95,7 @@ constexpr static u8 META_WALL = 3;
 
 constexpr static u8 CIRCLE_FLAG = 1 << 7;
 
-auto Renderer::render(Environment & environment, std::vector<Organism> & organisms) -> std::vector<u8> {
+auto Renderer::render(Environment & environment, std::vector<Organism> & organisms, Tree::Node * activeNode) -> std::vector<u8> {
 	auto buffer = std::vector<u8>(environment.mapSize() * BYTES_PER_TILE, 0);
 
 	auto bufferIndex = [&](i32 x, i32 y) {
@@ -108,7 +118,7 @@ auto Renderer::render(Environment & environment, std::vector<Organism> & organis
 				insert3(
 					buffer,
 					bufferIndex(x, y) + (food.broken() ? 6 : 3),
-					food.dead() ? bodyPartDeadColors[food.bodyPart() - 1] : bodyPartColors[food.bodyPart() - 1]
+					modifyColor(food.dead(), false,  bodyPartColors[food.bodyPart() - 1])
 				);
 			}
 		}
@@ -119,6 +129,8 @@ auto Renderer::render(Environment & environment, std::vector<Organism> & organis
 		for (auto && cell : organism.body().getCells()) {
 			auto [x, y] = organism.absoluteXY(cell);
 
+			auto active = activeNode == nullptr || organism.node->active;
+
 			buffer[bufferIndex(x, y)] = META_ORGANISM | (cell.isModified() ? CIRCLE_FLAG : 0);
 			insert2(
 				buffer,
@@ -128,15 +140,13 @@ auto Renderer::render(Environment & environment, std::vector<Organism> & organis
 			insert3(
 				buffer,
 				bufferIndex(x, y) + 3,
-				cell.dead() ? bodyPartDeadColors[cell.bodyPart() - 1] : bodyPartColors[cell.bodyPart() - 1]
+				modifyColor(cell.dead(), !active,  bodyPartColors[cell.bodyPart() - 1])
 			);
 			if (cell.isModified()) {
 				insert3(
 					buffer,
 					bufferIndex(x, y) + 6,
-					cell.bodyPart() == BodyPart::WEAPON ? weaponUpgradeColors[cell.modifier()] :
-					cell.bodyPart() == BodyPart::ARMOR ? armorUpgradeColors[cell.modifier()] :
-					scaffoldingUpgradeColor
+					modifyColor(cell.dead(), !active, upgradeColors[cell.bodyPart() - 1][cell.modifier()])
 				);
 			}
 		}

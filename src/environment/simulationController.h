@@ -34,7 +34,7 @@ private:
 
 	auto organismCellsTick() -> void;
 
-	auto checkOrganismsDie() -> void;
+	auto checkOrganismsDie(Tree::Node *& activeNode) -> void;
 
 	auto organismsReproduce() -> void;
 
@@ -76,9 +76,9 @@ public:
 	auto operator=(SimulationController && other) noexcept -> SimulationController &;
 
 	auto refreshFactors() -> void;
-	auto tick() -> void;
+	auto tick(Tree::Node *& activeNode) -> void;
 
-	auto serialize() -> json;
+	auto serialize(Controls & controls) -> json;
 
 	auto getOrganism(u32 id) -> Organism *;
 };

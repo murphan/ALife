@@ -30,7 +30,10 @@ auto OrganismSeeder::insertInitialOrganisms(
 
 	auto sideLength = (i32)ceil(sqrt((f32)count));
 
-	if (count > 1) tree.add(nullptr, initialGenome);
+	if (count > 1) {
+		auto * falseRoot = tree.add(nullptr, initialGenome);
+		falseRoot->alive = false;
+	}
 
 	/* fill in `count` spaces out of a square of side length `sideLength` */
 	for (auto c = 0; c < count; ++c) {

@@ -39,7 +39,7 @@ auto createSimulation(Settings & settings, Controls & controls, i32 width, i32 h
 	);
 }
 
-auto initSimulation(Settings & settings, SimulationController & simulationController) -> void {
+auto initSimulation(Settings & settings, Controls & controls, SimulationController & simulationController) -> void {
 	simulationController.refreshFactors();
 
 	OrganismSeeder::insertInitialOrganisms(
@@ -52,6 +52,8 @@ auto initSimulation(Settings & settings, SimulationController & simulationContro
 		settings,
 		1
 	);
+
+	simulationController.tree.update(controls.smartTree, true, controls.activeNode);
 }
 
 auto main () -> int {
@@ -100,7 +102,7 @@ auto main () -> int {
 	auto controls = Controls {};
 
 	auto simulationController = createSimulation(settings, controls, WIDTH, HEIGHT);
-	initSimulation(settings, simulationController);
+	initSimulation(settings, controls, simulationController);
 
 	auto mutex = PriorityMutex();
 	auto socket = Socket();
@@ -117,7 +119,7 @@ auto main () -> int {
 
 			mutex.highPriorityLock([&]() {
 				json = MessageCreator::initMessage(
-					simulationController.serialize(),
+					simulationController.serialize(controls),
 					controls.serialize(),
 					settings.serialize()
 				).dump();
@@ -125,14 +127,21 @@ auto main () -> int {
 
 			socket.send(json.begin(), json.end());
 
-		} else if (parsedMessage.type == "control") {
-			if (!parsedMessage.body.contains("control")) return;
+		} else if (parsedMessage.type == "controls") {
+			if (!parsedMessage.body.contains("controls")) return;
 
 			std::string json;
 
 			mutex.highPriorityLock([&]() {
-				controls.updateFromSerialized(parsedMessage.body["control"], simulationController.tree);
-				json = MessageCreator::controlsMessage(controls.serialize()).dump();
+				auto displayModeBefore = controls.displayMode;
+
+				controls.updateFromSerialized(parsedMessage.body["controls"], simulationController.tree);
+
+				if (displayModeBefore != controls.displayMode) {
+					json = MessageCreator::controlsMessageAndFrame(controls.serialize(), simulationController.serialize(controls)).dump();
+				} else {
+					json = MessageCreator::controlsMessage(controls.serialize()).dump();
+				}
 			});
 
 			socket.send(json.begin(), json.end());
@@ -169,10 +178,10 @@ auto main () -> int {
 
 			mutex.highPriorityLock([&]() {
 				simulationController = std::move(createSimulation(settings, controls, WIDTH, HEIGHT));
-				initSimulation(settings, simulationController);
+				initSimulation(settings, controls, simulationController);
 
 				json = MessageCreator::initMessage(
-					simulationController.serialize(),
+					simulationController.serialize(controls),
 					controls.serialize(),
 					settings.serialize()
 				).dump();
@@ -198,7 +207,7 @@ auto main () -> int {
 
 		mutex.lowPriorityLock([&]() {
 			if (controls.playing) {
-				simulationController.tick();
+				simulationController.tick(controls.activeNode);
 			}
 
 			if (
@@ -207,13 +216,13 @@ auto main () -> int {
 				controls.playing &&
 				(now - lastSendTime) >= minSendTime
 			) {
-				//TODO different modes for display modes
-				if (controls.updateDisplay) {
-					simulationController.tree.update()
-					jsonData = MessageCreator::frameMessage(simulationController.serialize()).dump();
-				} else {
+				simulationController.tree.update(
+					controls.smartTree,
+					controls.displayMode == Controls::DisplayMode::TREE,
+					controls.activeNode
+				);
 
-				}
+				jsonData = MessageCreator::frameMessage(simulationController.serialize(controls)).dump();
 
 				lastSendTime = now;
 			}

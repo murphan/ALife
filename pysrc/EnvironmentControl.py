@@ -1,20 +1,33 @@
 import socket
 
+import pygame
+
 import Environment_cell
 import Global_access
 import Organism_cell
 from send_message import send_message
 
 
-def set_fps(conn, fps):
-    if Global_access.fps != fps:
-        Global_access.fps = fps
-        send_message(conn, "control")
+def set_fps(conn: socket.socket, fps: int):
+    if Global_access.controls['fps'] != fps:
+        Global_access.controls['fps'] = fps
+        send_message(conn, "controls")
 
 
-def toggle_start_stop(conn):
-    Global_access.running = not Global_access.running
-    send_message(conn, "control")
+def toggle_start_stop(conn: socket.socket):
+    Global_access.controls['playing'] = not Global_access.controls['playing']
+    send_message(conn, "controls")
+
+
+def toggle_display_mode(conn: socket.socket):
+    Global_access.controls['displayMode'] = Global_access.DISPLAY_MODE_ENVIRONMENT if \
+        Global_access.controls['displayMode'] == Global_access.DISPLAY_MODE_TREE else Global_access.DISPLAY_MODE_TREE
+    send_message(conn, "controls")
+
+
+def set_active_node(conn: socket.socket, uuid: int | None):
+    Global_access.controls['activeNode'] = uuid
+    send_message(conn, "controls")
 
 
 def click_type(clicked_type):
@@ -45,6 +58,20 @@ def set_mutations(conn: socket.socket, insertion, deletion, substitution):
         Global_access.set_substitution(0.0)
 
     send_message(conn, "settings")
+
+
+def click_tree(conn: socket.socket, event: pygame.event):
+    if event.type == pygame.MOUSEBUTTONDOWN and pygame.mouse.get_pressed()[0]:
+        x, y = pygame.mouse.get_pos()
+
+        for node in Global_access.tree_nodes:
+            if node.rect.collidepoint(x, y):
+                if node.active:
+                    set_active_node(conn, None)
+                else:
+                    set_active_node(conn, node.uuid)
+
+                return
 
 
 # TODO fix this up

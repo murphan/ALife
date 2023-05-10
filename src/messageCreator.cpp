@@ -4,26 +4,34 @@
 
 #include "messageCreator.h"
 
-auto MessageCreator::frameMessage(json && environmentBody) -> json {
+auto MessageCreator::frameMessage(json && frameBody) -> json {
 	return {
 		{ "type", "frame" },
-		{ "environment", std::move(environmentBody) },
+		{ "frame", std::move(frameBody) },
 	};
 }
 
-auto MessageCreator::initMessage(json && environmentBody, json && controlsBody, json && settingsBody) -> json {
+auto MessageCreator::initMessage(json && frameBody, json && controlsBody, json && settingsBody) -> json {
 	return {
 		{ "type", "init" },
-		{ "environment", std::move(environmentBody) },
-		{ "control", std::move(controlsBody) },
+		{ "frame", std::move(frameBody) },
+		{ "controls", std::move(controlsBody) },
 		{ "settings", std::move(settingsBody) },
 	};
 }
 
 auto MessageCreator::controlsMessage(json && controlsBody) -> json {
 	return {
-		{ "type", "control" },
-		{ "control", std::move(controlsBody) },
+		{ "type", "controls" },
+		{ "controls", std::move(controlsBody) },
+	};
+}
+
+auto MessageCreator::controlsMessageAndFrame(json && controlsBody, json && frameBody) -> json {
+	return {
+		{ "type", "controls" },
+		{ "controls", std::move(controlsBody) },
+		{ "frame", std::move(frameBody) },
 	};
 }
 
@@ -37,20 +45,13 @@ auto MessageCreator::emptyOrganismRequestMessage() -> json {
 auto MessageCreator::organismRequestMessage(json && organismBody) -> json {
 	return {
 		{ "type", "request" },
-		{ "organism", organismBody },
+		{ "organism", std::move(organismBody) },
 	};
 }
 
 auto MessageCreator::settingsMessage(json && settingsBody) -> json {
 	return {
 		{ "type", "settings" },
-		{ "settings", settingsBody },
-	};
-}
-
-auto MessageCreator::treeMessage(json && treeBody) -> json {
-	return {
-		{ "type", "tree" },
-		{ "tree", treeBody },
+		{ "settings", std::move(settingsBody) },
 	};
 }

@@ -34,18 +34,20 @@ def process_data(message_buf: bytes):
 
     message_type = data_map["type"]
     if message_type == "frame":
-        handle_environment_data(data_map["environment"])
+        handle_frame_data(data_map["frame"])
 
     elif message_type == "init":
-        handle_environment_data(data_map["environment"])
-        handle_control_data(data_map["control"])
+        handle_frame_data(data_map["frame"])
+        handle_control_data(data_map["controls"])
         handle_settings_data(data_map["settings"])
 
     elif message_type == "organism_data":
         print("organism data received")
 
-    elif message_type == "control":
-        handle_control_data(data_map["control"])
+    elif message_type == "controls":
+        handle_control_data(data_map["controls"])
+        if 'frame' in data_map:
+            handle_frame_data(data_map["frame"])
 
     elif message_type == "settings":
         handle_settings_data(data_map["settings"])
@@ -59,26 +61,38 @@ def handle_tree_data(tree):
     Global_access.set_should_render(True)
 
 
-def handle_environment_data(environment_data_map):
-    height = environment_data_map["height"]
-    width = environment_data_map["width"]
+def handle_frame_data(frame_data_map):
+    Global_access.drawing_lock.acquire()
 
-    Global_access.latest_frame = {
-        "size": (width, height),
-        "buffer": base64.b64decode(environment_data_map["grid"]),
-        "uuids": environment_data_map["organisms"],
-        "should_render": True,
-    }
+    try:
+        height = frame_data_map["height"]
+        width = frame_data_map["width"]
+
+        latest_frame = {
+            "size": (width, height),
+            "ids": frame_data_map["organisms"],
+            "should_render": True,
+        }
+
+        if 'grid' in frame_data_map:
+            latest_frame['grid'] = base64.b64decode(frame_data_map['grid'])
+        elif 'tree' in frame_data_map:
+            latest_frame['tree'] = frame_data_map['tree']
+
+        Global_access.latest_frame = latest_frame
+    except:
+        print('receive error??')
+
+    Global_access.drawing_lock.release()
 
 
-def handle_control_data(control):
+def handle_control_data(controls):
     """
     update internal control values to match what the backend says is correct
     do not send a message back
     """
-    Global_access.fps = control["fps"]
-    Global_access.updateDisplay = control["updateDisplay"]
-    Global_access.running = control["playing"]
+    Global_access.controls = controls
+    Global_access.set_should_render(True)
 
 
 def handle_settings_data(settings):
