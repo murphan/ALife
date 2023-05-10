@@ -106,7 +106,6 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 			if (cell == nullptr) continue;
 
 			cell->modify(upgradeGene.getModifier());
-			baseBodyEnergy += settings.upgradedPartCosts[onBodyPart];
 		}
 	}
 

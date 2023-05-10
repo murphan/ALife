@@ -96,10 +96,6 @@ BOTTOM_BUFFER = 45
 # ~~The Mutex needing to be acquired in order to update information~~
 mutex = Lock()
 
-# needed because drawing can take a bit
-# used in message receiving and drawing
-drawing_lock = Lock()
-
 
 def define_grid(width: int, height: int):
     """

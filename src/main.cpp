@@ -88,8 +88,8 @@ auto main () -> int {
 			0, /* MOUTH */
 			0, /* MOVER */
 			0, /* PHOTOSYNTHESIZER */
-			1, /* WEAPON */
-			1, /* ARMOR */
+			4, /* WEAPON */
+			4, /* ARMOR */
 			0, /* EYE */
 			2, /* SCAFFOLD */
 		},
@@ -138,6 +138,7 @@ auto main () -> int {
 				controls.updateFromSerialized(parsedMessage.body["controls"], simulationController.tree);
 
 				if (displayModeBefore != controls.displayMode) {
+					simulationController.tree.update(controls.smartTree, controls.displayMode == Controls::DisplayMode::TREE, controls.activeNode);
 					json = MessageCreator::controlsMessageAndFrame(controls.serialize(), simulationController.serialize(controls)).dump();
 				} else {
 					json = MessageCreator::controlsMessage(controls.serialize()).dump();

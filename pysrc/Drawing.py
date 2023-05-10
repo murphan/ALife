@@ -3,6 +3,7 @@ import pygame
 import Environment_cell
 import Global_access
 from collections import deque
+import copy
 
 Node = [int, int, int, bool, bool, int, list, (int, int)]
 
@@ -14,22 +15,17 @@ BYTES_PER_TILE = 9
 
 
 def render(render_info: RenderInfo):
-    Global_access.drawing_lock.acquire()
+    render_copy = copy.deepcopy(render_info)
 
-    try:
-        width, height = render_info["size"]
+    width, height = render_copy["size"]
 
-        Global_access.define_grid(width, height)
-        Global_access.tree_nodes = []
+    Global_access.define_grid(width, height)
+    Global_access.tree_nodes = []
 
-        if 'grid' in render_info:
-            render_grid(Global_access.SCREEN, Global_access.ENVIRONMENT_BOX, width, height, render_info["grid"], render_info["ids"])
-        elif 'tree' in render_info:
-            render_tree(Global_access.SCREEN, Global_access.TREE_BOX, render_info['tree'])
-    except:
-        print('rendering error??')
-
-    Global_access.drawing_lock.release()
+    if 'grid' in render_copy:
+        render_grid(Global_access.SCREEN, Global_access.ENVIRONMENT_BOX, width, height, render_copy["grid"], render_copy["ids"])
+    elif 'tree' in render_copy:
+        render_tree(Global_access.SCREEN, Global_access.TREE_BOX, render_copy['tree'])
 
 
 def render_grid(screen: pygame.Surface, bounds: pygame.Rect, width: int, height: int, grid: bytes, ids: list[int]):

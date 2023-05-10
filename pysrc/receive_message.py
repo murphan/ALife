@@ -62,28 +62,21 @@ def handle_tree_data(tree):
 
 
 def handle_frame_data(frame_data_map):
-    Global_access.drawing_lock.acquire()
+    height = frame_data_map["height"]
+    width = frame_data_map["width"]
 
-    try:
-        height = frame_data_map["height"]
-        width = frame_data_map["width"]
+    latest_frame = {
+        "size": (width, height),
+        "ids": frame_data_map["organisms"],
+        "should_render": True,
+    }
 
-        latest_frame = {
-            "size": (width, height),
-            "ids": frame_data_map["organisms"],
-            "should_render": True,
-        }
+    if 'grid' in frame_data_map:
+        latest_frame['grid'] = base64.b64decode(frame_data_map['grid'])
+    elif 'tree' in frame_data_map:
+        latest_frame['tree'] = frame_data_map['tree']
 
-        if 'grid' in frame_data_map:
-            latest_frame['grid'] = base64.b64decode(frame_data_map['grid'])
-        elif 'tree' in frame_data_map:
-            latest_frame['tree'] = frame_data_map['tree']
-
-        Global_access.latest_frame = latest_frame
-    except:
-        print('receive error??')
-
-    Global_access.drawing_lock.release()
+    Global_access.latest_frame = latest_frame
 
 
 def handle_control_data(controls):
