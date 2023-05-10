@@ -37,10 +37,9 @@ auto modifyColor(bool dead, bool inactive, u32 color) -> u32 {
 	auto hsv = Color::rgb2hsv(color);
 
 	if (dead) hsv.s *= 0.75_f32;
-	//if (inactive) hsv.s *= 0.80_f32;
 
 	if (dead) hsv.v *= 0.50_f32;
-	if (inactive) hsv.v *= 0.10_f32;
+	if (inactive) hsv.v *= 0.25_f32;
 
 	return Color::hsv2rgb(hsv);
 }
