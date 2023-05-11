@@ -6,7 +6,9 @@ import Global_access
 from component.Slider import Slider
 from component.Button import Button
 import boxing
+from Drawing import blackout_message_area
 
+ORGANISM_TO_DISPLAY = None
 
 class EnvironmentGUI:
     def __init__(self):
@@ -127,28 +129,58 @@ class EnvironmentGUI:
             Global_access.ENV_FONT,
             0xff0000,
         )
-
+        global ORGANISM_TO_DISPLAY
+        EnvironmentGUI.display_organism_data(ORGANISM_TO_DISPLAY)
 
     @staticmethod
-    def add_organism_display(organism):
+    def set_organism_to_display(organism):
+        global ORGANISM_TO_DISPLAY
+        ORGANISM_TO_DISPLAY = organism
+        EnvironmentGUI.display_organism_data(organism)
+
+    @staticmethod
+    def display_organism_data(organism):
         """
         This will display the formatted string of organism information at the bottom of the screen
 
         :param organism: organism structure to pull information from
         :param type: organism type
         """
+        if organism is not None:
+            blackout_message_area()
+            general_string_1 = f"Mutation Modifiers: {organism['mutationModifiers'][0]}    "\
+                               f"Num Cells Alive: {organism['numAliveCells']}    "\
+                               f"Move Length: {organism['moveLength']}    "\
+                               f"Body Energy: {organism['baseBodyEnergy']}  "\
+                               f"Reactions: {organism['reactions']}"
 
-        test_string = f"ID: {random.randint(111111111, 999999999)}  \
-          Body = U2FsdGVkX1/DX9ztNOyA+E0ztNTyMtLx/bKrIzZlN/E=  \
-          width = 5  \
-          height = 5  \
-          energy = 100  \
-          age = 122  \
-          x = 54  \
-          y = 81"
+            font = Global_access.ENV_FONT
+            if len(general_string_1) > 100:
+                general_string_2 = general_string_1[100:]
+                general_string_1 = general_string_1[:100]
+                general_info_1 = font.render(general_string_1, True, (255, 255, 255))
+                generalRect_1 = general_info_1.get_rect()
+                generalRect_1.center = (Global_access.WINDOW_WIDTH / 2 - 150, Global_access.WINDOW_HEIGHT - 60)
+                Global_access.SCREEN.blit(general_info_1, generalRect_1)
+                if len(general_string_2) > 100:
+                    general_string_3 = general_string_2[100:]
+                    general_string_2 = general_string_2[:100]
+                    general_info_2 = font.render(general_string_2, True, (255, 255, 255))
+                    general_info_3 = font.render(general_string_3, True, (255, 255, 255))
+                    generalRect_2 = general_info_2.get_rect()
+                    generalRect_2.center = (Global_access.WINDOW_WIDTH / 2 - 150, Global_access.WINDOW_HEIGHT - 38)
+                    Global_access.SCREEN.blit(general_info_2, generalRect_2)
+                    generalRect_3 = general_info_3.get_rect()
+                    generalRect_3.center = (Global_access.WINDOW_WIDTH / 2 - 150, Global_access.WINDOW_HEIGHT - 16)
+                    Global_access.SCREEN.blit(general_info_3, generalRect_3)
+                else:
+                    general_info_2 = font.render(general_string_2, True, (255, 255, 255))
+                    generalRect_2 = general_info_2.get_rect()
+                    generalRect_2.center = (Global_access.WINDOW_WIDTH / 2 - 150, Global_access.WINDOW_HEIGHT - 38)
+                    Global_access.SCREEN.blit(general_info_2, generalRect_2)
+            else:
+                general_info_1 = font.render(general_string_1, True, (255, 255, 255))
+                generalRect_1 = general_info_1.get_rect()
+                generalRect_1.center = (Global_access.WINDOW_WIDTH / 2 - 150, Global_access.WINDOW_HEIGHT - 60)
+                Global_access.SCREEN.blit(general_info_1, generalRect_1)
 
-        font = pygame.font.SysFont("freesansbold.ttf", 22)
-        text_options = font.render(test_string, True, (0, 0, 0))
-        textRect = text_options.get_rect()
-        textRect.center = (670, 745)
-        Global_access.SCREEN.blit(text_options, textRect)

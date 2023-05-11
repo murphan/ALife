@@ -2,6 +2,7 @@ import base64
 import json
 
 import Global_access
+from EnvironmentGUI import EnvironmentGUI
 
 
 def decode_message(conn):
@@ -33,6 +34,7 @@ def process_data(message_buf: bytes):
     data_map = json.loads(message_buf)
 
     message_type = data_map["type"]
+    # organism_data = data_map["organism"]
     if message_type == "frame":
         handle_frame_data(data_map["frame"])
 
@@ -41,8 +43,8 @@ def process_data(message_buf: bytes):
         handle_control_data(data_map["controls"])
         handle_settings_data(data_map["settings"])
 
-    elif message_type == "organism_data":
-        print("organism data received")
+    elif message_type == "request":
+        EnvironmentGUI.set_organism_to_display(data_map["organism"])
 
     elif message_type == "controls":
         handle_control_data(data_map["controls"])

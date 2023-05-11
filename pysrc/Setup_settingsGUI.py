@@ -113,7 +113,7 @@ class SetupSettings:
 
         repro_frame = tkinter.Frame(top_frame, bg=LIGHT_GREEN, borderwidth=25)
         size_frame = tkinter.Frame(top_frame, bg=LIGHT_GREEN, borderwidth=25)
-        click_type_frame = tkinter.Frame(top_frame, bg=LIGHT_GREEN, borderwidth=25)
+        # click_type_frame = tkinter.Frame(top_frame, bg=LIGHT_GREEN, borderwidth=25)
 
         temp_frame = tkinter.Frame(bottom_frame, bg=LIGHT_GREEN, borderwidth=75)
         light_frame = tkinter.Frame(bottom_frame, bg=LIGHT_GREEN, borderwidth=75)
@@ -193,25 +193,25 @@ class SetupSettings:
         size_frame.pack(side=LEFT)
 
         # Setup Click type section
-        click_title_frame = tkinter.Frame(click_type_frame, bg=LIGHT_GREEN)
-        click_title_frame.pack(side=TOP, expand=True)
-        click_title_label = Label(click_title_frame, text="Click Type", background=LIGHT_GREEN)
-        click_title_label.config(font=("Arial", 12))
-        click_title_label.pack(side=TOP)
-        click_title_frame.pack(side=TOP)
-
-        self.click_dd_frame = tkinter.Frame(click_type_frame, bg=LIGHT_GREEN)
-        self.click_dd_value = tkinter.StringVar(click_type_frame)
-        self.click_dd_value.set(Global_access.CLICK_TYPE)
-        self.click_dd = tkinter.OptionMenu(click_type_frame, self.click_dd_value, *CLICK_TYPES, command=lambda event:
-                        EnvironmentControl.click_type(self.click_dd_value.get()))
-
-        self.click_dd.config(width=15, bg="white")
-        self.click_dd.pack(side=TOP)
-        click_title_frame.pack(side=TOP)
-        self.click_dd_frame.pack(side=LEFT)
-
-        click_type_frame.pack(side=LEFT)
+        # click_title_frame = tkinter.Frame(click_type_frame, bg=LIGHT_GREEN)
+        # click_title_frame.pack(side=TOP, expand=True)
+        # click_title_label = Label(click_title_frame, text="Click Type", background=LIGHT_GREEN)
+        # click_title_label.config(font=("Arial", 12))
+        # click_title_label.pack(side=TOP)
+        # click_title_frame.pack(side=TOP)
+        #
+        # self.click_dd_frame = tkinter.Frame(click_type_frame, bg=LIGHT_GREEN)
+        # self.click_dd_value = tkinter.StringVar(click_type_frame)
+        # self.click_dd_value.set(Global_access.CLICK_TYPE)
+        # self.click_dd = tkinter.OptionMenu(click_type_frame, self.click_dd_value, *CLICK_TYPES, command=lambda event:
+        #                 EnvironmentControl.click_type(self.click_dd_value.get()))
+        #
+        # self.click_dd.config(width=15, bg="white")
+        # self.click_dd.pack(side=TOP)
+        # click_title_frame.pack(side=TOP)
+        # self.click_dd_frame.pack(side=LEFT)
+        #
+        # click_type_frame.pack(side=LEFT)
         top_frame.pack(side=TOP, expand=True)
 
         self.noise_controls.append(
@@ -286,10 +286,10 @@ class SetupSettings:
         """
         bottom_frame = tkinter.Frame(self.window, bg=LIGHT_GREEN)
 
-        statistics_button = tkinter.Button(bottom_frame, text="Statistics",
-                                           bg=ORANGE_YELLOW, padx=20, bd=3, font=font.Font(size=16),
-                                           command=lambda: self.request_data())
-        statistics_button.pack(side=LEFT, padx=300)
+        # statistics_button = tkinter.Button(bottom_frame, text="Statistics",
+        #                                    bg=ORANGE_YELLOW, padx=20, bd=3, font=font.Font(size=16),
+        #                                    command=lambda: self.request_data())
+        # statistics_button.pack(side=LEFT, padx=300)
 
         back_button = tkinter.Button(bottom_frame, text="Back", bg=GREEN, padx=20, bd=3, font=font.Font(size=16),
                                      command=lambda: self.window.destroy())

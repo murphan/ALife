@@ -88,11 +88,9 @@ BUFFER_SIZE = 4096
 ENV_FONT: pygame.font.Font
 
 # how much we leave for ui at the bottom of the screen
-BOTTOM_BUFFER = 45
+BOTTOM_BUFFER = 75
 
-# TODO remove this I don't think it matters
-# ~~The Mutex needing to be acquired in order to update information~~
-mutex = Lock()
+
 
 
 def define_grid(width: int, height: int):
@@ -131,35 +129,25 @@ def set_should_render(should_render: bool):
 
 
 def update_grid(x, y):
-    mutex.acquire()
     global ENVIRONMENT_GRID
     ENVIRONMENT_GRID[x][y] = 1
-    mutex.release()
 
 
 def change_click_type(new_click_type):
-    mutex.acquire()
     global CLICK_TYPE
     CLICK_TYPE = new_click_type
-    mutex.release()
 
 
 def set_insertion(rate):
-    mutex.acquire()
     global repro_insertion
     repro_insertion = rate
-    mutex.release()
 
 
 def set_deletion(rate):
-    mutex.acquire()
     global repro_deletion
     repro_deletion = rate
-    mutex.release()
 
 
 def set_substitution(rate):
-    mutex.acquire()
     global repro_substitution
     repro_substitution = rate
-    mutex.release()

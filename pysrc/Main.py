@@ -81,6 +81,9 @@ class Management:
                 if self.environment_gui.reset_button.update(event):
                     send_message(self.conn, 'reset')
 
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    EnvironmentControl.square_clicked(event, self.conn)
+
                 EnvironmentControl.click_tree(self.conn, event)
 
             should_render_environment = Global_access.latest_frame is not None and\
