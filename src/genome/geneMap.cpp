@@ -59,14 +59,14 @@ GeneMap::GeneMap(const Genome & genome): segments() {
 		}
 	};
 
-	if (genome.size() < 6) {
+	if (genome.size() < 3) {
 		pushJunkSegment(0, genome.size());
 		return;
 	}
 
-	segments.push_back({ true, Gene::BODY, 0, 6 });
+	segments.push_back({ true, Gene::BODY, 0, 3 });
 
-	auto index = 6;
+	auto index = 3;
 	while (true) {
 		auto lastStart = index;
 		index = findGeneHeader(genome, index);

@@ -44,6 +44,7 @@ public:
 	i32 moveTries;
 
 	i32 moveLength;
+	i32 regenFrequency;
 
 	std::vector<EyeGene> reactions;
 

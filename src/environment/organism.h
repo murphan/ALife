@@ -44,7 +44,7 @@ public:
 
 	auto serialize(bool detailed) -> json;
 
-	auto addEnergy(i32 delta) -> void;
+	auto addEnergy(i32 delta, Settings & settings) -> void;
 
 	auto absoluteXY(Body::Cell & cell) const -> Util::Coord;
 };

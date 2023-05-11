@@ -59,6 +59,8 @@ public:
 	i32 armorPrevents;
 	i32 moveCost;
 	i32 baseMoveLength;
+	bool needEnergyToMove;
+	i32 crushTime;
 
 	i32 bodyPartCosts[7];
 	/* not all parts can be upgraded, but list them anyway */

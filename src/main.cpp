@@ -58,31 +58,33 @@ auto initSimulation(Settings & settings, Controls & controls, SimulationControll
 
 auto main () -> int {
 	auto settings = Settings {
-		.lifetimeFactor = 100,
+		.lifetimeFactor = 200,
 		.photosynthesisFactor = 1,
 		.startingEnergy = 31,
 		.reproductionCost = 15,
 		.reproductionThreshold = 21,
-		.foodEfficiency = 0.9_f32,
+		.foodEfficiency = 1.0_f32,
 		.baseMutationRates = {
 			0.005,
 			0.005,
 			0.005,
 		},
 		.mutationFactor = 1.5,
-		.sightRange = 8,
+		.sightRange = 10,
 		.weaponDamage = 32,
-		.armorPrevents = 16,
+		.armorPrevents = 20,
 		.moveCost = 1,
 		.baseMoveLength = 16,
+		.needEnergyToMove = false,
+		.crushTime = 10,
 		.bodyPartCosts = {
 			16, /* MOUTH */
 			16, /* MOVER */
 			16, /* PHOTOSYNTHESIZER */
 			16, /* WEAPON */
 			16, /* ARMOR */
-			8, /* EYE */
-			2, /* SCAFFOLD */
+			4, /* EYE */
+			0, /* SCAFFOLD */
 		},
 		.upgradedPartCosts = {
 			0, /* MOUTH */

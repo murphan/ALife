@@ -35,6 +35,7 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 	baseBodyEnergy(0),
 	moveTries(0),
 	moveLength(settings.baseMoveLength),
+	regenFrequency(-1),
 	reactions()
 {
 	if (genome.size() == 0) return;
@@ -44,15 +45,14 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 
 	/* default organism for too-short genome */
 	if (geneMap.segments.empty() || !geneMap.segments[0].isCoding) {
-		body.directAddCell(Body::Cell::make(BodyPart::MOUTH, 0, 0), 0, 0);
+		body.directAddCell(Body::Cell::make(BodyPart::MOUTH, 0), 0, 0);
 
 	/* read center cell section */
 	} else {
 		auto initialGene = readSegment(genome, geneMap.segments[0]);
 		auto bodyPart = (BodyPart)(GeneWriter::read7(initialGene, 0) + 1);
-		auto data = GeneWriter::read8(initialGene, 3);
 
-		body.directAddCell(Body::Cell::make(bodyPart, data, 0), 0, 0);
+		body.directAddCell(Body::Cell::make(bodyPart, 0), 0, 0);
 	}
 
 	for (auto i = 1; i < geneMap.segments.size(); ++i) {
@@ -66,7 +66,7 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 
 			body.addCell(
 				bodyGene.direction,
-				Body::Cell::make(bodyGene.bodyPart, bodyGene.data, 0),
+				Body::Cell::make(bodyGene.bodyPart, 0),
 				bodyGene.usingAnchor,
 				bodyGene.setAnchor
 			);
@@ -114,4 +114,6 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 		onAddCell(cell);
 		baseBodyEnergy += cell.cost(settings);
 	}
+
+	if (baseBodyEnergy < 1) baseBodyEnergy = 1;
 }

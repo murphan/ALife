@@ -86,7 +86,7 @@ auto SimulationController::organismSeeingDirection(Organism & organism, i32 inde
 		if (cell.bodyPart() != BodyPart::EYE) continue;
 		auto && eye = cell;
 
-		auto eyeDirection = Direction(eye.data()).rotate(organism.rotation);
+		auto eyeDirection = organism.rotation; //Direction(eye.data()).rotate(organism.rotation);
 		auto eyePos = organism.absoluteXY(eye);
 
 		for (auto i = 1; i <= settings.sightRange; ++i) {
@@ -119,7 +119,7 @@ auto SimulationController::moveOrganisms() -> void {
 	for (auto index = 0; index < organisms.size(); ++index) {
 		auto && organism = organisms[index];
 		auto moveTries = organism.phenome.moveTries;
-		if (moveTries == 0 || organism.energy == 0) continue;
+		if (moveTries == 0 || (organism.energy == 0 && settings.needEnergyToMove)) continue;
 
 		auto seeingDirection = organismSeeingDirection(organism, index);
 
@@ -169,13 +169,17 @@ auto SimulationController::moveOrganisms() -> void {
 		if (doMove()) {
 			++organism.ticksSinceCollision;
 			organism.ticksStuck = 0;
-		} else {
-			++organism.ticksStuck;
-		}
 
-		organism.addEnergy(-settings.moveCost);
+			organism.addEnergy(-settings.moveCost, settings);
+		} else {
+			if (++organism.ticksStuck >= settings.crushTime) {
+				organism.addEnergy(-settings.moveCost, settings);
+			}
+		}
 	}
 }
+
+constexpr i32 HEAL_STRIDE = 6;
 
 auto SimulationController::checkOrganismsDie(Tree::Node *& activeNode) -> void {
 	std::erase_if(organisms, [&, this](Organism & organism) {
@@ -356,7 +360,7 @@ auto SimulationController::tryReproduce(Phenome & childPhenome, Organism & organ
 
 	auto [x, y, rotation] = spawnPoint.value();
 
-	organism.addEnergy(-(reproductionEnergy + childBodyEnergy + childEnergy));
+	organism.addEnergy(-(reproductionEnergy + childBodyEnergy + childEnergy), settings);
 
 	return std::make_optional<Organism>(
 		std::move(childPhenome),

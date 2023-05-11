@@ -74,7 +74,7 @@ auto Organism::serialize(bool detailed) -> json {
 /**
  * do not let energy go negative
  */
-auto Organism::addEnergy(i32 delta) -> void {
+auto Organism::addEnergy(i32 delta, Settings & settings) -> void {
 	energy += delta;
 	if (energy < 0) energy = 0;
 }

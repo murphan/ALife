@@ -20,5 +20,5 @@ auto Photosynthesizer::tick(i32 x, i32 y, Organism & organism, Environment & env
 	if (
 		std::uniform_real_distribution<f32>(0.0_f32, 1.0_f32)(random) <
 		lightPercentage * (1.0_f32 - ((f32)othersAround * 0.25_f32))
-	) organism.addEnergy(settings.photosynthesisFactor);
+	) organism.addEnergy(settings.photosynthesisFactor, settings);
 }
