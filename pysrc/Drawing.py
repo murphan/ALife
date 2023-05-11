@@ -195,3 +195,12 @@ def blackout_bottom():
         Global_access.BLACK,
         pygame.Rect(0, Global_access.WINDOW_HEIGHT - Global_access.BOTTOM_BUFFER, Global_access.WINDOW_WIDTH, Global_access.BOTTOM_BUFFER)
     )
+
+
+def blackout_message_area():
+    pygame.draw.rect(
+        Global_access.SCREEN,
+        Global_access.BLACK,
+        pygame.Rect(120, Global_access.WINDOW_HEIGHT - Global_access.BOTTOM_BUFFER, Global_access.WINDOW_WIDTH - 650,
+                    Global_access.BOTTOM_BUFFER)
+    )
