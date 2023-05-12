@@ -15,14 +15,13 @@ public:
 
 private:
 	i32 numFilled;
-	std::default_random_engine & random;
 
-	bool array[NUM_IDS];
+	std::vector<bool> array;
 
 public:
-	explicit Ids(std::default_random_engine & random);
+	explicit Ids();
 
-	auto newId() -> u32;
+	auto newId(std::default_random_engine & random) -> u32;
 
 	auto removeId(u32 id) -> void;
 };

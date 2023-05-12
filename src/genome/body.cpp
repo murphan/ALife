@@ -7,7 +7,6 @@
 
 Body::Cell::Cell(
 	BodyPart bodyPart_,
-	i32 data_,
 	i32 age_,
 	i32 modifier_,
 	i16 x_,
@@ -15,7 +14,6 @@ Body::Cell::Cell(
 	bool dead_,
 	bool broken_
 ): bodyPart_(bodyPart_),
-	data_(data_),
 	age_(age_),
     modifier_(modifier_),
 	x_(x_),
@@ -24,10 +22,10 @@ Body::Cell::Cell(
 	broken_(broken_) {}
 
 auto Body::Cell::makeEmpty() -> Body::Cell {
-	return Cell(BodyPart::NONE, 0, 0, -1, 0, 0, false, false);
+	return Cell(BodyPart::NONE, 0, -1, 0, 0, false, false);
 }
-auto Body::Cell::make(BodyPart bodyPart, i32 data, i32 age) -> Cell {
-	return Cell(bodyPart, data, age, -1, 0, 0, false, false);
+auto Body::Cell::make(BodyPart bodyPart, i32 age) -> Cell {
+	return Cell(bodyPart, age, -1, 0, 0, false, false);
 }
 
 /* mutators */
@@ -46,9 +44,6 @@ auto Body::Cell::setAge(i32 age) -> void {
 
 auto Body::Cell::bodyPart() const -> BodyPart {
  	return bodyPart_;
-}
-auto Body::Cell::data() const -> i32 {
-	return data_;
 }
 auto Body::Cell::isModified() const -> bool {
 	return modifier_ != -1;

@@ -12,13 +12,12 @@
 #include "organismGrid.h"
 #include "settings.h"
 #include "ids.h"
+#include "tree.h"
 
 using json = nlohmann::json;
 
 class SimulationController {
 private:
-	std::default_random_engine & random;
-	Ids & ids;
 	Settings & settings;
 
 	/* substep functions */
@@ -35,7 +34,7 @@ private:
 
 	auto organismCellsTick() -> void;
 
-	auto checkOrganismsDie() -> void;
+	auto checkOrganismsDie(Tree::Node *& activeNode) -> void;
 
 	auto organismsReproduce() -> void;
 
@@ -54,20 +53,32 @@ private:
     auto tryReproduce(Phenome & childPhenome, Organism & organism, i32 reproductionEnergy, i32 childBodyEnergy, i32 childEnergy) -> std::optional<Organism>;
 
 public:
-	OrganismGrid organismGrid;
 	Environment environment;
+	OrganismGrid organismGrid;
+	std::default_random_engine random;
+	Ids ids;
+	Tree tree;
 	std::vector<Organism> organisms;
 
 	int currentTick;
 
 	auto renderOrganismGrid() -> void;
 
-    explicit SimulationController(Environment && environment, OrganismGrid && organismGrid, std::default_random_engine & random, Ids & ids, Settings & settings);
+    explicit SimulationController(
+	    Settings & settings,
+		Environment && environment,
+		OrganismGrid && organismGrid,
+		std::default_random_engine random,
+		Ids && ids,
+		Tree && tree
+	);
+
+	auto operator=(SimulationController && other) noexcept -> SimulationController &;
 
 	auto refreshFactors() -> void;
-	auto tick() -> void;
+	auto tick(Tree::Node *& activeNode) -> void;
 
-	auto serialize() -> json;
+	auto serialize(Controls & controls) -> json;
 
 	auto getOrganism(u32 id) -> Organism *;
 };

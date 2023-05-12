@@ -44,8 +44,9 @@ public:
 	i32 moveTries;
 
 	i32 moveLength;
+	i32 regenFrequency;
 
-	std::vector<EyeGene> eyeReactions;
+	std::vector<EyeGene> reactions;
 
 	explicit Phenome(Genome && inGenome, Body && inBody, Settings & settings);
 

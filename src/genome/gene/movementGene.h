@@ -21,7 +21,7 @@ public:
 
 	explicit MovementGene(i32 change);
 
-	auto getChange() -> i32;
+	auto getChange() const -> i32;
 };
 
 #endif //ALIFE_MOVEMENTGENE_H

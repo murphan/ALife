@@ -8,7 +8,7 @@
 const auto EyeGene::LENGTH = 6;
 
 EyeGene::EyeGene(GenomeView & view) :
-	seeing((BodyPart)GeneWriter::read7(view, 0)),
+	seeing((BodyPart)(GeneWriter::read7(view, 0) + 1)),
 	actionType((ActionType)GeneWriter::read2(view, 3)) {}
 
 EyeGene::EyeGene(BodyPart bodyPart, ActionType actionType) :
@@ -16,6 +16,6 @@ EyeGene::EyeGene(BodyPart bodyPart, ActionType actionType) :
 		actionType(actionType) {}
 
 auto EyeGene::writeBody(Genome & genome) -> void {
-	GeneWriter::write7(genome, seeing);
+	GeneWriter::write7(genome, seeing - 1);
 	GeneWriter::write2(genome, actionType);
 }

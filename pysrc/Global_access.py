@@ -4,10 +4,12 @@ It requires access to the mutex in order to update as there are threads in the a
 """
 
 from threading import Lock
+from typing import Any
+
 import Drawing
 import pygame
 
-from pysrc.Setup_EnvironmentGUI import EnvironmentGUI
+from pysrc.EnvironmentGUI import EnvironmentGUI
 from Noise import Noise
 
 # This is only set to be 1 when the program is exiting. Do not use unless ending execution
@@ -25,24 +27,50 @@ PINK = '#f00ce1'
 # Environment factors
 noises: list[Noise] = [
     Noise(False, 0.0, 0.0, 0.0, 0.0),
-    Noise(False, 0.0, 0.0, 0.0, 0.0),
-    Noise(False, 0.0, 0.0, 0.0, 0.0),
 ]
-
-fps = 1
 
 repro_insertion = 0.0
 repro_deletion = 0.0
 repro_substitution = 0.0
 
-running = False
-updateDisplay = True
+DISPLAY_MODE_ENVIRONMENT = 0
+DISPLAY_MODE_TREE = 1
+
+ControlsType = {
+    "playing": bool,
+    'fps': int,
+    'updateDisplay': bool,
+    'displayMode': int,
+    'smartTree': bool,
+    'activeNode': int
+}
+
+controls: ControlsType = {
+    "playing": False,
+    "fps": 0,
+    "updateDisplay": True,
+    "displayMode": DISPLAY_MODE_ENVIRONMENT,
+    "smartTree": False,
+    'activeNode': None,
+}
+
+
+class TreeNode(object):
+    def __init__(self, rect: pygame.Rect, uuid: int, active: bool):
+        self.rect = rect
+        self.uuid = uuid
+        self.active = active
+
+
+tree_nodes: list[TreeNode]
 
 # Used for environment sizing
 WINDOW_HEIGHT = 770
 WINDOW_WIDTH = 1500
-ENVIRONMENT_BOX: (int, int, int, int) = None
-environment_size = 0, 0
+ENVIRONMENT_BOX = pygame.Rect(0, 0, 0, 0)
+TREE_BOX = pygame.Rect(0, 0, 0, 0)
+grid_width = 0
+grid_height = 0
 
 # variables used frequently in the environment
 SCREEN = None
@@ -57,11 +85,12 @@ TILE_TYPE_WALL = 3
 
 BUFFER_SIZE = 4096
 
-ENV_FONT: pygame.font
+ENV_FONT: pygame.font.Font
 
-# TODO remove this I don't think it matters
-# ~~The Mutex needing to be acquired in order to update information~~
-mutex = Lock()
+# how much we leave for ui at the bottom of the screen
+BOTTOM_BUFFER = 75
+
+
 
 
 def define_grid(width: int, height: int):
@@ -75,61 +104,50 @@ def define_grid(width: int, height: int):
     :param height: height of the environment
     :param type: int
     """
-    global environment_size, ENVIRONMENT_GRID, WINDOW_WIDTH, WINDOW_HEIGHT, SCREEN
+    global grid_width, grid_height, ENVIRONMENT_GRID
 
     # no need to reallocate memory
-    if environment_size[0] == width and environment_size[1] == height:
+    if grid_width == width and grid_height == height:
         return
 
     ENVIRONMENT_GRID = [
         [
             {"environment": None, "organism": None}
-            for _ in range(int(height))
+            for _ in range(height)
         ]
-        for _ in range(int(width))
+        for _ in range(width)
     ]
 
-    environment_size = width, height
-    EnvironmentGUI.set_environment_box(WINDOW_WIDTH, WINDOW_HEIGHT)
+    grid_width = width
+    grid_height = height
+    EnvironmentGUI.set_environment_box()
+
+
+def set_should_render(should_render: bool):
+    if latest_frame is not None:
+        latest_frame["should_render"] = should_render
 
 
 def update_grid(x, y):
-    mutex.acquire()
     global ENVIRONMENT_GRID
     ENVIRONMENT_GRID[x][y] = 1
-    mutex.release()
 
 
 def change_click_type(new_click_type):
-    mutex.acquire()
     global CLICK_TYPE
     CLICK_TYPE = new_click_type
-    mutex.release()
-
-
-def set_environment_size(width, height):
-    mutex.acquire()
-    global environment_size
-    environment_size = width, height
-    mutex.release()
 
 
 def set_insertion(rate):
-    mutex.acquire()
     global repro_insertion
     repro_insertion = rate
-    mutex.release()
 
 
 def set_deletion(rate):
-    mutex.acquire()
     global repro_deletion
     repro_deletion = rate
-    mutex.release()
 
 
 def set_substitution(rate):
-    mutex.acquire()
     global repro_substitution
     repro_substitution = rate
-    mutex.release()

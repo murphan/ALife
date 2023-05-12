@@ -18,22 +18,19 @@ auto Settings::handleSettingsMessage(Settings::json & body) -> void {
 	auto && settings = body["settings"];
 
 	if (settings.contains("factors")) {
-		auto && factors = settings["factors"];
+		auto && inFactors = settings["factors"];
 
-		for (auto it = factors.begin(); it != factors.end(); ++it) {
-			auto index = it - factors.begin();
-			parseNoise(*it, this->factorNoises[index]);
+		for (auto it = inFactors.begin(); it != inFactors.end(); ++it) {
+			auto index = it - inFactors.begin();
+			parseNoise(*it, this->factors[index]);
 		}
 	}
-	//TODO handle lifetimeFactor and energyFactor
 }
 
 auto Settings::serialize() const -> json {
 	return {
 		{ "factors", {
-			factorNoises[Factor::TEMPERATURE].serialize(),
-			factorNoises[Factor::LIGHT].serialize(),
-			factorNoises[Factor::OXYGEN].serialize(),
+			factors[Factor::LIGHT].serialize()
 		} },
 		{ "lifetimeFactor", lifetimeFactor },
 	};

@@ -24,6 +24,6 @@ auto MovementGene::writeBody(Genome & genome) -> void {
 	GeneWriter::write5(genome, otherHalf + 2);
 }
 
-auto MovementGene::getChange() -> i32 {
+auto MovementGene::getChange() const -> i32 {
 	return change;
 }

@@ -8,18 +8,27 @@
 #include <json.hpp>
 
 #include "types.h"
+#include "tree.h"
 
 using json = nlohmann::json;
 
 class Controls {
 public:
+	enum DisplayMode {
+		ENVIRONMENT,
+		TREE,
+	};
+
 	bool playing;
 	i32 fps;
 	bool updateDisplay;
+	Tree::Node * activeNode;
+	DisplayMode displayMode;
+	bool smartTree;
 
 	auto serialize() const -> json;
 
-	auto updateFromSerialized(json & input) -> void;
+	auto updateFromSerialized(json & input, Tree & tree) -> void;
 
 	auto unlimitedFPS() const -> bool;
 };

@@ -17,7 +17,7 @@
  */
 class MapCell {
 private:
-    i8 factors[3];
+    i8 factors[1];
 	bool hasWall;
 
 public:

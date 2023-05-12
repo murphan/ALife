@@ -6,12 +6,15 @@
 auto OrganismSeeder::insertInitialOrganisms(
 	std::vector<Organism> & insertList,
 	const Environment & environment,
+	std::default_random_engine & random,
+	Ids & ids,
+	Tree & tree,
 	const Phenome & initialPhenome,
 	const Settings & settings,
-	i32 count,
-	std::default_random_engine & random,
-	Ids & ids
+	i32 count
 ) -> void {
+	auto && initialGenome = initialPhenome.genome;
+
 	insertList.reserve(count);
 
 	auto && body = initialPhenome.body;
@@ -27,6 +30,11 @@ auto OrganismSeeder::insertInitialOrganisms(
 
 	auto sideLength = (i32)ceil(sqrt((f32)count));
 
+	if (count > 1) {
+		auto * falseRoot = tree.add(nullptr, initialGenome);
+		falseRoot->alive = false;
+	}
+
 	/* fill in `count` spaces out of a square of side length `sideLength` */
 	for (auto c = 0; c < count; ++c) {
 		auto gridY = (c / sideLength) - (sideLength / 2), gridX = (c % sideLength) - (sideLength / 2);
@@ -36,11 +44,12 @@ auto OrganismSeeder::insertInitialOrganisms(
 
 		insertList.emplace_back(
 			std::move(copiedPhenome),
-			ids.newId(),
+			ids.newId(random),
 			centerX + gridX * spaceWide - offsetX,
 			centerY + gridY * spaceTall - offsetY,
 			Direction::RIGHT,
-			initialEnergy
+			initialEnergy,
+			tree.add(tree.root.get(), initialGenome)
 		);
 	}
 }

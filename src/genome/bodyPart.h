@@ -16,4 +16,15 @@ enum BodyPart {
 	SCAFFOLD = 7,
 };
 
+constexpr static const char * BODY_PART_NAMES[] = {
+	"None",
+	"Mouth",
+	"Mover",
+	"Photosynthesizer",
+	"Weapon",
+	"Armor",
+	"Eye",
+	"Scaffold"
+};
+
 #endif //ALIFE_BODYPART_H
