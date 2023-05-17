@@ -5,7 +5,7 @@
 #ifndef ALIFE_INITIALGENOME_H
 #define ALIFE_INITIALGENOME_H
 
-#include "genome.h"
+#include "genome/genome.h"
 
 class InitialGenome {
 public:

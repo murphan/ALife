@@ -5,8 +5,8 @@
 #include "tree.h"
 
 #include <utility>
-#include "util.h"
-#include "color.h"
+#include "util/util.h"
+#include "util/color.h"
 
 Tree::Tree(): lastUUID(0_u64), root(nullptr) {}
 

@@ -7,7 +7,7 @@
 
 #include <random>
 
-#include "types.h"
+#include "util/types.h"
 
 class Ids {
 public:

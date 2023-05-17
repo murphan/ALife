@@ -6,9 +6,9 @@
 #define ALIFE_ORGANISMGRID_H
 
 #include <vector>
-#include "types.h"
+#include "util/types.h"
 
-#include "organism.h"
+#include "organism/organism.h"
 #include "environment.h"
 
 class OrganismGrid {

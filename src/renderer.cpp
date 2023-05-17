@@ -3,7 +3,7 @@
 //
 
 #include "renderer.h"
-#include "color.h"
+#include "util/color.h"
 
 constexpr static i32 BYTES_PER_TILE = 9;
 

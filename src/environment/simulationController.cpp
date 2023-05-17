@@ -2,10 +2,10 @@
 #include "environment/simulationController.h"
 #include "renderer.h"
 #include "../genome/geneMap.h"
-#include "genome/rotation.h"
-#include "environment/cell/mouth.h"
-#include "environment/cell/weapon.h"
-#include "environment/cell/photosynthesizer.h"
+#include "util/rotation.h"
+#include "organism/cell/mouth.h"
+#include "organism/cell/weapon.h"
+#include "organism/cell/photosynthesizer.h"
 
 SimulationController::SimulationController(
 	Settings & settings,

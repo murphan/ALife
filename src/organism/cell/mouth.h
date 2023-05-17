@@ -5,8 +5,8 @@
 #ifndef ALIFE_MOUTH_H
 #define ALIFE_MOUTH_H
 
-#include "types.h"
-#include "environment/organism.h"
+#include "util/types.h"
+#include "organism/organism.h"
 #include "environment/environment.h"
 #include "environment/organismGrid.h"
 

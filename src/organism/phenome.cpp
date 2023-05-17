@@ -4,13 +4,13 @@
 
 #include <algorithm>
 
-#include "genomeView.h"
+#include "genome/genomeView.h"
 #include "genome/gene/bodyGene.h"
 
 #include "genome/gene/upgradeGene.h"
-#include "geneMap.h"
+#include "genome/geneMap.h"
 #include "phenome.h"
-#include "geneWriter.h"
+#include "genome/geneWriter.h"
 #include "genome/gene/movementGene.h"
 
 inline auto readSegment(const Genome & genome, GeneMap::Segment segment) -> GenomeView {

@@ -6,7 +6,7 @@
 #define ALIFE_GENEWRITER_H
 
 #include <array>
-#include "types.h"
+#include "util/types.h"
 #include "genome.h"
 #include "gene.h"
 

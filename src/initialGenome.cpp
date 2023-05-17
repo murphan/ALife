@@ -2,9 +2,9 @@
 // Created by Emmet on 3/5/2023.
 //
 
-#include "gene/bodyGene.h"
+#include "genome/gene/bodyGene.h"
 #include "initialGenome.h"
-#include "geneWriter.h"
+#include "genome/geneWriter.h"
 
 auto InitialGenome::create() -> Genome {
 	auto baseGenome = Genome();

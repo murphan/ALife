@@ -11,9 +11,9 @@
 
 #pragma comment(lib, "Ws2_32.lib")
 
-#include <windows.h>
-#include <winsock2.h>
-#include <ws2tcpip.h>
+#include <Windows.h>
+#include <WinSock2.h>
+#include <WS2tcpip.h>
 
 #include <vector>
 #include <optional>
@@ -23,8 +23,8 @@
 #include <span>
 #include <iostream>
 
-#include "util.h"
-#include "types.h"
+#include "util/util.h"
+#include "util/types.h"
 
 struct BackSocket {
 	static WSAData wsaData;

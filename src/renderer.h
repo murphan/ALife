@@ -6,11 +6,11 @@
 #define ALIFE_RENDERER_H
 
 #include <vector>
-#include "../types.h"
+#include "util/types.h"
 
-#include "organismGrid.h"
-#include "environment.h"
-#include "organism.h"
+#include "environment/organismGrid.h"
+#include "environment/environment.h"
+#include "organism/organism.h"
 
 class Renderer {
 public:

@@ -4,7 +4,7 @@
 
 #include "controls.h"
 
-#include "util.h"
+#include "util/util.h"
 
 auto Controls::serialize() const -> json {
 	auto controls = json {
@@ -13,6 +13,8 @@ auto Controls::serialize() const -> json {
 		{ "updateDisplay", updateDisplay },
 		{ "displayMode", displayMode },
 		{ "smartTree", smartTree },
+		{ "doHighlight", doHighlight },
+		{ "selectMode", selectMode },
 	};
 
 	if (activeNode == nullptr) {
@@ -80,6 +82,16 @@ auto Controls::updateFromSerialized(json & input, Tree & tree) -> void {
 
 	withBoolField(input, "smartTree", [this](bool result) {
 		smartTree = result;
+	});
+
+	withBoolField(input, "doHighlight", [this](bool result) {
+		doHighlight = result;
+	});
+
+	withIntField<i32>(input, "selectMode", [this](i32 result) {
+		if (result < 0) result = 0;
+		if (result > 1) result = 1;
+		selectMode = (SelectMode)result;
 	});
 }
 

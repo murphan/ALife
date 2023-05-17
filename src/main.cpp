@@ -2,22 +2,22 @@
 // Created by Emmet on 11/9/2022.
 //
 
-#include "genome/phenome.h"
+#include "organism/phenome.h"
 #include "genome/genome.h"
-#include "types.h"
+#include "util/types.h"
 
 #include <thread>
 #include <iostream>
 
 #include "environment/simulationController.h"
-#include "messageCreator.h"
-#include "messageReceiver.h"
-#include "socket.h"
+#include "socket/messageCreator.h"
+#include "socket/messageReceiver.h"
+#include "socket/socket.h"
 #include "environment/organismSeeder.h"
 #include "loop.h"
-#include "genome/initialGenome.h"
+#include "initialGenome.h"
 #include "ids.h"
-#include "priorityMutex.h"
+#include "util/priorityMutex.h"
 
 constexpr auto WIDTH = 250, HEIGHT = 150;
 
@@ -28,6 +28,8 @@ auto createSimulation(Settings & settings, Controls & controls, i32 width, i32 h
 	controls.activeNode = nullptr;
 	controls.displayMode = Controls::DisplayMode::ENVIRONMENT;
 	controls.smartTree = false;
+	controls.selectMode = Controls::SelectMode::SINGLE;
+	controls.doHighlight = true;
 
 	return SimulationController(
 		settings,

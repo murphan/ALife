@@ -8,7 +8,7 @@
 #include <span>
 
 #include "controls.h"
-#include "organism.h"
+#include "organism/organism.h"
 #include "organismGrid.h"
 #include "settings.h"
 #include "ids.h"

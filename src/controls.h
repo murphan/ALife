@@ -7,8 +7,8 @@
 
 #include <json.hpp>
 
-#include "types.h"
-#include "tree.h"
+#include "util/types.h"
+#include "environment/tree.h"
 
 using json = nlohmann::json;
 
@@ -19,11 +19,18 @@ public:
 		TREE,
 	};
 
+	enum SelectMode {
+		SINGLE,
+		LINEAGE,
+	};
+
 	bool playing;
 	i32 fps;
 	bool updateDisplay;
 	Tree::Node * activeNode;
 	DisplayMode displayMode;
+	bool doHighlight;
+	SelectMode selectMode;
 	bool smartTree;
 
 	auto serialize() const -> json;

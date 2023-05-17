@@ -3,7 +3,7 @@
 //
 
 #include "organismGrid.h"
-#include "../genome/rotation.h"
+#include "util/rotation.h"
 
 OrganismGrid::OrganismGrid(i32 width, i32 height) :
 	blankSpace(Space::makeEmpty()),

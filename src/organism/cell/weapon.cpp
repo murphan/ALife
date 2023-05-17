@@ -2,7 +2,7 @@
 // Created by Emmet on 4/27/2023.
 //
 #include "weapon.h"
-#include "../../genome/rotation.h"
+#include "util/rotation.h"
 
 auto Weapon::tick(i32 x, i32 y, i32 index, Body::Cell & weapon, Environment & environment, OrganismGrid & organismGrid, std::vector<Organism> & organisms, Settings & settings) -> void {
 	auto superAttack = !weapon.isModified() ? -1 : weapon.modifier();

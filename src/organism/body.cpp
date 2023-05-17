@@ -3,7 +3,7 @@
 //
 
 #include "body.h"
-#include "rotation.h"
+#include "util/rotation.h"
 
 Body::Cell::Cell(
 	BodyPart bodyPart_,

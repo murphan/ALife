@@ -7,7 +7,7 @@
 
 #include <json.hpp>
 
-#include "types.h"
+#include "util/types.h"
 #include "OpenSimplex2S.hpp"
 
 class Noise {

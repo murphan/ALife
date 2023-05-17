@@ -8,12 +8,12 @@
 #include <vector>
 #include <optional>
 
-#include "types.h"
-#include "util.h"
+#include "util/types.h"
+#include "util/util.h"
 #include "genome/direction.h"
-#include "bodyPart.h"
-#include "direction.h"
-#include "environment/settings.h"
+#include "genome/bodyPart.h"
+#include "genome/direction.h"
+#include "settings.h"
 
 class Body {
 public:

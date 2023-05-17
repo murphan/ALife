@@ -5,7 +5,7 @@
 #include <iostream>
 
 #include "genome.h"
-#include "util.h"
+#include "util/util.h"
 #include "random"
 
 char Genome::baseName[4] = { 'A', 'B', 'C', 'D' };

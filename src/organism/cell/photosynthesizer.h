@@ -5,8 +5,8 @@
 #ifndef ALIFE_PHOTOSYNTHESIZER_H
 #define ALIFE_PHOTOSYNTHESIZER_H
 
-#include "types.h"
-#include "environment/organism.h"
+#include "util/types.h"
+#include "organism/organism.h"
 #include "environment/environment.h"
 #include "environment/organismGrid.h"
 #include <random>

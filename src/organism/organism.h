@@ -5,14 +5,14 @@
 #ifndef ALIFE_ORGANISM_H
 #define ALIFE_ORGANISM_H
 
-#include "types.h"
+#include "util/types.h"
 
 #include "genome/genome.h"
-#include "genome/phenome.h"
-#include "genome/body.h"
-#include "uuid.h"
+#include "organism/phenome.h"
+#include "organism/body.h"
+#include "util/uuid.h"
 #include "json.hpp"
-#include "tree.h"
+#include "environment/tree.h"
 
 class Organism {
 private:

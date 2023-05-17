@@ -7,7 +7,7 @@
 
 #include <json.hpp>
 
-#include "noise/noise.h"
+#include "environment/noise/noise.h"
 
 class Settings {
 public:

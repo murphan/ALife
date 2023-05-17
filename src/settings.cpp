@@ -4,7 +4,7 @@
 
 #include "settings.h"
 
-#include "factor.h"
+#include "environment/factor.h"
 
 inline auto parseNoise(Settings::json & body, Noise & noise) -> void {
 	noise.useNoise = body["useNoise"].get<bool>();

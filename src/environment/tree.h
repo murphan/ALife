@@ -5,7 +5,7 @@
 #ifndef ALIFE_TREE_H
 #define ALIFE_TREE_H
 
-#include "types.h"
+#include "util/types.h"
 #include "genome/genome.h"
 #include <json.hpp>
 

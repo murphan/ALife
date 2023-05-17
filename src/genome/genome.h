@@ -11,7 +11,7 @@
 #include <string>
 #include <optional>
 
-#include "types.h"
+#include "util/types.h"
 
 /**
  * wrapper for the genetic code of organism

@@ -6,7 +6,7 @@
 #define ALIFE_ROTATION_H
 
 #include "util.h"
-#include "direction.h"
+#include "genome/direction.h"
 
 class Rotation {
 public:

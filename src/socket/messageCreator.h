@@ -9,11 +9,11 @@
 
 #include <json.hpp>
 
-#include "types.h"
+#include "util/types.h"
 
-#include "environment/controls.h"
+#include "controls.h"
 #include "environment/environment.h"
-#include "environment/organism.h"
+#include "organism/organism.h"
 
 using json = nlohmann::json;
 

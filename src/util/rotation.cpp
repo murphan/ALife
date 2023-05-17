@@ -4,21 +4,21 @@
 
 #include "rotation.h"
 
-auto _____empty = Util::Coord { 0, 0 };
+auto emptyempty = Util::Coord { 0, 0 };
 
 Util::Coord diagonalGrid[] = {
-	_____empty, _____empty, _____empty, { +2, -1 }, _____empty, _____empty, _____empty,
-	_____empty, _____empty, { +2, +0 }, { +2, -1 }, { +1, -2 }, _____empty, _____empty,
-	_____empty, { +1, +1 }, { +1, +1 }, { +1, +0 }, { +0, -1 }, { +0, -2 }, _____empty,
+	emptyempty, emptyempty, emptyempty, { +2, -1 }, emptyempty, emptyempty, emptyempty,
+	emptyempty, emptyempty, { +2, +0 }, { +2, -1 }, { +1, -2 }, emptyempty, emptyempty,
+	emptyempty, { +1, +1 }, { +1, +1 }, { +1, +0 }, { +0, -1 }, { +0, -2 }, emptyempty,
 	{ +1, +2 }, { +1, +1 }, { +1, +1 }, { +0, +0 }, { +0, -1 }, { -1, -2 }, { -1, -2 },
-	_____empty, { +0, +2 }, { +0, +1 }, { -1, +0 }, { -1, +0 }, { -2, -1 }, _____empty,
-	_____empty, _____empty, { -1, +2 }, { -2, +1 }, { -2, +0 }, _____empty, _____empty,
-	_____empty, _____empty, _____empty, { -2, +1 }, _____empty, _____empty, _____empty,
+	emptyempty, { +0, +2 }, { +0, +1 }, { -1, +0 }, { -1, +0 }, { -2, -1 }, emptyempty,
+	emptyempty, emptyempty, { -1, +2 }, { -2, +1 }, { -2, +0 }, emptyempty, emptyempty,
+	emptyempty, emptyempty, emptyempty, { -2, +1 }, emptyempty, emptyempty, emptyempty,
 };
 
 inline auto getWithinDiamond(Util::Coord xy) -> Util::Coord {
-	auto coordX = ((3.0f / 25.0f) * xy.x) + ((4.0f / 25.0f) * xy.y);
-	auto coordY = ((3.0f / 25.0f) * xy.y) - ((4.0f / 25.0f) * xy.x);
+	auto coordX = ((3.0f / 25.0f) * (f32)xy.x) + ((4.0f / 25.0f) * (f32)xy.y);
+	auto coordY = ((3.0f / 25.0f) * (f32)xy.y) - ((4.0f / 25.0f) * (f32)xy.x);
 
 	auto diamondX = (i32)floorf((coordX + 0.5f) / 1.0f);
 	auto diamondY = (i32)floorf((coordY + 0.5f) / 1.0f);

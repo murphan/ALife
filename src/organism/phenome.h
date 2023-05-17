@@ -12,12 +12,12 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-#include "types.h"
+#include "util/types.h"
 #include "genome/genome.h"
 #include "genome/gene/eyeGene.h"
 #include "body.h"
 #include "genome/gene/mutationRateGene.h"
-#include "../environment/settings.h"
+#include "settings.h"
 
 class Phenome {
 public:

@@ -6,7 +6,7 @@
 
 #include <vector>
 
-#include "types.h"
+#include "util/types.h"
 
 /**
  * container for grid squares, environmental factors, food, walls
