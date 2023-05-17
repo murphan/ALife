@@ -6,7 +6,7 @@ from tkinter import *
 import Global_access
 import Setup_DataProcessingGUI
 import EnvironmentControl
-from pysrc.Noise import Factor
+from Noise import Factor
 from send_message import send_message
 
 LIGHT_GREEN = '#5fad75'

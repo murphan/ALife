@@ -3,13 +3,10 @@ This file has Global variables and information that can be acessed by the entire
 It requires access to the mutex in order to update as there are threads in the application
 """
 
-from threading import Lock
-from typing import Any
-
-import Drawing
 import pygame
 
-from pysrc.EnvironmentGUI import EnvironmentGUI
+import Drawing
+from EnvironmentGUI import EnvironmentGUI
 from Noise import Noise
 
 # This is only set to be 1 when the program is exiting. Do not use unless ending execution
