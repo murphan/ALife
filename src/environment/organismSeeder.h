@@ -13,6 +13,7 @@
 #include "settings.h"
 #include "organismGrid.h"
 #include "ids.h"
+#include "tree.h"
 
 class OrganismSeeder {
 public:

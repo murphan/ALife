@@ -1,13 +1,10 @@
 import socket
 
 import pygame
-import copy
 
-import Environment_cell
 import Global_access
-import Organism_cell
+from send_message import send_message_full
 from send_message import send_message
-from Drawing import RenderInfo
 
 
 def set_fps(conn: socket.socket, fps: int):
@@ -30,6 +27,26 @@ def toggle_display_mode(conn: socket.socket):
 def set_active_node(conn: socket.socket, uuid: int | None):
     Global_access.controls['activeNode'] = uuid
     send_message(conn, "controls")
+
+
+def toggle_do_highlight(conn: socket.socket):
+    Global_access.controls['doHighlight'] = not Global_access.controls['doHighlight']
+    send_message_full(conn, {
+        "type": "controls",
+        "controls": {
+            "doHighlight": Global_access.controls['doHighlight']
+        }
+    })
+
+
+def toggle_select_mode(conn: socket.socket):
+    Global_access.controls['selectMode'] = Global_access.SELECT_MODE_LINEAGE if Global_access.controls['selectMode'] == Global_access.SELECT_MODE_SINGLE else Global_access.SELECT_MODE_SINGLE
+    send_message_full(conn, {
+        "type": "controls",
+        "controls": {
+            "selectMode": Global_access.controls['selectMode']
+        }
+    })
 
 
 def click_type(clicked_type):

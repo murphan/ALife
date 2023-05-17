@@ -92,7 +92,7 @@ constexpr static u8 META_WALL = 3;
 
 constexpr static u8 CIRCLE_FLAG = 1 << 7;
 
-auto Renderer::render(Environment & environment, std::vector<Organism> & organisms, Tree::Node * activeNode) -> std::vector<u8> {
+auto Renderer::render(Environment & environment, std::vector<Organism> & organisms, Controls & controls) -> std::vector<u8> {
 	auto buffer = std::vector<u8>(environment.mapSize() * BYTES_PER_TILE, 0);
 
 	auto bufferIndex = [&](i32 x, i32 y) {
@@ -107,7 +107,7 @@ auto Renderer::render(Environment & environment, std::vector<Organism> & organis
 			insert3(
 				buffer,
 				bufferIndex(x, y) + 3,
-				activeNode == nullptr ? getFactorsColor(mapCell) : 0x000000
+				controls.activeNode == nullptr ? getFactorsColor(mapCell) : 0x000000
 			);
 
 			if (food.filled()) {
@@ -115,13 +115,13 @@ auto Renderer::render(Environment & environment, std::vector<Organism> & organis
 				insert3(
 					buffer,
 					bufferIndex(x, y) + (food.broken() ? 6 : 3),
-					modifyColor(food.dead(), activeNode != nullptr,  bodyPartColors[food.bodyPart() - 1])
+					modifyColor(food.dead(), controls.activeNode != nullptr,  bodyPartColors[food.bodyPart() - 1])
 				);
 				if (food.isModified()) {
 					insert3(
 						buffer,
 						bufferIndex(x, y) + 6,
-						modifyColor(food.dead(), activeNode != nullptr, upgradeColors[food.bodyPart() - 1][food.modifier()])
+						modifyColor(food.dead(), controls.activeNode != nullptr, upgradeColors[food.bodyPart() - 1][food.modifier()])
 					);
 				}
 			}
@@ -133,7 +133,7 @@ auto Renderer::render(Environment & environment, std::vector<Organism> & organis
 		for (auto && cell : organism.body().getCells()) {
 			auto [x, y] = organism.absoluteXY(cell);
 
-			auto active = activeNode == nullptr || organism.node->active;
+			auto active = !controls.doHighlight || controls.activeNode == nullptr || organism.node->active;
 
 			buffer[bufferIndex(x, y)] = META_ORGANISM | (cell.isModified() ? CIRCLE_FLAG : 0);
 			insert2(

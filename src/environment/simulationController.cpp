@@ -35,7 +35,7 @@ auto SimulationController::operator=(SimulationController && other) noexcept -> 
 	return *this;
 }
 
-auto SimulationController::tick(Tree::Node *& activeNode) -> void {
+auto SimulationController::tick(Node *& activeNode) -> void {
 	shuffleOrganisms();
 
 	renderOrganismGrid();
@@ -181,7 +181,7 @@ auto SimulationController::moveOrganisms() -> void {
 
 constexpr i32 HEAL_STRIDE = 6;
 
-auto SimulationController::checkOrganismsDie(Tree::Node *& activeNode) -> void {
+auto SimulationController::checkOrganismsDie(Node *& activeNode) -> void {
 	std::erase_if(organisms, [&, this](Organism & organism) {
 		if (organism.phenome.numAliveCells == 0) {
 			replaceOrganismWithFood(organism);
@@ -213,7 +213,7 @@ auto SimulationController::serialize(Controls & controls) -> json {
 	};
 
 	if (controls.displayMode == Controls::DisplayMode::ENVIRONMENT) {
-		messageBody.push_back({ "grid", Util::base64Encode(Renderer::render(environment, organisms, controls.activeNode)) });
+		messageBody.push_back({ "grid", Util::base64Encode(Renderer::render(environment, organisms, controls)) });
 	} else {
 		messageBody.push_back({ "tree", tree.serialize(controls.activeNode) });
 	}

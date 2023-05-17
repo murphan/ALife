@@ -11,13 +11,14 @@
 #include "environment/organismGrid.h"
 #include "environment/environment.h"
 #include "organism/organism.h"
+#include "controls.h"
 
 class Renderer {
 public:
 	static auto render(
 		Environment & environment,
 		std::vector<Organism> & organisms,
-		Tree::Node * activeNode
+		Controls & controls
 	) -> std::vector<u8>;
 };
 

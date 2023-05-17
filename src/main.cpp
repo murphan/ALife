@@ -18,6 +18,7 @@
 #include "initialGenome.h"
 #include "ids.h"
 #include "util/priorityMutex.h"
+#include "controlsUpdater.h"
 
 constexpr auto WIDTH = 250, HEIGHT = 150;
 
@@ -55,7 +56,7 @@ auto initSimulation(Settings & settings, Controls & controls, SimulationControll
 		1
 	);
 
-	simulationController.tree.update(controls.smartTree, true, controls.activeNode);
+	simulationController.tree.update(controls);
 }
 
 auto main () -> int {
@@ -138,10 +139,10 @@ auto main () -> int {
 				auto displayModeBefore = controls.displayMode;
 				auto * activeNodeBefore = controls.activeNode;
 
-				controls.updateFromSerialized(parsedMessage.body["controls"], simulationController.tree);
+				ControlsUpdater::update(parsedMessage.body["controls"], controls, simulationController.tree);
 
 				if (displayModeBefore != controls.displayMode || activeNodeBefore != controls.activeNode) {
-					simulationController.tree.update(controls.smartTree, controls.displayMode == Controls::DisplayMode::TREE, controls.activeNode);
+					simulationController.tree.update(controls);
 					json = MessageCreator::controlsMessageAndFrame(controls.serialize(), simulationController.serialize(controls)).dump();
 				} else {
 					json = MessageCreator::controlsMessage(controls.serialize()).dump();
@@ -220,11 +221,7 @@ auto main () -> int {
 				controls.playing &&
 				(now - lastSendTime) >= minSendTime
 			) {
-				simulationController.tree.update(
-					controls.smartTree,
-					controls.displayMode == Controls::DisplayMode::TREE,
-					controls.activeNode
-				);
+				simulationController.tree.update(controls);
 
 				jsonData = MessageCreator::frameMessage(simulationController.serialize(controls)).dump();
 

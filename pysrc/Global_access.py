@@ -33,13 +33,18 @@ repro_substitution = 0.0
 DISPLAY_MODE_ENVIRONMENT = 0
 DISPLAY_MODE_TREE = 1
 
+SELECT_MODE_SINGLE = 0
+SELECT_MODE_LINEAGE = 1
+
 ControlsType = {
     "playing": bool,
     'fps': int,
     'updateDisplay': bool,
     'displayMode': int,
     'smartTree': bool,
-    'activeNode': int
+    'activeNode': int,
+    'doHighlight': bool,
+    'selectMode': int,
 }
 
 controls: ControlsType = {
@@ -49,6 +54,8 @@ controls: ControlsType = {
     "displayMode": DISPLAY_MODE_ENVIRONMENT,
     "smartTree": False,
     'activeNode': None,
+    'doHighlight': False,
+    'selectMode': SELECT_MODE_SINGLE,
 }
 
 
@@ -86,8 +93,6 @@ ENV_FONT: pygame.font.Font
 
 # how much we leave for ui at the bottom of the screen
 BOTTOM_BUFFER = 75
-
-
 
 
 def define_grid(width: int, height: int):

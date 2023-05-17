@@ -81,6 +81,12 @@ class Management:
                 if self.environment_gui.reset_button.update(event):
                     send_message(self.conn, 'reset')
 
+                if self.environment_gui.do_highlight_button.update(event):
+                    EnvironmentControl.toggle_do_highlight(self.conn)
+
+                if self.environment_gui.select_mode_button.update(event):
+                    EnvironmentControl.toggle_select_mode(self.conn)
+
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     EnvironmentControl.square_clicked(event, self.conn)
 

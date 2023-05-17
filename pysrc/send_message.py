@@ -1,5 +1,7 @@
 import json
 import socket
+from typing import Any
+
 import Global_access
 
 
@@ -23,6 +25,12 @@ def send_message(conn: socket.socket, message_type: str, data=""):
 
     conn.send(message)
 
+
+def send_message_full(conn: socket.socket, json_data: Any):
+    json_part = json.dumps(json_data)
+    message = len(json_part).to_bytes(4, "big") + json_part.encode("utf-8")
+
+    conn.send(message)
 
 # TODO split these into separate functions and use dependency injection for send_message
 def create_message(message_type, data=None):

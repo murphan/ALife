@@ -12,7 +12,7 @@
 #include "organism/body.h"
 #include "util/uuid.h"
 #include "json.hpp"
-#include "environment/tree.h"
+#include "environment/node.h"
 
 class Organism {
 private:
@@ -32,10 +32,10 @@ public:
 	i32 ticksStuck;
 
 	std::optional<Phenome> storedChild;
-	Tree::Node * node;
+	Node * node;
 
 	Organism(Organism && other) = default;
-	Organism(Phenome && phenome, u32 id, i32 x, i32 y, Direction rotation, i32 energy, Tree::Node * node);
+	Organism(Phenome && phenome, u32 id, i32 x, i32 y, Direction rotation, i32 energy, Node * node);
 
 	auto operator=(Organism && other) noexcept -> Organism & = default;
 

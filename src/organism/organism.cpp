@@ -5,7 +5,7 @@
 #include "organism.h"
 #include "util/rotation.h"
 
-Organism::Organism(Phenome && phenome, u32 id, i32 x, i32 y, Direction rotation, i32 energy, Tree::Node * node) :
+Organism::Organism(Phenome && phenome, u32 id, i32 x, i32 y, Direction rotation, i32 energy, Node * node) :
 	id(id),
 	phenome(std::move(phenome)),
 	x(x),

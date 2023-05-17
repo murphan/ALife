@@ -67,15 +67,14 @@ auto Weapon::armorDoesBlock(i32 x, i32 y, i32 superAttack, bool directAttack, i3
 	if (cell.dead()) return BLOCK_NONE;
 
 	auto bodyPart = cell.bodyPart();
-	auto modifier = !cell.isModified() ? -1 : cell.modifier();
+	auto modifier = cell.modifier();
 
 	auto isArmored = (bodyPart == BodyPart::ARMOR) ||
 	                 (bodyPart == BodyPart::SCAFFOLD && modifier != -1 && directAttack);
 
 	if (!isArmored) return BLOCK_NONE;
 
-	/* for some reason intellisense fails to realize this variable is used */
-	volatile auto superArmor = bodyPart == BodyPart::ARMOR ? modifier : -1;
+	auto superArmor = bodyPart == BodyPart::ARMOR ? modifier : -1;
 
 	auto superCounters = superArmor == superAttack;
 
