@@ -79,7 +79,7 @@ auto main () -> int {
 		.moveCost = 1,
 		.baseMoveLength = 8,
 		.needEnergyToMove = false,
-		.crushTime = 10,
+		.crushTime = 5,
 		.bodyPartCosts = {
 			16, /* MOUTH */
 			16, /* MOVER */
@@ -160,9 +160,14 @@ auto main () -> int {
 
 		} else if (parsedMessage.type == "settings") {
 			try {
-				settings.handleSettingsMessage(parsedMessage.body);
+				std::string json;
 
-				auto json = MessageCreator::settingsMessage(settings.serialize()).dump();
+				mutex.highPriorityLock([&]() {
+					settings.handleSettingsMessage(parsedMessage.body);
+
+					json = MessageCreator::settingsMessage(settings.serialize()).dump();
+				});
+
 				socket.send(json.begin(), json.end());
 
 			} catch (...) {
