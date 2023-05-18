@@ -5,16 +5,10 @@ import Global_access
 from collections import deque
 import copy
 
-Node = [int, int, int, bool, bool, int, list, (int, int)]
-
-Tree = {"levelTotals": list[int], "root": Node}
-
-RenderInfo = {"size": (int, int), 'grid': bytes, "ids": list[int], "tree": Tree, "organism": None}
-
 BYTES_PER_TILE = 9
 
 
-def render(render_info: RenderInfo):
+def render(render_info: Global_access.RenderInfo):
     render_copy = copy.deepcopy(render_info)
 
     width, height = render_copy["size"]
@@ -130,7 +124,7 @@ def this_box(level_totals: list[int], levels_already_inserted: list[int], value:
     return pygame.Rect(left_along * width, (len(level_totals) - level - 1) * level_height, width_along * width, level_height)
 
 
-def render_tree(screen: pygame.Surface, bounds: pygame.Rect, tree_json: Tree):
+def render_tree(screen: pygame.Surface, bounds: pygame.Rect, tree_json: Global_access.Tree):
     pygame.draw.rect(screen, 0x000000, bounds)
 
     level_totals: list[int] = tree_json["levelTotals"]
@@ -143,7 +137,7 @@ def render_tree(screen: pygame.Surface, bounds: pygame.Rect, tree_json: Tree):
     traverse_queue.appendleft(tree_json["root"])
 
     while len(traverse_queue) > 0:
-        node: Node = traverse_queue.pop()
+        node: Global_access.Node = traverse_queue.pop()
 
         uuid = node[0]
         value = node[1]

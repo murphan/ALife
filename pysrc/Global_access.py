@@ -5,7 +5,6 @@ It requires access to the mutex in order to update as there are threads in the a
 
 import pygame
 
-import Drawing
 from EnvironmentGUI import EnvironmentGUI
 from Noise import Noise
 
@@ -76,11 +75,15 @@ TREE_BOX = pygame.Rect(0, 0, 0, 0)
 grid_width = 0
 grid_height = 0
 
+Node = [int, int, int, bool, bool, int, list, (int, int)]
+Tree = {"levelTotals": list[int], "root": Node}
+RenderInfo = {"size": (int, int), 'grid': bytes, "ids": list[int], "tree": Tree, "organism": None}
+
 # variables used frequently in the environment
 SCREEN = None
 CLICK_TYPE = "Organism"
 ENVIRONMENT_GRID = []
-latest_frame: Drawing.RenderInfo = None
+latest_frame: RenderInfo = None
 
 TILE_TYPE_EMPTY = 0
 TILE_TYPE_ORGANISM = 1

@@ -99,6 +99,8 @@ auto Renderer::render(const Environment & environment, const std::vector<Organis
 		return (y * environment.getWidth() + x) * BYTES_PER_TILE;
 	};
 
+	auto isHighlighting = controls.doHighlight && controls.activeNode != nullptr;
+
 	for (auto y = 0; y < environment.getHeight(); ++y) {
 		for (auto x = 0; x < environment.getWidth(); ++x) {
 			auto && mapCell = environment.accessUnsafe(x, y);
@@ -107,7 +109,7 @@ auto Renderer::render(const Environment & environment, const std::vector<Organis
 			insert3(
 				buffer,
 				bufferIndex(x, y) + 3,
-				controls.activeNode == nullptr ? getFactorsColor(mapCell) : 0x000000
+				isHighlighting ?  0x000000 : getFactorsColor(mapCell)
 			);
 
 			if (food.filled()) {
@@ -115,13 +117,13 @@ auto Renderer::render(const Environment & environment, const std::vector<Organis
 				insert3(
 					buffer,
 					bufferIndex(x, y) + (food.broken() ? 6 : 3),
-					modifyColor(food.dead(), controls.activeNode != nullptr,  bodyPartColors[food.bodyPart() - 1])
+					modifyColor(food.dead(), isHighlighting,  bodyPartColors[food.bodyPart() - 1])
 				);
 				if (food.isModified()) {
 					insert3(
 						buffer,
 						bufferIndex(x, y) + 6,
-						modifyColor(food.dead(), controls.activeNode != nullptr, upgradeColors[food.bodyPart() - 1][food.modifier()])
+						modifyColor(food.dead(), isHighlighting, upgradeColors[food.bodyPart() - 1][food.modifier()])
 					);
 				}
 			}
@@ -133,7 +135,7 @@ auto Renderer::render(const Environment & environment, const std::vector<Organis
 		for (auto && cell : organism.body().getCells()) {
 			auto [x, y] = organism.absoluteXY(cell);
 
-			auto active = !controls.doHighlight || controls.activeNode == nullptr || organism.node->active;
+			auto active = !isHighlighting || organism.node->active;
 
 			buffer[bufferIndex(x, y)] = META_ORGANISM | (cell.isModified() ? CIRCLE_FLAG : 0);
 			insert2(

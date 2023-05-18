@@ -59,7 +59,7 @@ auto Body::Cell::age() const -> i32 {
 }
 
 auto Body::Cell::cost(Settings & settings) const -> i32 {
-	return settings.bodyPartCosts[bodyPart() - 1] + (isModified() ? 0 : settings.upgradedPartCosts[bodyPart() - 1]);
+	return settings.bodyPartCosts[bodyPart() - 1] + (isModified() ? settings.upgradedPartCosts[bodyPart() - 1] : 0);
 }
 
 auto Body::Cell::empty() const -> bool {

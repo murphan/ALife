@@ -8,12 +8,12 @@ from tkinter import messagebox
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 import pygame
 
-import EnvironmentControl
-from EnvironmentGUI import EnvironmentGUI
-import Setup_settingsGUI
-import Global_access
-import receive_message
 import Drawing
+import EnvironmentControl
+import Global_access
+import Setup_settingsGUI
+import receive_message
+from EnvironmentGUI import EnvironmentGUI
 from send_message import send_message
 
 
