@@ -119,5 +119,10 @@ def square_clicked(event, conn):
             y_coord = abs(int((mpos_y / cell_height)) - Global_access.grid_height) - 1
             org_id = Global_access.ENVIRONMENT_GRID[x_coord][y_coord]["organism"]
             if org_id is not None:
-                send_message(conn, "request", org_id)
+                send_message_full(conn, {
+                    "type": "controls",
+                    "controls": {
+                        "activeNode": org_id
+                    }
+                })
 

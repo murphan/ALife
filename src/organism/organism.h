@@ -39,14 +39,15 @@ public:
 
 	auto operator=(Organism && other) noexcept -> Organism & = default;
 
-	auto getGenome() const -> const Genome &;
+	[[nodiscard]] auto getGenome() const -> const Genome &;
+	[[nodiscard]] auto body() const -> const Body &;
 	auto body() -> Body &;
 
 	auto serialize(bool detailed) -> json;
 
 	auto addEnergy(i32 delta, Settings & settings) -> void;
 
-	auto absoluteXY(Body::Cell & cell) const -> Util::Coord;
+	[[nodiscard]] auto absoluteXY(Body::Cell cell) const -> Util::Coord;
 };
 
 #endif //ALIFE_ORGANISM_H

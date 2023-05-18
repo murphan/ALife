@@ -9,7 +9,7 @@ Node = [int, int, int, bool, bool, int, list, (int, int)]
 
 Tree = {"levelTotals": list[int], "root": Node}
 
-RenderInfo = {"size": (int, int), 'grid': bytes, "ids": list[int], "tree": Tree}
+RenderInfo = {"size": (int, int), 'grid': bytes, "ids": list[int], "tree": Tree, "organism": None}
 
 BYTES_PER_TILE = 9
 
@@ -194,13 +194,4 @@ def blackout_bottom():
         Global_access.SCREEN,
         Global_access.BLACK,
         pygame.Rect(0, Global_access.WINDOW_HEIGHT - Global_access.BOTTOM_BUFFER, Global_access.WINDOW_WIDTH, Global_access.BOTTOM_BUFFER)
-    )
-
-
-def blackout_message_area():
-    pygame.draw.rect(
-        Global_access.SCREEN,
-        Global_access.BLACK,
-        pygame.Rect(120, Global_access.WINDOW_HEIGHT - Global_access.BOTTOM_BUFFER, Global_access.WINDOW_WIDTH - 650,
-                    Global_access.BOTTOM_BUFFER)
     )

@@ -9,7 +9,7 @@ constexpr static i32 BYTES_PER_TILE = 9;
 
 constexpr static f32 BACKGROUND_DIM = 0.3333333333_f32;
 
-inline auto getFactorsColor(MapCell & mapCell) -> u32 {
+inline auto getFactorsColor(const MapCell & mapCell) -> u32 {
 	auto value = ((f32)mapCell.getFactor(Factor::LIGHT) / 127.0_f32) * BACKGROUND_DIM;
 
 	return Color::channelFloats2Int(value, value, value);
@@ -92,7 +92,7 @@ constexpr static u8 META_WALL = 3;
 
 constexpr static u8 CIRCLE_FLAG = 1 << 7;
 
-auto Renderer::render(Environment & environment, std::vector<Organism> & organisms, Controls & controls) -> std::vector<u8> {
+auto Renderer::render(const Environment & environment, const std::vector<Organism> & organisms, const Controls & controls) -> std::vector<u8> {
 	auto buffer = std::vector<u8>(environment.mapSize() * BYTES_PER_TILE, 0);
 
 	auto bufferIndex = [&](i32 x, i32 y) {

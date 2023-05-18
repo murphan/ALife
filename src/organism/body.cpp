@@ -93,9 +93,7 @@ auto Body::Cell::y() const -> i32 {
 
 /* Body */
 
-Body::Body(i32 edge):
-    width(edge * 2 + 1), height(edge * 2 + 1),
-	originX(edge), originY(edge),
+Body::Body():
 	cells(),
     left(0), right(0), down(0), up(0),
 	currentX(0), currentY(0),
@@ -113,7 +111,7 @@ auto Body::outOfBounds = Cell::makeEmpty();
  *
  * modifies the builder's current direction and current position
  */
-auto Body::addCell(Direction direction, Cell && cell, i32 jumpAnchor, i32 setAnchor) -> void {
+auto Body::addCell(Direction direction, Cell cell, i32 jumpAnchor, i32 setAnchor) -> void {
     /* move from current position unless anchored, then jump */
 	auto baseX = currentX;
 	auto baseY = currentY;
@@ -141,10 +139,10 @@ auto Body::addCell(Direction direction, Cell && cell, i32 jumpAnchor, i32 setAnc
 		anchors.push_back({ currentX, currentY, setAnchor });
 	}
 
-	directAddCell(std::move(cell), newX, newY);
+	directAddCell(cell, newX, newY);
 }
 
-auto Body::directAddCell(Cell && cell, i32 x, i32 y) -> void {
+auto Body::directAddCell(Cell cell, i32 x, i32 y) -> void {
 	cell.setPosition(x, y);
 	cells.emplace_back(cell);
 
@@ -219,7 +217,8 @@ auto Body::getRight(Direction rotation) const -> i32 {
 		case Direction::LEFT: return -left;
 		case Direction::LEFT_DOWN: return diagonalLength(left, up);
 		case Direction::DOWN: return up;
-		case Direction::RIGHT_DOWN: return diagonalLength(up, right);
+		case Direction::RIGHT_DOWN:
+		default: return diagonalLength(up, right);
 	}
 }
 
@@ -232,7 +231,8 @@ auto Body::getUp(Direction rotation) const -> i32 {
 		case Direction::LEFT: return -down;
 		case Direction::LEFT_DOWN: return diagonalLength(down, left);
 		case Direction::DOWN: return -left;
-		case Direction::RIGHT_DOWN: return diagonalLength(left, up);
+		case Direction::RIGHT_DOWN:
+		default: return diagonalLength(left, up);
 	}
 }
 
@@ -245,7 +245,8 @@ auto Body::getLeft(Direction rotation) const -> i32 {
 		case Direction::LEFT: return -right;
 		case Direction::LEFT_DOWN: return -diagonalLength(right, down);
 		case Direction::DOWN: return down;
-		case Direction::RIGHT_DOWN: return -diagonalLength(down, left);
+		case Direction::RIGHT_DOWN:
+		default: return -diagonalLength(down, left);
 	}
 }
 
@@ -258,14 +259,23 @@ auto Body::getDown(Direction rotation) const -> i32 {
 		case Direction::LEFT: return -up;
 		case Direction::LEFT_DOWN: return -diagonalLength(up, right);
 		case Direction::DOWN: return -right;
-		case Direction::RIGHT_DOWN: return -diagonalLength(right, down);
+		case Direction::RIGHT_DOWN:
+		default: return -diagonalLength(right, down);
 	}
 }
 
-auto Body::absoluteXY(Body::Cell & cell, i32 centerX, i32 centerY, Direction rotation) -> Util::Coord {
+auto Body::absoluteXY(Body::Cell cell, i32 centerX, i32 centerY, Direction rotation) -> Util::Coord {
 	return Rotation::rotate(cell.x(), cell.y(), rotation) + Util::Coord { centerX, centerY };
+}
+
+auto Body::getCells() const -> const std::vector<Cell> & {
+	return cells;
 }
 
 auto Body::getCells() -> std::vector<Cell> & {
 	return cells;
+}
+
+auto Body::addAnchor(Anchor anchor) -> void {
+	anchors.push_back(anchor);
 }

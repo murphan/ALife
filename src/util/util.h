@@ -95,6 +95,16 @@ namespace Util {
 
 		return out;
 	}
+
+	template<typename T>
+	constexpr auto asMutable(const T & value) noexcept -> T & {
+		return const_cast<T &>(value);
+	}
+
+	template<typename T>
+	constexpr auto asConst(T * pointer) noexcept -> const T * {
+		return pointer;
+	}
 }
 
 #endif //ALIFE_UTIL_H

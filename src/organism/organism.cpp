@@ -21,8 +21,12 @@ auto Organism::getGenome() const -> const Genome & {
 	return phenome.genome;
 }
 
-auto Organism::body() -> Body & {
+auto Organism::body() const -> const Body & {
 	return phenome.body;
+}
+
+auto Organism::body() -> Body & {
+	return Util::asMutable(Util::asConst(this)->body());
 }
 
 auto Organism::serialize(bool detailed) -> json {
@@ -79,6 +83,6 @@ auto Organism::addEnergy(i32 delta, Settings & settings) -> void {
 	if (energy < 0) energy = 0;
 }
 
-auto Organism::absoluteXY(Body::Cell & cell) const -> Util::Coord {
+auto Organism::absoluteXY(Body::Cell cell) const -> Util::Coord {
 	return Body::absoluteXY(cell, x, y, rotation);
 }

@@ -51,7 +51,7 @@ auto initSimulation(Settings & settings, Controls & controls, SimulationControll
 		simulationController.random,
 		simulationController.ids,
 		simulationController.tree,
-		Phenome(InitialGenome::create(), Body(2), settings),
+		Phenome(InitialGenome::create(), Body(), settings),
 		settings,
 		1
 	);
@@ -73,11 +73,11 @@ auto main () -> int {
 			0.005,
 		},
 		.mutationFactor = 1.5,
-		.sightRange = 10,
+		.sightRange = 20,
 		.weaponDamage = 32,
 		.armorPrevents = 20,
 		.moveCost = 1,
-		.baseMoveLength = 16,
+		.baseMoveLength = 8,
 		.needEnergyToMove = false,
 		.crushTime = 10,
 		.bodyPartCosts = {
@@ -136,12 +136,19 @@ auto main () -> int {
 			std::string json;
 
 			mutex.highPriorityLock([&]() {
-				auto displayModeBefore = controls.displayMode;
-				auto * activeNodeBefore = controls.activeNode;
+				auto controlsBefore = controls;
 
 				ControlsUpdater::update(parsedMessage.body["controls"], controls, simulationController.tree);
 
-				if (displayModeBefore != controls.displayMode || activeNodeBefore != controls.activeNode) {
+				if (
+					!controls.playing && (
+						controlsBefore.doHighlight != controls.doHighlight ||
+						controlsBefore.smartTree != controls.smartTree ||
+						controlsBefore.activeNode != controls.activeNode ||
+						controlsBefore.selectMode != controls.selectMode ||
+						controlsBefore.displayMode != controls.displayMode
+					)
+				) {
 					simulationController.tree.update(controls);
 					json = MessageCreator::controlsMessageAndFrame(controls.serialize(), simulationController.serialize(controls)).dump();
 				} else {
@@ -149,23 +156,6 @@ auto main () -> int {
 				}
 			});
 
-			socket.send(json.begin(), json.end());
-
-		} else if (parsedMessage.type == "request") {
-			if (!parsedMessage.body.contains("id")) return;
-			auto && idField = parsedMessage.body["id"];
-			if (!idField.is_number()) return;
-
-			auto id = idField.get<i32>();
-
-			auto && organism = simulationController.getOrganism(id);
-			if (organism == nullptr) {
-				auto json = MessageCreator::emptyOrganismRequestMessage().dump();
-				socket.send(json.begin(), json.end());
-				return;
-			}
-
-			auto json = MessageCreator::organismRequestMessage(organism->serialize(true)).dump();
 			socket.send(json.begin(), json.end());
 
 		} else if (parsedMessage.type == "settings") {

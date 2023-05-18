@@ -16,9 +16,9 @@
 class Renderer {
 public:
 	static auto render(
-		Environment & environment,
-		std::vector<Organism> & organisms,
-		Controls & controls
+		const Environment & environment,
+		const std::vector<Organism> & organisms,
+		const Controls & controls
 	) -> std::vector<u8>;
 };
 

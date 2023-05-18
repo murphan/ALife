@@ -200,10 +200,10 @@ auto SimulationController::replaceOrganismWithFood(Organism & organism) -> void 
 	}
 }
 
-auto SimulationController::serialize(Controls & controls) -> json {
+auto SimulationController::serialize(const Controls & controls) -> json {
 	auto organismsArray = json::array();
 	for (auto && organism : organisms)
-		organismsArray.push_back(organism.id);
+		organismsArray.push_back(organism.node->uuid);
 
 	auto messageBody = json {
 		{ "width",     environment.getWidth() },
@@ -211,6 +211,13 @@ auto SimulationController::serialize(Controls & controls) -> json {
 		{ "tick",      currentTick },
 		{ "organisms", std::move(organismsArray) },
 	};
+
+	if (controls.activeNode != nullptr) {
+		auto found = Util::find(organisms, [&](Organism & organism) { return organism.node == controls.activeNode; });
+		if (found != organisms.end()) {
+			messageBody.push_back({ "organism", found->serialize(true) });
+		}
+	}
 
 	if (controls.displayMode == Controls::DisplayMode::ENVIRONMENT) {
 		messageBody.push_back({ "grid", Util::base64Encode(Renderer::render(environment, organisms, controls)) });
@@ -234,7 +241,7 @@ auto SimulationController::ageOrganismCells() -> void {
 
 		for (auto i = 0; i < numCells; ++i) {
 			auto index = (i + startIndex) % numCells;
-			auto && cell = organism.body().getCells()[index];
+			auto & cell = organism.body().getCells()[index];
 
 			if (cell.dead()) continue;
 
@@ -292,7 +299,7 @@ auto SimulationController::organismsReproduce() -> void {
 					settings.baseMutationRates[2] * (f32)pow(settings.mutationFactor, phenome.mutationModifiers[2]),
 					random
 				);
-				organism.storedChild = std::make_optional<Phenome>(std::move(childGenome), Body(2), settings);
+				organism.storedChild = std::make_optional<Phenome>(std::move(childGenome), Body(), settings);
 			}
 		} else {
 			auto && childPhenome = organism.storedChild.value();

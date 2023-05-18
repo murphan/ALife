@@ -2,11 +2,8 @@ import pygame
 
 import Global_access
 import boxing
-from Drawing import blackout_message_area
 from component.Button import Button
 from component.Slider import Slider
-
-ORGANISM_TO_DISPLAY = None
 
 class EnvironmentGUI:
     def __init__(self):
@@ -88,7 +85,7 @@ class EnvironmentGUI:
         fps_box = boxing.left_of(ref=play_box, box=boxing.box(210, 35), x=5)
         tree_box = boxing.left_of(ref=fps_box, box=boxing.box(100, 35), x=5)
         do_highlight_box = boxing.left_of(ref=tree_box, box=boxing.box(100, 35), x=5)
-        select_mode_box = boxing.left_of(ref=do_highlight_box, box=boxing.box(100, 35), x=5)
+        select_mode_box = boxing.left_of(ref=do_highlight_box, box=boxing.box(125, 35), x=5)
 
         reset_box = boxing.from_bottom_left(boxing.box(70, 35), 5, 5)
 
@@ -147,8 +144,8 @@ class EnvironmentGUI:
             0xff0000,
         )
 
-        global ORGANISM_TO_DISPLAY
-        EnvironmentGUI.display_organism_data(ORGANISM_TO_DISPLAY)
+        if Global_access.latest_frame is not None and Global_access.latest_frame["organism"] is not None:
+            EnvironmentGUI.display_organism_data(Global_access.latest_frame["organism"])
 
     @staticmethod
     def set_organism_to_display(organism):
@@ -165,7 +162,6 @@ class EnvironmentGUI:
         :param type: organism type
         """
         if organism is not None:
-            blackout_message_area()
             general_string_1 = f"Mutation Modifiers: {organism['mutationModifiers'][0]}    "\
                                f"Num Cells Alive: {organism['numAliveCells']}    "\
                                f"Move Length: {organism['moveLength']}    "\

@@ -62,12 +62,9 @@ public:
 	};
 private:
     /** width of total canvas, not extent of organism body parts */
-    i32 width, height;
-    /** distance from bottom left of the canvas to the 0,0 point of the organism */
-    i32 originX, originY;
 	std::vector<Cell> cells;
 
-	/** bounds of the organism in the canvas, inclusive on both ends */
+	/** furthest extent of any cell, inclusive */
 	i32 left, right, down, up;
 
 	/** for building the body */
@@ -85,7 +82,7 @@ public:
 	Body(const Body & other) = default;
 	Body(Body && other) = default;
 
-	explicit Body(i32 edge);
+	explicit Body();
 
 	/**
 	 * I know this is unsafe but DO NOT modify this cell
@@ -97,22 +94,25 @@ public:
 
 	auto directAccess(i32 x, i32 y) -> Cell &;
 
-	auto addCell(Direction direction, Cell && cell, i32 jumpAnchor, i32 setAnchor) -> void;
-	auto directAddCell(Cell && cell, i32 x, i32 y) -> void;
+	auto addCell(Direction direction, Cell cell, i32 jumpAnchor, i32 setAnchor) -> void;
+	auto directAddCell(Cell cell, i32 x, i32 y) -> void;
 	auto removeCell(Cell & cell) -> void;
 	auto getNextCellofType(BodyPart bodyPart, i32 & start) -> Cell *;
 
-	auto getWidth() const -> i32;
-	auto getHeight() const -> i32;
+	auto addAnchor(Anchor anchor) -> void;
 
-	auto getLeft(Direction rotation) const -> i32;
-	auto getRight(Direction rotation) const -> i32;
-	auto getDown(Direction rotation) const -> i32;
-	auto getUp(Direction rotation) const -> i32;
+	[[nodiscard]] auto getWidth() const -> i32;
+	[[nodiscard]] auto getHeight() const -> i32;
 
+	[[nodiscard]] auto getLeft(Direction rotation) const -> i32;
+	[[nodiscard]] auto getRight(Direction rotation) const -> i32;
+	[[nodiscard]] auto getDown(Direction rotation) const -> i32;
+	[[nodiscard]] auto getUp(Direction rotation) const -> i32;
+
+	[[nodiscard]] auto getCells() const -> const std::vector<Cell> &;
 	auto getCells() -> std::vector<Cell> &;
 
-	static auto absoluteXY(Body::Cell & cell, i32 centerX, i32 centerY, Direction rotation) -> Util::Coord;
+	static auto absoluteXY(Body::Cell cell, i32 centerX, i32 centerY, Direction rotation) -> Util::Coord;
 };
 
 #endif //ALIFE_BODY_H

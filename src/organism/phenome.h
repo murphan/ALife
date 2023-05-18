@@ -54,8 +54,8 @@ public:
 	Phenome(Phenome && other) = default;
 	auto operator=(Phenome && other) noexcept -> Phenome & = default;
 
-	auto onAddCell(Body::Cell & cell) -> void;
-	auto onKilledCell(Body::Cell & cell) -> void;
+	auto onAddCell(Body::Cell cell) -> void;
+	auto onKilledCell(Body::Cell cell) -> void;
 };
 
 #endif //ALIFE_PHENOME_H

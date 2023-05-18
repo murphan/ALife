@@ -78,7 +78,7 @@ public:
 	auto refreshFactors() -> void;
 	auto tick(Node *& activeNode) -> void;
 
-	auto serialize(Controls & controls) -> json;
+	auto serialize(const Controls & controls) -> json;
 
 	auto getOrganism(u32 id) -> Organism *;
 };

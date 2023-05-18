@@ -17,12 +17,12 @@ inline auto readSegment(const Genome & genome, GeneMap::Segment segment) -> Geno
 	return GenomeView { &genome, segment.begin, segment.length() };
 }
 
-auto Phenome::onAddCell(Body::Cell & cell) -> void {
+auto Phenome::onAddCell(Body::Cell cell) -> void {
 	if (cell.bodyPart() == BodyPart::MOVER) ++moveTries;
 	++numAliveCells;
 }
 
-auto Phenome::onKilledCell(Body::Cell & cell) -> void {
+auto Phenome::onKilledCell(Body::Cell cell) -> void {
 	if (cell.bodyPart() == BodyPart::MOVER) --moveTries;
 	--numAliveCells;
 }
@@ -54,6 +54,8 @@ Phenome::Phenome(Genome && inGenome, Body && inBody, Settings & settings):
 
 		body.directAddCell(Body::Cell::make(bodyPart, 0), 0, 0);
 	}
+
+	body.addAnchor({ 0, 0, 0 });
 
 	for (auto i = 1; i < geneMap.segments.size(); ++i) {
 		auto segment = geneMap.segments[i];
