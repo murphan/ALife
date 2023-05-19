@@ -4,6 +4,8 @@
 
 #include "organism.h"
 #include "util/rotation.h"
+#include "rendering/renderer.h"
+#include "rendering/renderBackground.h"
 
 Organism::Organism(Phenome && phenome, u32 id, i32 x, i32 y, Direction rotation, i32 energy, Node * node) :
 	id(id),
@@ -46,15 +48,18 @@ auto Organism::serialize(bool detailed) -> json {
 
 	nonDetailedPart.push_back({ "genome", phenome.genome.toString() });
 
-	auto cells = json::array();
-	for (auto && cell : body.getCells()) {
-		cells.push_back({
-            { "x", cell.x() },
-            { "y", cell.y() },
-            { "type", cell.bodyPart() }
-        });
-	}
-	nonDetailedPart.push_back({ "cells", cells });
+	auto render = Renderer::Render(
+		RenderBackground(body.getWidth(), body.getHeight()),
+		Controls { .activeNode = node }
+	);
+	render.renderOrganism(
+		*this,
+		-body.getLeft(Direction::RIGHT),
+		-body.getDown(Direction::RIGHT),
+		Direction::RIGHT,
+		0
+	);
+	nonDetailedPart.push_back({ "body", Util::base64Encode(render.finalize()) });
 
 	auto mutationModifiers = json::array();
 	for (auto && mutationModifier : phenome.mutationModifiers) mutationModifiers.push_back(mutationModifier);
@@ -78,7 +83,7 @@ auto Organism::serialize(bool detailed) -> json {
 /**
  * do not let energy go negative
  */
-auto Organism::addEnergy(i32 delta, Settings & settings) -> void {
+auto Organism::addEnergy(i32 delta) -> void {
 	energy += delta;
 	if (energy < 0) energy = 0;
 }

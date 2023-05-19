@@ -1,6 +1,6 @@
 
 #include "environment/simulationController.h"
-#include "renderer.h"
+#include "rendering/renderer.h"
 #include "../genome/geneMap.h"
 #include "util/rotation.h"
 #include "organism/cell/mouth.h"
@@ -170,10 +170,10 @@ auto SimulationController::moveOrganisms() -> void {
 			++organism.ticksSinceCollision;
 			organism.ticksStuck = 0;
 
-			organism.addEnergy(-settings.moveCost, settings);
+			organism.addEnergy(-settings.moveCost);
 		} else {
 			if (++organism.ticksStuck >= settings.crushTime) {
-				organism.addEnergy(-settings.moveCost, settings);
+				organism.addEnergy(-settings.moveCost);
 			}
 		}
 	}
@@ -220,7 +220,15 @@ auto SimulationController::serialize(const Controls & controls) -> json {
 	}
 
 	if (controls.displayMode == Controls::DisplayMode::ENVIRONMENT) {
-		messageBody.push_back({ "grid", Util::base64Encode(Renderer::render(environment, organisms, controls)) });
+		auto render = Renderer::Render(environment, controls);
+
+		for (auto index = 0; index < organisms.size(); ++index) {
+			auto && organism = organisms[index];
+			render.renderOrganism(organism, organism.x, organism.y, organism.rotation, index);
+		}
+
+		messageBody.push_back({ "grid", Util::base64Encode(render.finalize()) });
+
 	} else {
 		messageBody.push_back({ "tree", tree.serialize(controls.activeNode) });
 	}
@@ -367,7 +375,7 @@ auto SimulationController::tryReproduce(Phenome & childPhenome, Organism & organ
 
 	auto [x, y, rotation] = spawnPoint.value();
 
-	organism.addEnergy(-(reproductionEnergy + childBodyEnergy + childEnergy), settings);
+	organism.addEnergy(-(reproductionEnergy + childBodyEnergy + childEnergy));
 
 	return std::make_optional<Organism>(
 		std::move(childPhenome),

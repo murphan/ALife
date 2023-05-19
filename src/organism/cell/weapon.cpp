@@ -51,7 +51,7 @@ auto Weapon::dealDamage(i32 x, i32 y, i32 superAttack, i32 index, Environment & 
 
 	if (damageDealt > 0) {
 		auto && defender = organisms[defenderIndex];
-		defender.addEnergy(-damageDealt, settings);
+		defender.addEnergy(-damageDealt);
 
 		if (defender.energy == 0) {
 			killCell(defender, cell);
