@@ -2,23 +2,33 @@
 // Created by Emmet on 11/9/2022.
 //
 
-#include "organism/phenome.h"
-#include "genome/genome.h"
-#include "util/types.h"
+#include "json.hpp"
 
-#include <thread>
+#include <random>
 #include <iostream>
 
-#include "environment/simulationController.h"
-#include "socket/messageCreator.h"
-#include "socket/messageReceiver.h"
-#include "socket/socket.h"
-#include "environment/organismSeeder.h"
-#include "loop.h"
-#include "initialGenome.h"
-#include "ids.h"
-#include "util/priorityMutex.h"
-#include "controlsUpdater.h"
+import Types;
+import Settings;
+import Controls;
+import SimulationController;
+import Environment;
+import OrganismGrid;
+import Ids;
+import Tree;
+import OrganismSeeder;
+import InitialGenome;
+import Body;
+import Phenome;
+import Factor;
+import Noise;
+import Socket;
+import MessageReceiver;
+import PriorityMutex;
+import MessageCreator;
+import ControlsUpdater;
+import Loop;
+
+using json = nlohmann::json;
 
 constexpr auto WIDTH = 250, HEIGHT = 150;
 
@@ -59,7 +69,7 @@ auto initSimulation(Settings & settings, Controls & controls, SimulationControll
 	simulationController.tree.update(controls);
 }
 
-auto main () -> int {
+int main() {
 	auto settings = Settings {
 		.lifetimeFactor = 200,
 		.photosynthesisFactor = 1,
@@ -230,4 +240,6 @@ auto main () -> int {
 
 		return controls.unlimitedFPS() ? Fps::unlimited() : Fps(controls.fps);
 	});
+
+	return 0;
 }

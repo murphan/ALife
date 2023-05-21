@@ -2,27 +2,35 @@
 // Created by Emmet on 3/5/2023.
 //
 
-#include "genome/gene/bodyGene.h"
-#include "initialGenome.h"
-#include "genome/geneWriter.h"
+export module InitialGenome;
 
-auto InitialGenome::create() -> Genome {
-	auto baseGenome = Genome();
+import Genome;
+import GeneWriter;
+import BodyPart;
+import BodyGene;
+import Gene;
+import Direction;
 
-	GeneWriter::write7(baseGenome, BodyPart::MOUTH - 1);
-	baseGenome.writeGarbage(21);
+export class InitialGenome {
+public:
+	static auto create() -> Genome {
+		auto baseGenome = Genome();
 
-	baseGenome.writeHeader();
-	GeneWriter::write5(baseGenome, Gene::BODY);
-	BodyGene::create(Direction::RIGHT_UP, BodyPart::PHOTOSYNTHESIZER).writeBody(baseGenome);
+		GeneWriter::write7(baseGenome, BodyPart::MOUTH - 1);
+		baseGenome.writeGarbage(21);
 
-	baseGenome.writeGarbage(21);
+		baseGenome.writeHeader();
+		GeneWriter::write5(baseGenome, Gene::BODY);
+		BodyGene::create(Direction::RIGHT_UP, BodyPart::PHOTOSYNTHESIZER).writeBody(baseGenome);
 
-	baseGenome.writeHeader();
-	GeneWriter::write5(baseGenome, Gene::BODY);
-	BodyGene::create(Direction::RIGHT_DOWN, BodyPart::PHOTOSYNTHESIZER).writeBody(baseGenome);
+		baseGenome.writeGarbage(21);
 
-	baseGenome.writeGarbage(21);
+		baseGenome.writeHeader();
+		GeneWriter::write5(baseGenome, Gene::BODY);
+		BodyGene::create(Direction::RIGHT_DOWN, BodyPart::PHOTOSYNTHESIZER).writeBody(baseGenome);
 
-	return baseGenome;
-}
+		baseGenome.writeGarbage(21);
+
+		return baseGenome;
+	}
+};

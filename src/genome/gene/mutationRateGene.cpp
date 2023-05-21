@@ -2,28 +2,41 @@
 // Created by Rosa on 1/12/2023.
 //
 
-#include "mutationRateGene.h"
-#include "../geneWriter.h"
+export module MutationRateGene;
 
-const auto MutationRateGene::LENGTH = 6;
+import Types;
+import Gene;
+import BodyPart;
+import GenomeView;
+import Genome;
+import GeneWriter;
 
-MutationRateGene::MutationRateGene(GenomeView & view) :
-	change(0)
-{
-	change += GeneWriter::read5(view, 0) - 2;
-	change += GeneWriter::read5(view, 3) - 2;
-}
+export class MutationRateGene : public Gene {
+protected:
+	auto writeBody(Genome & genome) const -> void final {
+		auto half = change / 2;
+		auto otherHalf = change - half;
 
-MutationRateGene::MutationRateGene(i32 change) : change(change) {}
+		GeneWriter::write5(genome, half + 2);
+		GeneWriter::write5(genome, otherHalf + 2);
+	};
 
-auto MutationRateGene::writeBody(Genome & genome) -> void {
-	auto half = change / 2;
-	auto otherHalf = change - half;
+private:
+	i32 change;
 
-	GeneWriter::write5(genome, half + 2);
-	GeneWriter::write5(genome, otherHalf + 2);
-}
+public:
+	static constexpr i32 LENGTH = 6;
 
-auto MutationRateGene::getChange() -> i32 {
-	return change;
-}
+	explicit MutationRateGene(GenomeView & view) :
+		change(0)
+	{
+		change += GeneWriter::read5(view, 0) - 2;
+		change += GeneWriter::read5(view, 3) - 2;
+	}
+
+	explicit MutationRateGene(i32 change) : change(change) {};
+
+	[[nodiscard]] auto getChange() const -> i32  {
+		return change;
+	}
+};

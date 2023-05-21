@@ -2,31 +2,44 @@
 // Created by Emmet on 2/23/2023.
 //
 
-#include "messageReceiver.h"
+module;
 
-#include "iostream"
+#include <iostream>
+#include "json.hpp"
 
-auto MessageReceiver::receive(std::string & message) -> std::optional<Message> {
-	try {
-		auto jsonMessage = json::parse(message);
+export module MessageReceiver;
 
-		if (!jsonMessage.contains("type")) {
-			std::cout << "malformed message without type" << std::endl;
+using json = nlohmann::json;
+
+export class MessageReceiver {
+public:
+	struct Message {
+		std::string type;
+		json body;
+
+		Message(std::string && type, json && body) : type(std::move(type)), body(std::move(body)) {};
+	};
+
+	static auto receive(std::string & message) -> std::optional<Message> {
+		try {
+			auto jsonMessage = json::parse(message);
+
+			if (!jsonMessage.contains("type")) {
+				std::cout << "malformed message without type" << std::endl;
+				return std::nullopt;
+			}
+
+			auto typeField = jsonMessage["type"];
+			if (!typeField.is_string()) {
+				std::cout << "malformed message without type" << std::endl;
+				return std::nullopt;
+			}
+
+			std::string && type = typeField.get<std::string>();
+
+			return std::make_optional<Message>(std::move(type), std::move(jsonMessage));
+		} catch (...) {
 			return std::nullopt;
 		}
-
-		auto typeField = jsonMessage["type"];
-		if (!typeField.is_string()) {
-			std::cout << "malformed message without type" << std::endl;
-			return std::nullopt;
-		}
-
-		std::string && type = typeField.get<std::string>();
-
-		return std::make_optional<Message>(std::move(type), std::move(jsonMessage));
-	} catch (...) {
-		return std::nullopt;
 	}
-}
-
-MessageReceiver::Message::Message(std::string && type, json && body): type(std::move(type)), body(std::move(body)) {}
+};

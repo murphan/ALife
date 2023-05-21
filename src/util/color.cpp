@@ -2,18 +2,18 @@
 // Created by Emmet on 5/9/2023.
 //
 
-#ifndef ALIFE_COLOR_H
-#define ALIFE_COLOR_H
+export module Color;
 
-#include <cmath>
-#include "types.h"
+import Types;
 
-namespace Color {
+export namespace Color {
 	struct HSV {
-		f32 h, s, v;
+		f32 h;
+		f32 s;
+		f32 v;
 	};
 
-	constexpr auto fractionalPart(f32 f) {
+	constexpr auto modBy1(f32 f) {
 		return f < 0.0_f32 ? f + (f32)(1_i64 - (i64)f) : f - (f32)(i64)f;
 	}
 
@@ -33,10 +33,9 @@ namespace Color {
 		if(s <= 0.0_f32)
 			return channelFloats2Int(v, v, v);
 
-		auto hh = fractionalPart(h) * 6.0_f32;
+		auto hh = modBy1(h) * 6.0_f32;
 		auto i = (i32)hh;
-		//auto ff = hh - (f32)i;
-		auto ff = fractionalPart(hh);
+		auto ff = modBy1(hh);
 		auto p = v * (1.0_f32 - s);
 		auto q = v * (1.0_f32 - (s * ff));
 		auto t = v * (1.0_f32 - (s * (1.0_f32 - ff)));
@@ -98,10 +97,8 @@ namespace Color {
 			out.h = 4.0_f32 + (f32)(r - g) / (f32)delta;
 		}
 
-		out.h = fractionalPart(out.h / 6.0_f32);
+		out.h = modBy1(out.h / 6.0_f32);
 
 		return out;
 	}
 }
-
-#endif //ALIFE_COLOR_H

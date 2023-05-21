@@ -2,18 +2,22 @@
 // Created by Emmet on 4/11/2023.
 //
 
-#ifndef ALIFE_RENDERER_H
-#define ALIFE_RENDERER_H
+module;
 
+#include <array>
 #include <vector>
-#include "util/types.h"
 
-#include "environment/organismGrid.h"
-#include "environment/environment.h"
-#include "organism/organism.h"
-#include "controls.h"
+export module Renderer;
 
-#include "util/color.h"
+import Types;
+import Environment;
+import Organism;
+import Color;
+import MapCell;
+import Factor;
+import Controls;
+import Direction;
+import Body;
 
 namespace Renderer {
 	constexpr static i32 BYTES_PER_TILE = 9;
@@ -27,7 +31,8 @@ namespace Renderer {
 	}
 
 	template<usize SIZE>
-	constexpr auto colorShiftArray(const u32 (&colorArray)[SIZE], f32 saturationFactor, f32 valueFactor) -> std::array<u32, SIZE> {
+	constexpr auto
+	colorShiftArray(const u32 (&colorArray)[SIZE], f32 saturationFactor, f32 valueFactor) -> std::array<u32, SIZE> {
 		auto array = std::array<u32, SIZE>();
 
 		for (auto i = 0; i < SIZE; ++i) {
@@ -85,13 +90,13 @@ namespace Renderer {
 		}
 	};
 
-	inline auto insert3(std::vector<u8> & buffer, i32 index, u32 value) -> void {
+	inline auto insert3(std::vector<u8> &buffer, i32 index, u32 value) -> void {
 		buffer[index] = (value >> 16) & 0xff;
 		buffer[index + 1] = (value >> 8) & 0xff;
 		buffer[index + 2] = value & 0xff;
 	}
 
-	inline auto insert2(std::vector<u8> & buffer, i32 index, u32 value) -> void {
+	inline auto insert2(std::vector<u8> &buffer, i32 index, u32 value) -> void {
 		buffer[index] = (value >> 8) & 0xff;
 		buffer[index + 1] = value & 0xff;
 	}
@@ -110,7 +115,7 @@ namespace Renderer {
 		{ t.getHeight() } -> std::same_as<i32>;
 	};
 
-	class Render {
+	export class Render {
 	private:
 		std::vector<u8> buffer;
 		bool isHighlighting;
@@ -122,15 +127,14 @@ namespace Renderer {
 
 	public:
 		template<EnvironmentLike E>
-		explicit Render(const E & environment, const Controls & controls) :
+		explicit Render(const E &environment, const Controls & controls) :
 			buffer(environment.getWidth() * environment.getHeight() * BYTES_PER_TILE, 0),
 			isHighlighting(controls.doHighlight && controls.activeNode != nullptr),
-			width(environment.getWidth())
-		{
+			width(environment.getWidth()) {
 			for (auto y = 0; y < environment.getHeight(); ++y) {
 				for (auto x = 0; x < environment.getWidth(); ++x) {
-					auto && mapCell = environment.accessUnsafe(x, y);
-					auto && food = mapCell.food;
+					auto &&mapCell = environment.accessUnsafe(x, y);
+					auto &&food = mapCell.food;
 
 					insert3(
 						buffer,
@@ -158,8 +162,9 @@ namespace Renderer {
 			}
 		}
 
-		auto renderOrganism(const Organism & organism, i32 centerX, i32 centerY, Direction direction, i32 index) -> void {
-			for (auto && cell: organism.body().getCells()) {
+		auto
+		renderOrganism(const Organism &organism, i32 centerX, i32 centerY, Direction direction, i32 index) -> void {
+			for (auto &&cell: organism.body().getCells()) {
 				auto [x, y] = Body::absoluteXY(cell, centerX, centerY, direction);
 
 				auto active = !isHighlighting || organism.node->active;
@@ -190,5 +195,3 @@ namespace Renderer {
 		}
 	};
 }
-
-#endif //ALIFE_RENDERER_H

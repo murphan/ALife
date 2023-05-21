@@ -2,13 +2,85 @@
 // Created by Emmet on 11/10/2022.
 //
 
-#include "direction.h"
+export module Direction;
+
+import Coord;
+import Types;
+import Util;
+
+/**
+ * represents a discrete direction with 8 possibilities
+ * Direction of value 0 points right,
+ * each next tick up in value is an additional 45 degrees
+ * modulo 8: the direction after 7 is 0 and so on
+ *
+ * think of the point (cos( pi/4 a), sin( pi/4 a)) for a in [0..7]
+ * except the resulting vector from the direction is rounded to the next integer (1) in the case of diagonals
+ *
+ * consult the values of [table] for the possible vectors
+ */
+export class Direction {
+private:
+	static Coord table[8];
+	static i32 normalizedTable[8];
+
+	i32 direction;
+
+public:
+	enum {
+		RIGHT,
+		RIGHT_UP,
+		UP,
+		LEFT_UP,
+		LEFT,
+		LEFT_DOWN,
+		DOWN,
+		RIGHT_DOWN,
+	};
+
+	Direction() : direction(0) {};
+	Direction(i32 direction) : direction(Util::positiveMod(direction, 8)) {};
+
+	[[nodiscard]] auto x() const -> i32 {
+		return table[direction].x;
+	}
+
+	[[nodiscard]] auto y() const -> i32 {
+		return table[direction].y;
+	}
+
+	[[nodiscard]] auto value() const -> i32 {
+		return direction;
+	}
+
+	[[nodiscard]] auto normalized() const -> i32 {
+		return normalizedTable[direction];
+	}
+
+	[[nodiscard]] auto rotate(i32 relative) const -> Direction {
+		return { Util::positiveMod(direction + relative, 8) };
+	}
+
+	[[nodiscard]] auto rotate(Direction relative) const -> Direction  {
+		auto amount = normalizedTable[relative.direction];
+		return { Util::positiveMod(direction + amount, 8) };
+	}
+
+	[[nodiscard]] auto isDiagonal() const -> bool {
+		return direction == RIGHT_UP || direction == LEFT_UP || direction == LEFT_DOWN || direction == RIGHT_DOWN;
+	}
+
+	[[nodiscard]] auto opposite() const -> Direction {
+		return { (direction + 4) % 8 };
+	}
+};
+
 
 /**
  * lookup table for the x and y components of the
  * corresponding direction
  */
-Util::Coord Direction::table[8] = {
+Coord Direction::table[8] = {
 	{ 1, 0 },
 	{ 1, 1 },
 	{ 0, 1 },
@@ -32,55 +104,3 @@ i32 Direction::normalizedTable[8] = {
 	-2,
 	-1
 };
-
-Direction::Direction(i32 direction): direction(Util::positiveMod(direction, 8)) {}
-
-Direction::Direction() : direction(0) {}
-
-/**
- * x component of a vector in this direction
- * has length either -1, 0, or 1
- */
-auto Direction::x() const -> i32 {
-	return table[direction].x;
-}
-
-/**
- * y component of a vector in this direction
- * has length either -1, 0, or 1
- */
-auto Direction::y() const -> i32 {
-	return table[direction].y;
-}
-
-/**
- * @return a new direction relative many ticks away, either positive or negative
- */
-auto Direction::rotate(i32 relative) const -> Direction {
-	return { Util::positiveMod(direction + relative, 8) };
-}
-
-/**
- * instead of specifying ticks to rotate by,
- * the passed direction is interpreted as a number of ticks away from RIGHT
- */
-auto Direction::rotate(Direction relative) const -> Direction {
-	auto amount = normalizedTable[relative.direction];
-	return { Util::positiveMod(direction + amount, 8) };
-}
-
-auto Direction::value() const -> i32 {
-	return direction;
-}
-
-auto Direction::normalized() const -> i32 {
-	return normalizedTable[direction];
-}
-
-auto Direction::isDiagonal() const -> bool {
-	return direction == RIGHT_UP || direction == LEFT_UP || direction == LEFT_DOWN || direction == RIGHT_DOWN;
-}
-
-auto Direction::opposite() const -> Direction {
-	return { (direction + 4) % 8 };
-}

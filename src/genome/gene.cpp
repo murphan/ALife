@@ -2,21 +2,18 @@
 // Created by Rosa on 1/9/2023.
 //
 
-#ifndef ALIFE_GENE_H
-#define ALIFE_GENE_H
+export module Gene;
 
-#include <array>
-#include "genomeView.h"
-#include "genome.h"
+import Genome;
 
-class Gene {
+export class Gene {
 protected:
 	/**
 	 * each type of gene should implement this
 	 * writes everything that's not the gene header
 	 * do not call this directly, instead use write();
 	 */
-	virtual auto writeBody(Genome & genome) -> void = 0;
+	virtual auto writeBody(Genome & genome) const -> void = 0;
 
 public:
 	enum Type {
@@ -27,5 +24,3 @@ public:
 		MOVEMENT,
 	};
 };
-
-#endif //ALIFE_GENE_H

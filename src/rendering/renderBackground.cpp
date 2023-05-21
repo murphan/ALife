@@ -2,20 +2,28 @@
 // Created by Emmet on 5/19/2023.
 //
 
-#include "renderBackground.h"
+export module RenderBackground;
 
-auto RenderBackground::mapCell = MapCell();
+import Types;
+import MapCell;
 
-RenderBackground::RenderBackground(i32 width, i32 height): width(width), height(height) {}
+export class RenderBackground {
+private:
+	i32 width, height;
+	constexpr static MapCell fakeMapCell = MapCell();
 
-auto RenderBackground::accessUnsafe(i32 x, i32 y) -> const MapCell & {
-	return mapCell;
-}
+public:
+	explicit RenderBackground(i32 width, i32 height): width(width), height(height) {};
 
-auto RenderBackground::getWidth() const -> i32 {
-	return width;
-}
+	[[nodiscard]] static auto accessUnsafe(i32 x, i32 y) -> const MapCell & {
+		return fakeMapCell;
+	}
 
-auto RenderBackground::getHeight() const -> i32 {
-	return height;
-}
+	[[nodiscard]] auto getWidth() const -> i32 {
+		return width;
+	}
+
+	[[nodiscard]] auto getHeight() const -> i32 {
+		return height;
+	}
+};

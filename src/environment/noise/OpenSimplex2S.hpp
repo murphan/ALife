@@ -1,3 +1,4 @@
+
 /**
  * Ported from https://github.com/KdotJPG/OpenSimplex2/blob/master/java/OpenSimplex2S.java
  * Probably not best implementation of static initialization.

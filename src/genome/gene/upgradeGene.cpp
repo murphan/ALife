@@ -1,10 +1,14 @@
 //
 // Created by Emmet on 4/19/2023.
 //
-#include "upgradeGene.h"
-#include "../geneWriter.h"
+export module UpgradeGene;
 
-auto const UpgradeGene::LENGTH = 6;
+import Types;
+import Gene;
+import BodyPart;
+import GenomeView;
+import Genome;
+import GeneWriter;
 
 constexpr BodyPart bodyPartMap[] = {
 	WEAPON, /* 0 */
@@ -12,26 +16,38 @@ constexpr BodyPart bodyPartMap[] = {
 	SCAFFOLD, /* 2 */
 };
 
-auto UpgradeGene::writeBody(Genome & genome) -> void {
-	GeneWriter::write3(genome, bodyPartType);
+export class UpgradeGene : public Gene {
+public:
 
-	if (bodyPartType == 0 || bodyPartType == 1) {
-		GeneWriter::write3(genome, modifier);
-	} else if (bodyPartType == 3) {
-		GeneWriter::write2(genome, 0);
+private:
+	i32 bodyPartType;
+	i32 modifier;
+
+protected:
+	auto writeBody(Genome & genome) const -> void final {
+		GeneWriter::write3(genome, bodyPartType);
+
+		if (bodyPartType == 0 || bodyPartType == 1) {
+			GeneWriter::write3(genome, modifier);
+		} else if (bodyPartType == 3) {
+			GeneWriter::write2(genome, 0);
+		}
 	}
-}
 
-UpgradeGene::UpgradeGene(GenomeView & view) : bodyPartType(GeneWriter::read3(view, 0)), modifier(0) {
-	if (bodyPartType == 0 || bodyPartType == 1) {
-		modifier = GeneWriter::read3(view, 3);
+public:
+	static constexpr i32 LENGTH = 6;
+
+	explicit UpgradeGene(GenomeView & view) : bodyPartType(GeneWriter::read3(view, 0)), modifier(0) {
+		if (bodyPartType == 0 || bodyPartType == 1) {
+			modifier = GeneWriter::read3(view, 3);
+		}
+	};
+
+	auto getBodyPart() const -> BodyPart  {
+		return bodyPartMap[bodyPartType];
 	}
-}
 
-auto UpgradeGene::getBodyPart() const -> BodyPart {
-	return bodyPartMap[bodyPartType];
-}
-
-auto UpgradeGene::getModifier() const -> i32 {
-	return modifier;
-}
+	auto getModifier() const -> i32  {
+		return modifier;
+	}
+};

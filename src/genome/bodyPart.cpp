@@ -2,10 +2,9 @@
 // Created by Emmet on 2/6/2023.
 //
 
-#ifndef ALIFE_BODYPART_H
-#define ALIFE_BODYPART_H
+export module BodyPart;
 
-enum BodyPart {
+export enum BodyPart {
 	NONE = 0,
 	MOUTH = 1,
 	MOVER = 2,
@@ -16,7 +15,7 @@ enum BodyPart {
 	SCAFFOLD = 7,
 };
 
-constexpr static const char * BODY_PART_NAMES[] = {
+export const char * BODY_PART_NAMES[] = {
 	"None",
 	"Mouth",
 	"Mover",
@@ -26,5 +25,3 @@ constexpr static const char * BODY_PART_NAMES[] = {
 	"Eye",
 	"Scaffold"
 };
-
-#endif //ALIFE_BODYPART_H

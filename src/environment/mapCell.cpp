@@ -1,20 +1,33 @@
 
-#include "mapCell.h"
+export module MapCell;
 
-MapCell::MapCell() : factors { 0 }, hasWall(false), food(Body::Cell::makeEmpty()) {}
+import Types;
+import Cell;
+import Factor;
 
-auto MapCell::getFactor(Factor factor) const -> i8 {
-	return factors[factor];
-}
+export class MapCell {
+private:
+    i8 factors[1];
+	bool wall;
 
-auto MapCell::getHasWall() const -> bool {
-	return hasWall;
-}
+public:
+	Cell food;
 
-auto MapCell::setFactor(Factor factor, i8 value) -> void {
-	factors[factor] = value;
-}
+	constexpr MapCell() : factors { 0 }, wall(false), food(Cell::makeEmpty()) {};
 
-auto MapCell::setHasWall(bool hasWall) -> void {
-	this->hasWall = hasWall;
-}
+    [[nodiscard]] auto getFactor(Factor factor) const -> i8 {
+	    return factors[factor];
+    }
+
+	auto setFactor(Factor factor, i8 value) -> void {
+		factors[factor] = value;
+	}
+
+	auto setHasWall(bool hasWall) -> void {
+		this->wall = hasWall;
+	}
+
+	[[nodiscard]] auto getHasWall() const -> bool {
+		return wall;
+	}
+};
