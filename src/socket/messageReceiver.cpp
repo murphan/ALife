@@ -5,6 +5,7 @@
 module;
 
 #include <iostream>
+#include <optional>
 #include "json.hpp"
 
 export module MessageReceiver;

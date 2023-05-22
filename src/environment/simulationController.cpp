@@ -3,6 +3,7 @@ module;
 
 #include "json.hpp"
 #include <random>
+#include <optional>
 
 export module SimulationController;
 
@@ -32,11 +33,8 @@ import SerializeOrganism;
 
 using json = nlohmann::json;
 
-auto randomDirection = std::uniform_int_distribution(0, 7);
-
-constexpr i32 HEAL_STRIDE = 6;
-
-auto fiftyFifty = std::uniform_int_distribution(0, 1);
+auto randomDirection = std::uniform_int_distribution<i32>(0_i32, 7_i32);
+auto fiftyFifty = std::uniform_int_distribution<i32>(0_i32, 1_i32);
 
 export class SimulationController {
 private:
@@ -97,7 +95,7 @@ private:
 
 			/* select one cell to age */
 			auto numCells = organism.body().getCells().size();
-			auto startIndex = std::uniform_int_distribution(0, (i32)numCells - 1)(random);
+			auto startIndex = std::uniform_int_distribution<i32>(0, (i32)numCells - 1)(random);
 
 			for (auto i = 0; i < numCells; ++i) {
 				auto index = (i + startIndex) % numCells;
