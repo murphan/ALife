@@ -20,7 +20,6 @@ public:
 	class Cell {
 	private:
 		BodyPart bodyPart_;
-		i32 data_;
 		i32 age_;
 		i32 modifier_;
 		i16 x_, y_;
@@ -30,7 +29,6 @@ public:
 	public:
 		explicit Cell(
 			BodyPart bodyPart_,
-			i32 data_,
 			i32 age_,
 			i32 modifier_,
 			i16 x_,
@@ -40,7 +38,7 @@ public:
 		);
 
 		static auto makeEmpty() -> Cell;
-		static auto make(BodyPart bodyPart, i32 data, i32 age) -> Cell;
+		static auto make(BodyPart bodyPart, i32 age) -> Cell;
 
 		auto modify(i32 modifier) -> void;
 		auto setDead(bool dead) -> void;
@@ -51,7 +49,6 @@ public:
 		[[nodiscard]] auto empty() const -> bool;
 		[[nodiscard]] auto filled() const -> bool;
 		[[nodiscard]] auto bodyPart() const -> BodyPart;
-		[[nodiscard]] auto data() const -> i32;
 		[[nodiscard]] auto isModified() const -> bool;
 		[[nodiscard]] auto modifier() const -> i32;
 		[[nodiscard]] auto dead() const -> bool;

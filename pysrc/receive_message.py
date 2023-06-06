@@ -1,8 +1,8 @@
 import base64
 import json
-from threading import Thread
 
 import Global_access
+from EnvironmentGUI import EnvironmentGUI
 
 
 def decode_message(conn):
@@ -31,53 +31,69 @@ def decode_message(conn):
 
 
 def process_data(message_buf: bytes):
-        data_map = json.loads(message_buf)
+    data_map = json.loads(message_buf)
 
-        message_type = data_map["type"]
-        if message_type == "frame":
-            handle_environment_data(data_map["environment"])
+    message_type = data_map["type"]
+    # organism_data = data_map["organism"]
+    if message_type == "frame":
+        handle_frame_data(data_map["frame"])
 
-        elif message_type == "init":
-            handle_environment_data(data_map["environment"])
-            handle_control_data(data_map["control"])
-            handle_settings_data(data_map["settings"])
+    elif message_type == "init":
+        handle_frame_data(data_map["frame"])
+        handle_control_data(data_map["controls"])
+        handle_settings_data(data_map["settings"])
 
-        elif message_type == "organism_data":
-            print("organism data received")
+    elif message_type == "request":
+        EnvironmentGUI.set_organism_to_display(data_map["organism"])
 
-        elif message_type == "control":
-            handle_control_data(data_map["control"])
+    elif message_type == "controls":
+        handle_control_data(data_map["controls"])
+        if 'frame' in data_map:
+            handle_frame_data(data_map["frame"])
 
-        elif message_type == "settings":
-            handle_settings_data(data_map["settings"])
+    elif message_type == "settings":
+        handle_settings_data(data_map["settings"])
+
+    elif message_type == "tree":
+        handle_tree_data(data_map["tree"])
 
 
-def handle_environment_data(environment_data_map):
-    height = environment_data_map["height"]
-    width = environment_data_map["width"]
+def handle_tree_data(tree):
+    Global_access.tree = tree
+    Global_access.set_should_render(True)
 
-    Global_access.latest_frame = {
+
+def handle_frame_data(frame_data_map):
+    height = frame_data_map["height"]
+    width = frame_data_map["width"]
+
+    latest_frame = {
         "size": (width, height),
-        "buffer": base64.b64decode(environment_data_map["grid"]),
-        "uuids": environment_data_map["organisms"],
+        "ids": frame_data_map["organisms"],
         "should_render": True,
     }
 
+    if 'grid' in frame_data_map:
+        latest_frame['grid'] = base64.b64decode(frame_data_map['grid'])
+    elif 'tree' in frame_data_map:
+        latest_frame['tree'] = frame_data_map['tree']
 
-def handle_control_data(control):
+    Global_access.latest_frame = latest_frame
+
+
+def handle_control_data(controls):
     """
     update internal control values to match what the backend says is correct
     do not send a message back
     """
-    Global_access.fps = control["fps"]
-    Global_access.updateDisplay = control["updateDisplay"]
-    Global_access.running = control["playing"]
+    Global_access.controls = controls
+    Global_access.set_should_render(True)
 
 
 def handle_settings_data(settings):
     factors = settings["factors"]
 
-    for factor in range(3):
+    for factor in range(1):
         noise = Global_access.noises[factor]
         noise.use_noise = factors[factor]["useNoise"]
         noise.center = factors[factor]["center"]

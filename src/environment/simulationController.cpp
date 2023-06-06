@@ -1,5 +1,4 @@
 
-#include <iostream>
 #include "environment/simulationController.h"
 #include "renderer.h"
 #include "../genome/geneMap.h"
@@ -9,21 +8,34 @@
 #include "environment/cell/photosynthesizer.h"
 
 SimulationController::SimulationController(
+	Settings & settings,
 	Environment && environment,
 	OrganismGrid && organismGrid,
-	std::default_random_engine & random,
-	Ids & ids,
-	Settings & settings
+	std::default_random_engine random,
+	Ids && ids,
+	Tree && tree
 ) :
 	random(random),
 	organismGrid(std::move(organismGrid)),
 	environment(std::move(environment)),
 	organisms(),
 	currentTick(0),
-	ids(ids),
-	settings(settings) {}
+	ids(std::move(ids)),
+	settings(settings),
+	tree(std::move(tree)) {}
 
-auto SimulationController::tick() -> void {
+auto SimulationController::operator=(SimulationController && other) noexcept -> SimulationController & {
+	environment = std::move(other.environment);
+	organismGrid = std::move(other.organismGrid);
+	random = other.random;
+	ids = std::move(other.ids);
+	tree = std::move(other.tree);
+	organisms = std::move(other.organisms);
+
+	return *this;
+}
+
+auto SimulationController::tick(Tree::Node *& activeNode) -> void {
 	shuffleOrganisms();
 
 	renderOrganismGrid();
@@ -36,7 +48,7 @@ auto SimulationController::tick() -> void {
 
 	organismCellsTick();
 
-	checkOrganismsDie();
+	checkOrganismsDie(activeNode);
 
     organismsReproduce();
 
@@ -74,7 +86,7 @@ auto SimulationController::organismSeeingDirection(Organism & organism, i32 inde
 		if (cell.bodyPart() != BodyPart::EYE) continue;
 		auto && eye = cell;
 
-		auto eyeDirection = Direction(eye.data()).rotate(organism.rotation);
+		auto eyeDirection = organism.rotation; //Direction(eye.data()).rotate(organism.rotation);
 		auto eyePos = organism.absoluteXY(eye);
 
 		for (auto i = 1; i <= settings.sightRange; ++i) {
@@ -89,7 +101,7 @@ auto SimulationController::organismSeeingDirection(Organism & organism, i32 inde
 				return std::make_optional<Direction>(eyeDirection);
 
 			} else if (space.fromOrganism() && space.index() != index) {
-				for (auto && reaction : organism.phenome.eyeReactions) {
+				for (auto && reaction : organism.phenome.reactions) {
 					if (space.cell(organisms).bodyPart() == reaction.seeing) {
 						return std::make_optional<Direction>(reaction.actionType == EyeGene::ActionType::TOWARD ? eyeDirection : eyeDirection.opposite());
 					}
@@ -107,9 +119,7 @@ auto SimulationController::moveOrganisms() -> void {
 	for (auto index = 0; index < organisms.size(); ++index) {
 		auto && organism = organisms[index];
 		auto moveTries = organism.phenome.moveTries;
-		if (moveTries == 0 || organism.energy == 0) continue;
-
-		//if (moveTries < std::uniform_int_distribution(1, 2)(random)) continue;
+		if (moveTries == 0 || (organism.energy == 0 && settings.needEnergyToMove)) continue;
 
 		auto seeingDirection = organismSeeingDirection(organism, index);
 
@@ -159,19 +169,24 @@ auto SimulationController::moveOrganisms() -> void {
 		if (doMove()) {
 			++organism.ticksSinceCollision;
 			organism.ticksStuck = 0;
-		} else {
-			++organism.ticksStuck;
-		}
 
-		organism.addEnergy(-settings.moveCost);
+			organism.addEnergy(-settings.moveCost, settings);
+		} else {
+			if (++organism.ticksStuck >= settings.crushTime) {
+				organism.addEnergy(-settings.moveCost, settings);
+			}
+		}
 	}
 }
 
-auto SimulationController::checkOrganismsDie() -> void {
+constexpr i32 HEAL_STRIDE = 6;
+
+auto SimulationController::checkOrganismsDie(Tree::Node *& activeNode) -> void {
 	std::erase_if(organisms, [&, this](Organism & organism) {
 		if (organism.phenome.numAliveCells == 0) {
 			replaceOrganismWithFood(organism);
 			ids.removeId(organism.id);
+			tree.kill(organism.node, activeNode);
 			return true;
 		}
 		return false;
@@ -185,20 +200,25 @@ auto SimulationController::replaceOrganismWithFood(Organism & organism) -> void 
 	}
 }
 
-auto SimulationController::serialize() -> json {
-	auto renderedBuffer = Renderer::render(environment, organisms);
-
+auto SimulationController::serialize(Controls & controls) -> json {
 	auto organismsArray = json::array();
 	for (auto && organism : organisms)
 		organismsArray.push_back(organism.id);
 
-	return json {
+	auto messageBody = json {
 		{ "width",     environment.getWidth() },
 		{ "height",    environment.getHeight() },
 		{ "tick",      currentTick },
-		{ "grid",      Util::base64Encode(renderedBuffer) },
-		{ "organisms", organismsArray },
+		{ "organisms", std::move(organismsArray) },
 	};
+
+	if (controls.displayMode == Controls::DisplayMode::ENVIRONMENT) {
+		messageBody.push_back({ "grid", Util::base64Encode(Renderer::render(environment, organisms, controls.activeNode)) });
+	} else {
+		messageBody.push_back({ "tree", tree.serialize(controls.activeNode) });
+	}
+
+	return messageBody;
 }
 
 static auto fiftyFifty = std::uniform_int_distribution(0, 1);
@@ -340,14 +360,15 @@ auto SimulationController::tryReproduce(Phenome & childPhenome, Organism & organ
 
 	auto [x, y, rotation] = spawnPoint.value();
 
-	organism.addEnergy(-(reproductionEnergy + childBodyEnergy + childEnergy));
+	organism.addEnergy(-(reproductionEnergy + childBodyEnergy + childEnergy), settings);
 
 	return std::make_optional<Organism>(
 		std::move(childPhenome),
-        ids.newId(),
+        ids.newId(random),
         x, y,
         rotation,
-        childEnergy
+        childEnergy,
+		tree.add(organism.node, childPhenome.genome)
 	);
 }
 
@@ -363,9 +384,7 @@ auto SimulationController::getOrganism(u32 id) -> Organism * {
 }
 
 auto SimulationController::updateFactors() -> void {
-	settings.factorNoises[Factor::TEMPERATURE].tick();
-	settings.factorNoises[Factor::LIGHT].tick();
-	settings.factorNoises[Factor::OXYGEN].tick();
+	settings.factors[Factor::LIGHT].tick();
 
 	refreshFactors();
 }
@@ -375,9 +394,7 @@ auto SimulationController::refreshFactors() -> void {
 		for (auto x = 0; x < environment.getWidth(); ++x) {
 			auto && cell = environment.accessUnsafe(x, y);
 
-			cell.setFactor(Factor::TEMPERATURE, settings.factorNoises[Factor::TEMPERATURE].getValue(x, y));
-			cell.setFactor(Factor::LIGHT, settings.factorNoises[Factor::LIGHT].getValue(x, y));
-			cell.setFactor(Factor::OXYGEN, settings.factorNoises[Factor::OXYGEN].getValue(x, y));
+			cell.setFactor(Factor::LIGHT, settings.factors[Factor::LIGHT].getValue(x, y));
 		}
 	}
 }

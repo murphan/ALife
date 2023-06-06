@@ -13,8 +13,6 @@
 
 #include "types.h"
 
-//#define DEBUG
-
 /**
  * wrapper for the genetic code of organism
  * genome represented by a sequence of 4 "base pairs" labeled A, B, C, and D
@@ -35,8 +33,6 @@ private:
 	 */
 	std::vector<u8> code;
 	i32 length;
-
-	auto internalwriteGarbage(i32 n, i32 avoidEnd) -> void;
 
 public:
 	static char baseName[4];

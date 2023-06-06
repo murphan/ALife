@@ -5,7 +5,7 @@
 #include "bodyGene.h"
 #include "genome/geneWriter.h"
 
-const auto BodyGene::LENGTH = 15;
+const auto BodyGene::LENGTH = 12;
 
 auto BodyGene::usesAnchor() const -> bool {
 	return usingAnchor != -1;
@@ -15,15 +15,14 @@ auto BodyGene::setsAnchor() const -> bool {
 	return setAnchor != -1;
 }
 
-BodyGene::BodyGene(Direction direction, BodyPart bodyPart, i32 usingAnchor, i32 setAnchor, i32 data) :
-	direction(direction), bodyPart(bodyPart), usingAnchor(usingAnchor), setAnchor(setAnchor), data(data) {}
+BodyGene::BodyGene(Direction direction, BodyPart bodyPart, i32 usingAnchor, i32 setAnchor) :
+	direction(direction), bodyPart(bodyPart), usingAnchor(usingAnchor), setAnchor(setAnchor) {}
 
 BodyGene::BodyGene(GenomeView & view) :
 	bodyPart((BodyPart)(GeneWriter::read7(view, 0) + 1)),
 	direction(GeneWriter::read8(view, 3)),
 	usingAnchor(-1),
-	setAnchor(-1),
-	data(GeneWriter::read8(view, 12))
+	setAnchor(-1)
 {
 	auto special = GeneWriter::read3(view, 6);
 
@@ -48,24 +47,22 @@ auto BodyGene::writeBody(Genome & genome) -> void {
 		GeneWriter::write3(genome, 0);
 		GeneWriter::write4(genome, 0);
 	}
-
-	GeneWriter::write8(genome, data);
 }
 
 /* factories */
 
-auto BodyGene::create(Direction dir, BodyPart bodyPart, i32 data) -> BodyGene {
-	return { dir, bodyPart, -1, -1, data };
+auto BodyGene::create(Direction dir, BodyPart bodyPart) -> BodyGene {
+	return { dir, bodyPart, -1, -1 };
 }
 
-auto BodyGene::createUseAnchor(Direction dir, BodyPart bodyPart, i32 anchor, i32 data) -> BodyGene {
-	return { dir, bodyPart, anchor, -1, data };
+auto BodyGene::createUseAnchor(Direction dir, BodyPart bodyPart, i32 anchor) -> BodyGene {
+	return { dir, bodyPart, anchor, -1 };
 }
 
-auto BodyGene::createSetAnchor(Direction dir, BodyPart bodyPart, i32 anchor, i32 data) -> BodyGene {
-	return { dir, bodyPart, -1, anchor, data };
+auto BodyGene::createSetAnchor(Direction dir, BodyPart bodyPart, i32 anchor) -> BodyGene {
+	return { dir, bodyPart, -1, anchor };
 }
 
-auto BodyGene::createDuplicate(Direction dir, BodyPart bodyPart, i32 data) -> BodyGene {
-	return { dir, bodyPart, -1, -1, data };
+auto BodyGene::createDuplicate(Direction dir, BodyPart bodyPart) -> BodyGene {
+	return { dir, bodyPart, -1, -1 };
 }

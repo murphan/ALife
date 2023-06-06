@@ -16,7 +16,8 @@ class Renderer {
 public:
 	static auto render(
 		Environment & environment,
-		std::vector<Organism> & organisms
+		std::vector<Organism> & organisms,
+		Tree::Node * activeNode
 	) -> std::vector<u8>;
 };
 

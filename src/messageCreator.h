@@ -19,11 +19,12 @@ using json = nlohmann::json;
 
 class MessageCreator {
 public:
-	static auto frameMessage(json && environmentBody) -> json;
+	static auto frameMessage(json && frameBody) -> json;
 
-	static auto initMessage(json && environmentBody, json && controlsBody, json && settingsBody) -> json;
+	static auto initMessage(json && frameBody, json && controlsBody, json && settingsBody) -> json;
 
 	static auto controlsMessage(json && controlsBody) -> json;
+	static auto controlsMessageAndFrame(json && controlsBody, json && frameBody) -> json;
 
 	static auto settingsMessage(json && settingsBody) -> json;
 

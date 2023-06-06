@@ -9,7 +9,7 @@ os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 import pygame
 
 import EnvironmentControl
-from Setup_EnvironmentGUI import EnvironmentGUI
+from EnvironmentGUI import EnvironmentGUI
 import Setup_settingsGUI
 import Global_access
 import receive_message
@@ -23,7 +23,7 @@ class Management:
         self.thread = None
         self.create_connection()
 
-        self.environment_gui = EnvironmentGUI(lambda fps: EnvironmentControl.set_fps(self.conn, fps))
+        self.environment_gui = EnvironmentGUI()
 
         Global_access.ENV_FONT = pygame.font.SysFont('Arial', 20)
 
@@ -57,35 +57,46 @@ class Management:
                 pygame.quit()
                 sys.exit()
 
-            should_render_ui = False
-
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     Thread(target=Management.exiting).start()
 
                 if event.type == pygame.VIDEORESIZE:
                     self.environment_gui.on_window_resize(event)
+                    Global_access.set_should_render(True)
 
                 if self.environment_gui.settings_button.update(event):
                     Thread(target=self.open_settings).start()
 
                 if self.environment_gui.play_pause_button.update(event):
                     EnvironmentControl.toggle_start_stop(self.conn)
-                    should_render_ui = True
 
-                if self.environment_gui.fps_slider.update(event):
-                    should_render_ui = True
+                fps_value = self.environment_gui.fps_slider.update(event)
+                if fps_value is not None:
+                    EnvironmentControl.set_fps(self.conn, int(fps_value))
+
+                if self.environment_gui.tree_button.update(event):
+                    EnvironmentControl.toggle_display_mode(self.conn)
+
+                if self.environment_gui.reset_button.update(event):
+                    send_message(self.conn, 'reset')
+
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    EnvironmentControl.square_clicked(event, self.conn)
+
+                EnvironmentControl.click_tree(self.conn, event)
 
             should_render_environment = Global_access.latest_frame is not None and\
                 Global_access.latest_frame["should_render"]
 
             if should_render_environment:
-                Global_access.SCREEN.fill(Global_access.BLACK)
-                Drawing.render_grid(Global_access.latest_frame)
-                Global_access.latest_frame["should_render"] = False
+                Drawing.blackout_top()
+                Drawing.render(Global_access.latest_frame)
 
-            if should_render_environment or should_render_ui:
+                Drawing.blackout_bottom()
                 self.environment_gui.render_ui()
+
+                Global_access.set_should_render(False)
 
             pygame.display.update()
 

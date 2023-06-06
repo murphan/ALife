@@ -38,5 +38,6 @@ auto Mouth::tryEat(i32 x, i32 y, Organism & organism, i32 index, Environment & e
 
 auto Mouth::eatCell(Organism & organism, Body::Cell & cell, Settings & settings) -> void {
 	auto energy = (i32)((f32)cell.cost(settings) * settings.foodEfficiency);
-	organism.addEnergy(energy);
+	if (energy < 0) return;
+	organism.addEnergy(energy, settings);
 }
