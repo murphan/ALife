@@ -5,7 +5,7 @@
 #ifndef ALIFE_EYEGENE_H
 #define ALIFE_EYEGENE_H
 
-#include "types.h"
+#include "util/types.h"
 #include "../gene.h"
 #include "../bodyPart.h"
 

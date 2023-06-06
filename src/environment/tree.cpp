@@ -5,27 +5,10 @@
 #include "tree.h"
 
 #include <utility>
-#include "util.h"
-#include "color.h"
+#include "util/util.h"
+#include "util/color.h"
 
 Tree::Tree(): lastUUID(0_u64), root(nullptr) {}
-
-Tree::Node::Node(Genome genome, u64 uuid):
-	genome(std::move(genome)),
-	parent(nullptr),
-	alive(true),
-	children(),
-	uuid(uuid),
-	value(0),
-	level(0),
-	values(),
-	hueLeft(0),
-	hueRight(0),
-	active(false) {}
-
-auto Tree::Node::isLeaf() const -> bool {
-	return children.empty();
-}
 
 auto Tree::kill(Node * node, Node *& activeNode) -> void {
 	auto * current = node;
@@ -66,7 +49,7 @@ auto Tree::kill(Node * node, Node *& activeNode) -> void {
 	}
 }
 
-auto Tree::add(Tree::Node * parent, const Genome & newGenome) -> Node * {
+auto Tree::add(Node * parent, const Genome & newGenome) -> Node * {
 	auto nextUUID = lastUUID++;
 
 	if (parent == nullptr) {
@@ -84,7 +67,7 @@ auto Tree::add(Tree::Node * parent, const Genome & newGenome) -> Node * {
 struct QueueElement {
 	json::reference parentArray;
 	i32 indexInArray;
-	Tree::Node * node;
+	Node * node;
 };
 
 auto Tree::serialize(Node * activeNode) -> json {
@@ -136,11 +119,13 @@ inline auto interp(f32 along, f32 left, f32 right) -> f32 {
 	return along * (right - left) + left;
 }
 
-auto Tree::update(bool smart, bool updatePositions, Node * activeNode) -> void {
+auto Tree::update(Controls & controls) -> void {
 	if (root == nullptr) return;
 
-	auto iterStack = std::vector<Tree::Node *>();
-	auto reverseStack = std::vector<Tree::Node *>();
+	auto updatePositions = controls.displayMode == Controls::DisplayMode::TREE;
+
+	auto iterStack = std::vector<Node *>();
+	auto reverseStack = std::vector<Node *>();
 
 	iterStack.push_back(root.get());
 	reverseStack.push_back(root.get());
@@ -157,10 +142,11 @@ auto Tree::update(bool smart, bool updatePositions, Node * activeNode) -> void {
 		node->values.clear();
 		if (node->level > maxLevel) maxLevel = node->level;
 
-		if (node == activeNode) {
+		if (node == controls.activeNode) {
 			node->active = true;
 		} else {
-			node->active = node->parent != nullptr && node->parent->active;
+			node->active = controls.selectMode == Controls::SelectMode::LINEAGE &&
+				node->parent != nullptr && node->parent->active;
 		}
 
 		for (auto i = 0; i < node->children.size(); ++i) {
@@ -182,7 +168,7 @@ auto Tree::update(bool smart, bool updatePositions, Node * activeNode) -> void {
 	for (auto j = (i32)reverseStack.size() - 1; j >= 0; --j) {
 		auto * node = reverseStack[j];
 
-		if (smart) {
+		if (controls.smartTree) {
 			node->values.resize(levelTotals.size(), 0);
 			node->values[node->level] = 1;
 
@@ -209,10 +195,10 @@ auto Tree::update(bool smart, bool updatePositions, Node * activeNode) -> void {
 	}
 }
 
-auto Tree::getNodeByUUID(u32 uuid) const -> Tree::Node * {
+auto Tree::getNodeByUUID(u32 uuid) const -> Node * {
 	if (root == nullptr) return nullptr;
 
-	auto stack = std::vector<Tree::Node *>(1, root.get());
+	auto stack = std::vector<Node *>(1, root.get());
 
 	while (!stack.empty()) {
 		auto * node = stack.back();

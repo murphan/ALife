@@ -3,7 +3,7 @@
 //
 
 #include "organismGrid.h"
-#include "../genome/rotation.h"
+#include "util/rotation.h"
 
 OrganismGrid::OrganismGrid(i32 width, i32 height) :
 	blankSpace(Space::makeEmpty()),
@@ -26,7 +26,7 @@ auto OrganismGrid::clear() -> void {
 }
 
 auto OrganismGrid::internalSpaceAvailable(Body & body, i32 index, i32 centerX, i32 centerY, Direction rotation) -> bool {
-	return std::all_of(body.getCells().begin(), body.getCells().end(), [&](Body::Cell & cell) {
+	return std::all_of(body.getCells().begin(), body.getCells().end(), [&](const Body::Cell & cell) {
 		auto [x, y] = Body::absoluteXY(cell, centerX, centerY, rotation);
 
 		if (!inBounds(x, y)) return false;
@@ -102,7 +102,7 @@ auto OrganismGrid::Space::makeEmpty() -> OrganismGrid::Space {
 	return OrganismGrid::Space(0, 0, 0);
 }
 
-auto OrganismGrid::Space::makeCell(Body::Cell & reference, i32 index) -> OrganismGrid::Space {
+auto OrganismGrid::Space::makeCell(Body::Cell reference, i32 index) -> OrganismGrid::Space {
 	return OrganismGrid::Space(reference.x(), reference.y(), index + 1);
 }
 

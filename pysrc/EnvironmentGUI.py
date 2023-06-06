@@ -1,14 +1,9 @@
-import random
-
 import pygame
 
 import Global_access
-from component.Slider import Slider
-from component.Button import Button
 import boxing
-from Drawing import blackout_message_area
-
-ORGANISM_TO_DISPLAY = None
+from component.Button import Button
+from component.Slider import Slider
 
 class EnvironmentGUI:
     def __init__(self):
@@ -24,6 +19,8 @@ class EnvironmentGUI:
         self.fps_slider = Slider(1.0, 21.0)
         self.tree_button = Button()
         self.reset_button = Button()
+        self.select_mode_button = Button()
+        self.do_highlight_button = Button()
 
     @staticmethod
     def set_screen_sizes(width: int, height: int):
@@ -87,6 +84,8 @@ class EnvironmentGUI:
         play_box = boxing.left_of(ref=settings_box, box=boxing.box(70, 35), x=5)
         fps_box = boxing.left_of(ref=play_box, box=boxing.box(210, 35), x=5)
         tree_box = boxing.left_of(ref=fps_box, box=boxing.box(100, 35), x=5)
+        do_highlight_box = boxing.left_of(ref=tree_box, box=boxing.box(100, 35), x=5)
+        select_mode_box = boxing.left_of(ref=do_highlight_box, box=boxing.box(125, 35), x=5)
 
         reset_box = boxing.from_bottom_left(boxing.box(70, 35), 5, 5)
 
@@ -122,6 +121,21 @@ class EnvironmentGUI:
             Global_access.ENV_FONT,
             0x4fbdae if Global_access.controls['displayMode'] == Global_access.DISPLAY_MODE_ENVIRONMENT else 0x6acc43,
         )
+        self.do_highlight_button.render(
+            Global_access.SCREEN,
+            do_highlight_box,
+            'Highlight' if Global_access.controls['doHighlight'] else 'No Highlight',
+            Global_access.ENV_FONT,
+            0xebdc9b if Global_access.controls['doHighlight'] else 0x696143,
+        )
+        self.select_mode_button.render(
+            Global_access.SCREEN,
+            select_mode_box,
+            'Select: Single' if Global_access.controls['selectMode'] == Global_access.SELECT_MODE_SINGLE else 'Select: Lineage',
+            Global_access.ENV_FONT,
+            0x542ee8 if Global_access.controls['selectMode'] == Global_access.SELECT_MODE_SINGLE else 0x6b18c9,
+        )
+
         self.reset_button.render(
             Global_access.SCREEN,
             reset_box,
@@ -129,8 +143,9 @@ class EnvironmentGUI:
             Global_access.ENV_FONT,
             0xff0000,
         )
-        global ORGANISM_TO_DISPLAY
-        EnvironmentGUI.display_organism_data(ORGANISM_TO_DISPLAY)
+
+        if Global_access.latest_frame is not None and Global_access.latest_frame["organism"] is not None:
+            EnvironmentGUI.display_organism_data(Global_access.latest_frame["organism"])
 
     @staticmethod
     def set_organism_to_display(organism):
@@ -147,7 +162,6 @@ class EnvironmentGUI:
         :param type: organism type
         """
         if organism is not None:
-            blackout_message_area()
             general_string_1 = f"Mutation Modifiers: {organism['mutationModifiers'][0]}    "\
                                f"Num Cells Alive: {organism['numAliveCells']}    "\
                                f"Move Length: {organism['moveLength']}    "\

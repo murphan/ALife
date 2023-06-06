@@ -17,6 +17,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /GX")
 # instead of just relative
 include_directories(src "${JSONHPP_DIR}")
 
-file(GLOB_RECURSE alife_src_files CONFIGURE_DEPENDS "src/*.h" "src/*.cpp" "src/**/*.h" "src/**/*.cpp")
+file(GLOB_RECURSE alife_src_files CONFIGURE_DEPENDS "src" "src/*.h" "src/*.cpp" "src/**/*.h" "src/**/*.cpp")
 
 add_executable(ALife ${alife_src_files})

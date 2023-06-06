@@ -18,7 +18,7 @@ auto BodyGene::setsAnchor() const -> bool {
 BodyGene::BodyGene(Direction direction, BodyPart bodyPart, i32 usingAnchor, i32 setAnchor) :
 	direction(direction), bodyPart(bodyPart), usingAnchor(usingAnchor), setAnchor(setAnchor) {}
 
-BodyGene::BodyGene(GenomeView & view) :
+BodyGene::BodyGene(const GenomeView & view) :
 	bodyPart((BodyPart)(GeneWriter::read7(view, 0) + 1)),
 	direction(GeneWriter::read8(view, 3)),
 	usingAnchor(-1),

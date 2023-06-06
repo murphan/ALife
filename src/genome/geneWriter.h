@@ -6,7 +6,7 @@
 #define ALIFE_GENEWRITER_H
 
 #include <array>
-#include "types.h"
+#include "util/types.h"
 #include "genome.h"
 #include "gene.h"
 
@@ -84,37 +84,37 @@ namespace GeneWriter {
 	auto write8(Genome & genome, i32 value) -> void;
 
 	template<GenomeLike G>
-	auto read2(G & gene, i32 offset) -> i32 {
+	auto read2(const G & gene, i32 offset) -> i32 {
 		return decode2Table[(gene[offset] << 4) | (gene[offset + 1] << 2) | gene[offset + 2]];
 	}
 
 	template<GenomeLike G>
-	auto read3(G & gene, i32 offset) -> i32 {
+	auto read3(const G & gene, i32 offset) -> i32 {
 		return decode3Table[(gene[offset] << 4) | (gene[offset + 1] << 2) | gene[offset + 2]];
 	}
 
 	template<GenomeLike G>
-	auto read4(G & gene, i32 offset) -> i32 {
+	auto read4(const G & gene, i32 offset) -> i32 {
 		return decode4Table[(gene[offset] << 4) | (gene[offset + 1] << 2) | gene[offset + 2]];
 	}
 
 	template<GenomeLike G>
-	auto read5(G & gene, i32 offset) -> i32 {
+	auto read5(const G & gene, i32 offset) -> i32 {
 		return decode5Table[(gene[offset] << 4) | (gene[offset + 1] << 2) | gene[offset + 2]];
 	}
 
 	template<GenomeLike G>
-	auto read6(G & gene, i32 offset) -> i32 {
+	auto read6(const G & gene, i32 offset) -> i32 {
 		return decode6Table[(gene[offset] << 4) | (gene[offset + 1] << 2) | gene[offset + 2]];
 	}
 
 	template<GenomeLike G>
-	auto read7(G & gene, i32 offset) -> i32 {
+	auto read7(const G & gene, i32 offset) -> i32 {
 		return decode7Table[(gene[offset] << 4) | (gene[offset + 1] << 2) | gene[offset + 2]];
 	}
 
 	template<GenomeLike G>
-	auto read8(G & gene, i32 offset) -> i32 {
+	auto read8(const G & gene, i32 offset) -> i32 {
 		return decode8Table[(gene[offset] << 4) | (gene[offset + 1] << 2) | gene[offset + 2]];
 	}
 }

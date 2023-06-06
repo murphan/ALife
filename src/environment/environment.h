@@ -6,7 +6,7 @@
 
 #include <vector>
 
-#include "types.h"
+#include "util/types.h"
 
 /**
  * container for grid squares, environmental factors, food, walls
@@ -21,7 +21,8 @@ class Environment {
     public:
         Environment(i32 width, i32 height);
 
-        auto accessUnsafe(i32 x, i32 y) -> MapCell &;
+        auto accessUnsafe(i32 x, i32 y) const -> const MapCell &;
+		auto accessUnsafe(i32 x, i32 y) -> MapCell & ;
 		auto access(i32 x, i32 y) -> MapCell &;
 
 		auto mapSize() const -> i32;

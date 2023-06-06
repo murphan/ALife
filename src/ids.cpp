@@ -4,7 +4,7 @@
 
 #include <exception>
 #include "ids.h"
-#include "util.h"
+#include "util/util.h"
 
 Ids::Ids() : numFilled(0), array(NUM_IDS, false) {}
 

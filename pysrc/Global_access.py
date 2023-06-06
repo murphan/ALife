@@ -3,13 +3,9 @@ This file has Global variables and information that can be acessed by the entire
 It requires access to the mutex in order to update as there are threads in the application
 """
 
-from threading import Lock
-from typing import Any
-
-import Drawing
 import pygame
 
-from pysrc.EnvironmentGUI import EnvironmentGUI
+from EnvironmentGUI import EnvironmentGUI
 from Noise import Noise
 
 # This is only set to be 1 when the program is exiting. Do not use unless ending execution
@@ -36,13 +32,18 @@ repro_substitution = 0.0
 DISPLAY_MODE_ENVIRONMENT = 0
 DISPLAY_MODE_TREE = 1
 
+SELECT_MODE_SINGLE = 0
+SELECT_MODE_LINEAGE = 1
+
 ControlsType = {
     "playing": bool,
     'fps': int,
     'updateDisplay': bool,
     'displayMode': int,
     'smartTree': bool,
-    'activeNode': int
+    'activeNode': int,
+    'doHighlight': bool,
+    'selectMode': int,
 }
 
 controls: ControlsType = {
@@ -52,6 +53,8 @@ controls: ControlsType = {
     "displayMode": DISPLAY_MODE_ENVIRONMENT,
     "smartTree": False,
     'activeNode': None,
+    'doHighlight': False,
+    'selectMode': SELECT_MODE_SINGLE,
 }
 
 
@@ -72,11 +75,15 @@ TREE_BOX = pygame.Rect(0, 0, 0, 0)
 grid_width = 0
 grid_height = 0
 
+Node = [int, int, int, bool, bool, int, list, (int, int)]
+Tree = {"levelTotals": list[int], "root": Node}
+RenderInfo = {"size": (int, int), 'grid': bytes, "ids": list[int], "tree": Tree, "organism": None}
+
 # variables used frequently in the environment
 SCREEN = None
 CLICK_TYPE = "Organism"
 ENVIRONMENT_GRID = []
-latest_frame: Drawing.RenderInfo = None
+latest_frame: RenderInfo = None
 
 TILE_TYPE_EMPTY = 0
 TILE_TYPE_ORGANISM = 1
@@ -89,8 +96,6 @@ ENV_FONT: pygame.font.Font
 
 # how much we leave for ui at the bottom of the screen
 BOTTOM_BUFFER = 75
-
-
 
 
 def define_grid(width: int, height: int):

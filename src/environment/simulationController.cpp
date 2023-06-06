@@ -1,11 +1,11 @@
 
 #include "environment/simulationController.h"
-#include "renderer.h"
+#include "rendering/renderer.h"
 #include "../genome/geneMap.h"
-#include "genome/rotation.h"
-#include "environment/cell/mouth.h"
-#include "environment/cell/weapon.h"
-#include "environment/cell/photosynthesizer.h"
+#include "util/rotation.h"
+#include "organism/cell/mouth.h"
+#include "organism/cell/weapon.h"
+#include "organism/cell/photosynthesizer.h"
 
 SimulationController::SimulationController(
 	Settings & settings,
@@ -35,7 +35,7 @@ auto SimulationController::operator=(SimulationController && other) noexcept -> 
 	return *this;
 }
 
-auto SimulationController::tick(Tree::Node *& activeNode) -> void {
+auto SimulationController::tick(Node *& activeNode) -> void {
 	shuffleOrganisms();
 
 	renderOrganismGrid();
@@ -170,10 +170,10 @@ auto SimulationController::moveOrganisms() -> void {
 			++organism.ticksSinceCollision;
 			organism.ticksStuck = 0;
 
-			organism.addEnergy(-settings.moveCost, settings);
+			organism.addEnergy(-settings.moveCost);
 		} else {
 			if (++organism.ticksStuck >= settings.crushTime) {
-				organism.addEnergy(-settings.moveCost, settings);
+				organism.addEnergy(-settings.moveCost);
 			}
 		}
 	}
@@ -181,7 +181,7 @@ auto SimulationController::moveOrganisms() -> void {
 
 constexpr i32 HEAL_STRIDE = 6;
 
-auto SimulationController::checkOrganismsDie(Tree::Node *& activeNode) -> void {
+auto SimulationController::checkOrganismsDie(Node *& activeNode) -> void {
 	std::erase_if(organisms, [&, this](Organism & organism) {
 		if (organism.phenome.numAliveCells == 0) {
 			replaceOrganismWithFood(organism);
@@ -200,10 +200,10 @@ auto SimulationController::replaceOrganismWithFood(Organism & organism) -> void 
 	}
 }
 
-auto SimulationController::serialize(Controls & controls) -> json {
+auto SimulationController::serialize(const Controls & controls) -> json {
 	auto organismsArray = json::array();
 	for (auto && organism : organisms)
-		organismsArray.push_back(organism.id);
+		organismsArray.push_back(organism.node->uuid);
 
 	auto messageBody = json {
 		{ "width",     environment.getWidth() },
@@ -212,8 +212,23 @@ auto SimulationController::serialize(Controls & controls) -> json {
 		{ "organisms", std::move(organismsArray) },
 	};
 
+	if (controls.activeNode != nullptr) {
+		auto found = Util::find(organisms, [&](Organism & organism) { return organism.node == controls.activeNode; });
+		if (found != organisms.end()) {
+			messageBody.push_back({ "organism", found->serialize(true) });
+		}
+	}
+
 	if (controls.displayMode == Controls::DisplayMode::ENVIRONMENT) {
-		messageBody.push_back({ "grid", Util::base64Encode(Renderer::render(environment, organisms, controls.activeNode)) });
+		auto render = Renderer::Render(environment, controls);
+
+		for (auto index = 0; index < organisms.size(); ++index) {
+			auto && organism = organisms[index];
+			render.renderOrganism(organism, organism.x, organism.y, organism.rotation, index);
+		}
+
+		messageBody.push_back({ "grid", Util::base64Encode(render.finalize()) });
+
 	} else {
 		messageBody.push_back({ "tree", tree.serialize(controls.activeNode) });
 	}
@@ -234,7 +249,7 @@ auto SimulationController::ageOrganismCells() -> void {
 
 		for (auto i = 0; i < numCells; ++i) {
 			auto index = (i + startIndex) % numCells;
-			auto && cell = organism.body().getCells()[index];
+			auto & cell = organism.body().getCells()[index];
 
 			if (cell.dead()) continue;
 
@@ -292,7 +307,7 @@ auto SimulationController::organismsReproduce() -> void {
 					settings.baseMutationRates[2] * (f32)pow(settings.mutationFactor, phenome.mutationModifiers[2]),
 					random
 				);
-				organism.storedChild = std::make_optional<Phenome>(std::move(childGenome), Body(2), settings);
+				organism.storedChild = std::make_optional<Phenome>(std::move(childGenome), Body(), settings);
 			}
 		} else {
 			auto && childPhenome = organism.storedChild.value();
@@ -360,7 +375,7 @@ auto SimulationController::tryReproduce(Phenome & childPhenome, Organism & organ
 
 	auto [x, y, rotation] = spawnPoint.value();
 
-	organism.addEnergy(-(reproductionEnergy + childBodyEnergy + childEnergy), settings);
+	organism.addEnergy(-(reproductionEnergy + childBodyEnergy + childEnergy));
 
 	return std::make_optional<Organism>(
 		std::move(childPhenome),

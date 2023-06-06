@@ -23,7 +23,7 @@ public:
 	auto setsAnchor() const -> bool;
 
 	BodyGene(Direction direction, BodyPart bodyPart, i32 usingAnchor, i32 setAnchor);
-	explicit BodyGene(GenomeView & view);
+	explicit BodyGene(const GenomeView & view);
 
 	/* helper factories */
 

@@ -71,6 +71,7 @@ def handle_frame_data(frame_data_map):
         "size": (width, height),
         "ids": frame_data_map["organisms"],
         "should_render": True,
+        "organism": frame_data_map["organism"] if "organism" in frame_data_map else None
     }
 
     if 'grid' in frame_data_map:

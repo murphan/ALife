@@ -5,9 +5,11 @@
 #ifndef ALIFE_TREE_H
 #define ALIFE_TREE_H
 
-#include "types.h"
+#include "util/types.h"
 #include "genome/genome.h"
 #include <json.hpp>
+#include "controls.h"
+#include "node.h"
 
 using json = nlohmann::json;
 
@@ -16,26 +18,6 @@ private:
 	u64 lastUUID;
 
 public:
-	class Node {
-	public:
-		Genome genome;
-		Node * parent;
-		bool alive;
-		std::vector<std::unique_ptr<Node>> children;
-
-		u64 uuid;
-		i32 value;
-		i32 level;
-		std::vector<i32> values;
-		f32 hueLeft;
-		f32 hueRight;
-		bool active;
-
-		explicit Node(Genome genome, u64 uuid);
-
-		[[nodiscard]] auto isLeaf() const -> bool;
-	};
-
 	std::vector<i32> levelTotals;
 	std::unique_ptr<Node> root;
 
@@ -45,7 +27,7 @@ public:
 
 	auto kill(Node * node, Node *& activeNode) -> void;
 
-	auto update(bool smart, bool updatePositions, Node * activeNode) -> void;
+	auto update(Controls & controls) -> void;
 
 	auto serialize(Node * activeNode) -> json;
 

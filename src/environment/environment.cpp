@@ -5,8 +5,12 @@ Environment::Environment(i32 width, i32 height) : emptyCell(), width(width), hei
 	emptyCell.setHasWall(true);
 }
 
+auto Environment::accessUnsafe(int x, int y) const -> const MapCell & {
+	return map[y * width + x];
+}
+
 auto Environment::accessUnsafe(int x, int y) -> MapCell & {
-    return map[y * width + x];
+    return Util::asMutable(Util::asConst(this)->accessUnsafe(x, y));
 }
 
 auto Environment::access(i32 x, i32 y) -> MapCell & {

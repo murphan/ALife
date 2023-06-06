@@ -8,11 +8,12 @@
 #include <vector>
 #include <random>
 
-#include "organism.h"
+#include "organism/organism.h"
 #include "environment.h"
 #include "settings.h"
 #include "organismGrid.h"
 #include "ids.h"
+#include "tree.h"
 
 class OrganismSeeder {
 public:

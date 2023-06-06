@@ -6,9 +6,9 @@
 #define ALIFE_ORGANISMGRID_H
 
 #include <vector>
-#include "types.h"
+#include "util/types.h"
 
-#include "organism.h"
+#include "organism/organism.h"
 #include "environment.h"
 
 class OrganismGrid {
@@ -24,7 +24,7 @@ public:
 
 	public:
 		static auto makeEmpty() -> Space;
-		static auto makeCell(Body::Cell & reference, i32 index) -> Space;
+		static auto makeCell(Body::Cell reference, i32 index) -> Space;
 		static auto makeFood(i32 x, i32 y) -> Space;
 
 		[[nodiscard]] auto isFilled() const -> bool;

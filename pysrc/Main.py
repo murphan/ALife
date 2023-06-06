@@ -8,12 +8,12 @@ from tkinter import messagebox
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 import pygame
 
-import EnvironmentControl
-from EnvironmentGUI import EnvironmentGUI
-import Setup_settingsGUI
-import Global_access
-import receive_message
 import Drawing
+import EnvironmentControl
+import Global_access
+import Setup_settingsGUI
+import receive_message
+from EnvironmentGUI import EnvironmentGUI
 from send_message import send_message
 
 
@@ -80,6 +80,12 @@ class Management:
 
                 if self.environment_gui.reset_button.update(event):
                     send_message(self.conn, 'reset')
+
+                if self.environment_gui.do_highlight_button.update(event):
+                    EnvironmentControl.toggle_do_highlight(self.conn)
+
+                if self.environment_gui.select_mode_button.update(event):
+                    EnvironmentControl.toggle_select_mode(self.conn)
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     EnvironmentControl.square_clicked(event, self.conn)

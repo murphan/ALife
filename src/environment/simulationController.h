@@ -8,7 +8,7 @@
 #include <span>
 
 #include "controls.h"
-#include "organism.h"
+#include "organism/organism.h"
 #include "organismGrid.h"
 #include "settings.h"
 #include "ids.h"
@@ -34,7 +34,7 @@ private:
 
 	auto organismCellsTick() -> void;
 
-	auto checkOrganismsDie(Tree::Node *& activeNode) -> void;
+	auto checkOrganismsDie(Node *& activeNode) -> void;
 
 	auto organismsReproduce() -> void;
 
@@ -76,9 +76,9 @@ public:
 	auto operator=(SimulationController && other) noexcept -> SimulationController &;
 
 	auto refreshFactors() -> void;
-	auto tick(Tree::Node *& activeNode) -> void;
+	auto tick(Node *& activeNode) -> void;
 
-	auto serialize(Controls & controls) -> json;
+	auto serialize(const Controls & controls) -> json;
 
 	auto getOrganism(u32 id) -> Organism *;
 };

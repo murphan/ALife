@@ -5,8 +5,8 @@
 #ifndef ALIFE_DIRECTION_H
 #define ALIFE_DIRECTION_H
 
-#include "types.h"
-#include "util.h"
+#include "util/types.h"
+#include "util/util.h"
 
 /**
  * represents a discrete direction with 8 possibilities

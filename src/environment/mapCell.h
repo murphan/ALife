@@ -5,10 +5,10 @@
 #include <vector>
 #include <optional>
 
-#include "types.h"
+#include "util/types.h"
 
 #include "factor.h"
-#include "genome/body.h"
+#include "organism/body.h"
 
 /**
  * Map Cells are the grid that cmake up the map
